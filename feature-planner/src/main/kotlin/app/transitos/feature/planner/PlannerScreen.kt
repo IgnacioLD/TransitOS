@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.transitos.core.design.theme.LocalSpacing
 import app.transitos.core.model.Journey
+import app.transitos.core.model.JourneyLeg
 import app.transitos.core.model.Stop
 import app.transitos.core.ui.EmptyState
 import app.transitos.core.ui.SkeletonBlock
@@ -364,34 +365,11 @@ private fun JourneyResultCard(journey: Journey) {
                 .padding(spacing.lg),
             verticalArrangement = Arrangement.spacedBy(spacing.md),
         ) {
-            Text(
-                text = buildString {
-                    append("${journey.durationMinutes} min")
-                    append("  ·  ${"%.1f".format(journey.distanceMeters / 1000.0)} km")
-                    journey.fareZone?.let { append("  ·  Zona $it") }
-                    journey.carbonKg?.let { append("  ·  ${"%.2f".format(it)} kg CO₂") }
-                },
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.SemiBold,
-            )
+            JourneySummaryRow(journey = journey)
 
-            journey.legs.forEach { leg ->
-                Column(verticalArrangement = Arrangement.spacedBy(spacing.xxs)) {
-                    Text(
-                        text = "${leg.originName} → ${leg.destinationName}",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Medium,
-                    )
-                    if (leg.headsigns.isNotEmpty()) {
-                        Text(
-                            text = "Tren con destino ${leg.headsigns.joinToString()}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
+            journey.legs.forEachIndexed { i, leg ->
+                if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                JourneyLegSection(leg = leg, index = i)
             }
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -425,6 +403,98 @@ private fun JourneyResultCard(journey: Journey) {
                 color = MaterialTheme.colorScheme.primary,
             )
             journey.legs.firstOrNull()?.let { leg -> DepartureSchedule(departures = leg.departures) }
+        }
+    }
+}
+
+@Composable
+private fun JourneySummaryRow(journey: Journey) {
+    val spacing = LocalSpacing.current
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "${journey.durationMinutes} min",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            if (journey.hasTransfers) {
+                Text(
+                    text = "${journey.legs.size} tramos",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        if (journey.distanceMeters > 0) {
+            StatChip(value = "${"%.1f".format(journey.distanceMeters / 1000.0)} km", label = "Distancia")
+        }
+        journey.fareZone?.let {
+            StatChip(value = "Zona $it", label = "Tarifa")
+        }
+        val carbonKg = journey.carbonKg
+        if (carbonKg != null && carbonKg > 0.0) {
+            StatChip(value = "${"%.1f".format(carbonKg)} kg", label = "CO₂")
+        }
+    }
+}
+
+@Composable
+private fun StatChip(value: String, label: String) {
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = LocalSpacing.current.sm, vertical = LocalSpacing.current.xs),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun JourneyLegSection(leg: JourneyLeg, index: Int) {
+    val spacing = LocalSpacing.current
+    Column(verticalArrangement = Arrangement.spacedBy(spacing.xxs)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+        ) {
+            Text(
+                text = "${leg.originName} → ${leg.destinationName}",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = "${leg.departures.size} salidas",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (leg.headsigns.isNotEmpty()) {
+            Text(
+                text = "Dirección: ${leg.headsigns.joinToString()}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

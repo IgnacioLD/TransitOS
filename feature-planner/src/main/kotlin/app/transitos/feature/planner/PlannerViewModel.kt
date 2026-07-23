@@ -27,8 +27,9 @@ import kotlinx.datetime.todayIn
  */
 class PlannerViewModel(
     private val repository: TransitRepository,
-    private val timeZone: TimeZone = TimeZone.currentSystemDefault(),
 ) : ViewModel() {
+
+    private val timeZone: TimeZone = TimeZone.currentSystemDefault()
 
     val stops: StateFlow<List<Stop>> = repository.observeStops()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
