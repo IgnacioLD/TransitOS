@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,6 +18,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.SwapVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -60,6 +64,7 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
+import androidx.compose.runtime.LaunchedEffect
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
@@ -79,8 +84,23 @@ fun PlannerRoute(
         onDestinationSelected = viewModel::setDestination,
         onDateSelected = viewModel::setDate,
         onSwap = viewModel::swapEndpoints,
+        onSaveRoute = viewModel::saveCurrentRoute,
+        onRemoveRoute = viewModel::removeCurrentRoute,
         modifier = modifier,
     )
+}
+
+@Composable
+fun PrefilledPlannerRoute(
+    originStopId: String,
+    destinationStopId: String,
+    modifier: Modifier = Modifier,
+    viewModel: PlannerViewModel = koinViewModel(),
+) {
+    LaunchedEffect(originStopId, destinationStopId) {
+        viewModel.prefillRoute(originStopId, destinationStopId)
+    }
+    PlannerRoute(modifier = modifier, viewModel = viewModel)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,6 +113,8 @@ internal fun PlannerScreen(
     onDateSelected: (LocalDate) -> Unit,
     onSwap: () -> Unit,
     modifier: Modifier = Modifier,
+    onSaveRoute: () -> Unit = {},
+    onRemoveRoute: () -> Unit = {},
 ) {
     val spacing = LocalSpacing.current
     var picking by rememberSaveable { mutableStateOf<PickingTarget?>(null) }
@@ -146,7 +168,14 @@ internal fun PlannerScreen(
             when {
                 !state.canPlan -> item { HintCard() }
                 state.isPlanning -> item { PlanningSkeleton() }
-                state.journey != null -> item { JourneyResultCard(journey = state.journey!!) }
+                state.journey != null -> item {
+                    JourneyResultCard(
+                        journey = state.journey!!,
+                        isSaved = state.isSaved,
+                        onSaveRoute = onSaveRoute,
+                        onRemoveRoute = onRemoveRoute,
+                    )
+                }
                 state.errorMessage != null -> item {
                     EmptyState(
                         icon = Icons.Outlined.Search,
@@ -352,7 +381,12 @@ private fun PlanningSkeleton() {
 }
 
 @Composable
-private fun JourneyResultCard(journey: Journey) {
+private fun JourneyResultCard(
+    journey: Journey,
+    isSaved: Boolean = false,
+    onSaveRoute: () -> Unit = {},
+    onRemoveRoute: () -> Unit = {},
+) {
     val spacing = LocalSpacing.current
     Card(
         shape = MaterialTheme.shapes.medium,
@@ -403,6 +437,21 @@ private fun JourneyResultCard(journey: Journey) {
                 color = MaterialTheme.colorScheme.primary,
             )
             journey.legs.firstOrNull()?.let { leg -> DepartureSchedule(departures = leg.departures) }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+            TextButton(
+                onClick = if (isSaved) onRemoveRoute else onSaveRoute,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(
+                    imageVector = if (isSaved) Icons.Outlined.Star else Icons.Outlined.StarBorder,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.width(spacing.sm))
+                Text(if (isSaved) "Ruta guardada en Favoritos" else "Guardar ruta en Favoritos")
+            }
         }
     }
 }

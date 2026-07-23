@@ -13,6 +13,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import app.transitos.feature.home.HomeRoute
 import app.transitos.feature.planner.PlannerRoute
+import app.transitos.feature.planner.PrefilledPlannerRoute
 import app.transitos.feature.search.SearchRoute
 import app.transitos.feature.settings.SettingsRoute
 import app.transitos.navigation.TopLevelDestination
@@ -55,13 +56,22 @@ private fun TransitOSNavHost(
         modifier = modifier,
     ) {
         composable(TopLevelDestination.HOME.route) {
-            HomeRoute()
+            HomeRoute(
+                onNavigateToPlanner = { originId, destId ->
+                    navController.navigate("planner/$originId/$destId")
+                },
+            )
         }
         composable(TopLevelDestination.SEARCH.route) {
             SearchRoute()
         }
         composable(TopLevelDestination.PLANNER.route) {
             PlannerRoute()
+        }
+        composable("planner/{originId}/{destId}") { backStackEntry ->
+            val originId = backStackEntry.arguments?.getString("originId") ?: return@composable
+            val destId = backStackEntry.arguments?.getString("destId") ?: return@composable
+            PrefilledPlannerRoute(originStopId = originId, destinationStopId = destId)
         }
         composable(TopLevelDestination.SETTINGS.route) {
             SettingsRoute()
