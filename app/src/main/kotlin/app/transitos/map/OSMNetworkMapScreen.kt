@@ -446,6 +446,29 @@ private val stationPositions = mapOf(
     "Àngel Guimerà" to GeoPoint(39.470118, -0.384919),
 )
 
+private val stationLines: Map<String, List<String>> by lazy {
+    val map = mutableMapOf<String, MutableList<String>>()
+    metroLines.forEach { line ->
+        line.stations.forEach { (name, _) ->
+            map.getOrPut(name) { mutableListOf() }.add(line.name)
+        }
+    }
+    map
+}
+
+private val stationPoints: Map<String, GeoPoint> by lazy {
+    val map = mutableMapOf<String, GeoPoint>()
+    metroLines.forEach { line ->
+        line.stations.forEach { (name, idx) ->
+            val pos = stationPositions[name]
+                ?: if (idx in line.path.indices) line.path[idx]
+                else null
+            if (pos != null) map.putIfAbsent(name, pos)
+        }
+    }
+    map
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OSMNetworkMapRoute(
@@ -465,27 +488,6 @@ fun OSMNetworkMapRoute(
     val visibleLines = remember { mutableStateListOf(*metroLines.map { it.name }.toTypedArray()) }
     var selectedStation by remember { mutableStateOf<StationInfo?>(null) }
     var showLegend by remember { mutableStateOf(true) }
-
-    val stationLines = remember {
-        val map = mutableMapOf<String, MutableList<String>>()
-        metroLines.forEach { line ->
-            line.stations.forEach { (name, _) ->
-                map.getOrPut(name) { mutableListOf() }.add(line.name)
-            }
-        }
-        map
-    }
-    val stationPoints = remember {
-        val map = mutableMapOf<String, GeoPoint>()
-        metroLines.forEach { line ->
-            line.stations.forEach { (name, idx) ->
-                map.putIfAbsent(name, stationPositions[name]
-                    ?: if (idx in line.path.indices) line.path[idx]
-                    else null)
-            }
-        }
-        map
-    }
 
     Scaffold(
         topBar = {
@@ -622,22 +624,26 @@ fun OSMNetworkMapRoute(
                             addLineOverlay(this, line)
                             line.stations.forEach { (name, _) ->
                                 val point = stationPoints[name] ?: return@forEach
-                                val primaryColor = stationLines[name]?.firstOrNull()
+                                val linesForStation = stationLines[name] ?: emptyList()
+                                val primaryColor = linesForStation.firstOrNull()
                                     ?.let { ln -> metroLines.find { it.name == ln }?.color }
                                     ?: line.color
-                                val lineCount = stationLines[name]?.size ?: 0
-                                val lineNumber = stationLines[name]?.firstOrNull()
+                                val lineColors = linesForStation.mapNotNull { ln ->
+                                    metroLines.find { it.name == ln }?.color
+                                }
+                                val lineCount = linesForStation.size
+                                val lineNumber = linesForStation.firstOrNull()
                                     ?.removePrefix("L") ?: ""
                                 overlays.add(Marker(this).apply {
                                     position = point
                                     title = name
-                                    snippet = stationLines[name]?.joinToString(",") ?: ""
-                                    icon = createLineCircleMarker(res, primaryColor, density, lineNumber, lineCount > 1)
+                                    snippet = linesForStation.joinToString(",")
+                                    icon = createLineCircleMarker(res, primaryColor, density, lineNumber, lineCount > 1, lineColors)
                                     setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                                     setOnMarkerClickListener { m, _ ->
                                         selectedStation = StationInfo(
                                             name = m.title ?: "",
-                                            lines = stationLines[m.title] ?: emptyList(),
+                                            lines = linesForStation,
                                         )
                                         m.showInfoWindow()
                                         true
@@ -693,6 +699,8 @@ fun OSMNetworkMapRoute(
 
 private fun addLineOverlay(map: MapView?, line: LineData) {
     val m = map ?: return
+    val stationPath = line.stations.mapNotNull { (name, _) -> stationPoints[name] }
+    if (stationPath.size < 2) return
     m.overlays.add(Polyline().apply {
         outlinePaint.apply {
             color = line.color
@@ -700,7 +708,7 @@ private fun addLineOverlay(map: MapView?, line: LineData) {
             isAntiAlias = true
             alpha = 200
         }
-        setPoints(line.path)
+        setPoints(stationPath)
     })
 }
 
@@ -708,7 +716,7 @@ private fun removeLineOverlays(map: MapView?, color: Int) {
     map?.overlays?.removeAll { it is Polyline && it.outlinePaint.color == color }
 }
 
-private fun createLineCircleMarker(res: Resources, color: Int, density: Float, lineNumber: String, multiLine: Boolean): BitmapDrawable {
+private fun createLineCircleMarker(res: Resources, color: Int, density: Float, lineNumber: String, multiLine: Boolean, lineColors: List<Int> = emptyList()): BitmapDrawable {
     val size = (28 * density).toInt()
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
@@ -723,10 +731,54 @@ private fun createLineCircleMarker(res: Resources, color: Int, density: Float, l
         canvas.drawCircle(cx, cy, r + 0.5f, p)
     }
 
-    Paint(Paint.ANTI_ALIAS_FLAG).let { p ->
-        p.color = color
-        p.style = Paint.Style.FILL
-        canvas.drawCircle(cx, cy, ri, p)
+    val colors = if (multiLine && lineColors.size > 1) lineColors else listOf(color)
+
+    if (colors.size > 1) {
+        val arcPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+        val anglePerSegment = 360f / colors.size
+        colors.forEachIndexed { i, c ->
+            arcPaint.color = c
+            canvas.drawArc(
+                cx - ri, cy - ri, cx + ri, cy + ri,
+                i * anglePerSegment - 90f, anglePerSegment - 0.5f, true, arcPaint,
+            )
+        }
+        val innerR = ri * 0.55f
+        Paint(Paint.ANTI_ALIAS_FLAG).let { p ->
+            p.color = AndroidColor.WHITE
+            p.style = Paint.Style.FILL
+            canvas.drawCircle(cx, cy, innerR, p)
+        }
+        Paint(Paint.ANTI_ALIAS_FLAG).let { p ->
+            p.color = AndroidColor.DKGRAY
+            p.style = Paint.Style.FILL
+            p.textSize = 10f * density
+            p.textAlign = Paint.Align.CENTER
+            p.isFakeBoldText = true
+            val fm = p.fontMetrics
+            canvas.drawText("${colors.size}", cx, cy - (fm.ascent + fm.descent) / 2f, p)
+        }
+    } else {
+        Paint(Paint.ANTI_ALIAS_FLAG).let { p ->
+            p.color = color
+            p.style = Paint.Style.FILL
+            canvas.drawCircle(cx, cy, ri, p)
+        }
+        Paint(Paint.ANTI_ALIAS_FLAG).let { p ->
+            p.color = AndroidColor.WHITE
+            p.style = Paint.Style.STROKE
+            p.strokeWidth = 2f * density
+            canvas.drawCircle(cx, cy, r, p)
+        }
+        Paint(Paint.ANTI_ALIAS_FLAG).let { p ->
+            p.color = AndroidColor.WHITE
+            p.style = Paint.Style.FILL
+            p.textSize = 13f * density
+            p.textAlign = Paint.Align.CENTER
+            p.isFakeBoldText = true
+            val fm = p.fontMetrics
+            canvas.drawText(lineNumber, cx, cy - (fm.ascent + fm.descent) / 2f, p)
+        }
     }
 
     Paint(Paint.ANTI_ALIAS_FLAG).let { p ->
@@ -734,27 +786,6 @@ private fun createLineCircleMarker(res: Resources, color: Int, density: Float, l
         p.style = Paint.Style.STROKE
         p.strokeWidth = 2f * density
         canvas.drawCircle(cx, cy, r, p)
-    }
-
-    Paint(Paint.ANTI_ALIAS_FLAG).let { p ->
-        p.color = AndroidColor.WHITE
-        p.style = Paint.Style.FILL
-        p.textSize = 13f * density
-        p.textAlign = Paint.Align.CENTER
-        p.isFakeBoldText = true
-        val fm = p.fontMetrics
-        canvas.drawText(lineNumber, cx, cy - (fm.ascent + fm.descent) / 2f, p)
-    }
-
-    if (multiLine) {
-        Paint(Paint.ANTI_ALIAS_FLAG).let { p ->
-            p.color = AndroidColor.WHITE
-            p.style = Paint.Style.FILL
-            p.textSize = 7f * density
-            p.textAlign = Paint.Align.CENTER
-            val label = "+"
-            canvas.drawText(label, cx + ri * 0.5f, cy - ri * 0.5f - 2f * density, p)
-        }
     }
 
     return BitmapDrawable(res, bitmap)
