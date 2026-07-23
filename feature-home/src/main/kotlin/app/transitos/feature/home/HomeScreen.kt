@@ -19,10 +19,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BookmarkAdd
 import androidx.compose.material.icons.outlined.Directions
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -53,11 +55,13 @@ fun HomeRoute(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = koinViewModel(),
     onNavigateToPlanner: (originStopId: String, destinationStopId: String) -> Unit = { _, _ -> },
+    onNavigateToSettings: () -> Unit = {},
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     HomeScreen(
         state = state,
         onNavigateToPlanner = onNavigateToPlanner,
+        onNavigateToSettings = onNavigateToSettings,
         modifier = modifier,
     )
 }
@@ -68,12 +72,19 @@ internal fun HomeScreen(
     state: HomeUiState,
     modifier: Modifier = Modifier,
     onNavigateToPlanner: (originStopId: String, destinationStopId: String) -> Unit = { _, _ -> },
+    onNavigateToSettings: () -> Unit = {},
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val alertCount = (state as? HomeUiState.Ready)?.alerts?.size ?: 0
 
     Scaffold(
-        topBar = { HomeTopBar(subtitle = networkStatusText(alertCount), scrollBehavior = scrollBehavior) },
+        topBar = {
+            HomeTopBar(
+                subtitle = networkStatusText(alertCount),
+                scrollBehavior = scrollBehavior,
+                onNavigateToSettings = onNavigateToSettings,
+            )
+        },
         modifier = modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -99,6 +110,7 @@ internal fun HomeScreen(
 private fun HomeTopBar(
     subtitle: String,
     scrollBehavior: TopAppBarScrollBehavior,
+    onNavigateToSettings: () -> Unit,
 ) {
     val subtitleColor = if (subtitle.startsWith("Sin avisos")) {
         MaterialTheme.colorScheme.primary
@@ -118,6 +130,11 @@ private fun HomeTopBar(
                     style = MaterialTheme.typography.labelMedium,
                     color = subtitleColor,
                 )
+            }
+        },
+        actions = {
+            IconButton(onClick = onNavigateToSettings) {
+                Icon(Icons.Outlined.Settings, contentDescription = "Ajustes")
             }
         },
         scrollBehavior = scrollBehavior,

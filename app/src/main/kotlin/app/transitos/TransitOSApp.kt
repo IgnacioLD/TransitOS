@@ -62,6 +62,7 @@ private fun TransitOSNavHost(
                 onNavigateToPlanner = { originId, destId ->
                     navController.navigate("planner/$originId/$destId")
                 },
+                onNavigateToSettings = { navController.navigate("settings") },
             )
         }
         composable(TopLevelDestination.SEARCH.route) {
@@ -81,7 +82,7 @@ private fun TransitOSNavHost(
                 onOpenMap = { navController.navigate("map") },
             )
         }
-        composable("map") {
+        composable(TopLevelDestination.MAP.route) {
             OSMNetworkMapRoute(
                 onBack = { navController.popBackStack() },
                 onOpenPdf = { navController.navigate("map/pdf") },
@@ -90,7 +91,7 @@ private fun TransitOSNavHost(
         composable("map/pdf") {
             NetworkMapRoute(onBack = { navController.popBackStack() })
         }
-        composable(TopLevelDestination.SETTINGS.route) {
+        composable("settings") {
             SettingsRoute()
         }
     }

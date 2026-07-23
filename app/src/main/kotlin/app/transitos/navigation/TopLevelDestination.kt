@@ -2,9 +2,9 @@ package app.transitos.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.AltRoute
-import androidx.compose.material.icons.outlined.Bookmark
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
@@ -16,8 +16,8 @@ enum class TopLevelDestination(
     val label: String,
     val icon: ImageVector,
 ) {
-    HOME(route = "home", label = "Favoritos", icon = Icons.Outlined.Bookmark),
+    HOME(route = "home", label = "Inicio", icon = Icons.Outlined.Home),
     SEARCH(route = "search", label = "Buscar", icon = Icons.Outlined.Search),
     PLANNER(route = "planner", label = "Planificar", icon = Icons.AutoMirrored.Outlined.AltRoute),
-    SETTINGS(route = "settings", label = "Ajustes", icon = Icons.Outlined.Settings),
+    MAP(route = "map", label = "Mapa", icon = Icons.Outlined.Map),
 }
