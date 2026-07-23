@@ -631,14 +631,12 @@ fun OSMNetworkMapRoute(
                                 val lineColors = linesForStation.mapNotNull { ln ->
                                     metroLines.find { it.name == ln }?.color
                                 }
-                                val lineCount = linesForStation.size
-                                val lineNumber = linesForStation.firstOrNull()
-                                    ?.removePrefix("L") ?: ""
+                                val lineNumbers = linesForStation.map { it.removePrefix("L") }
                                 overlays.add(Marker(this).apply {
                                     position = point
                                     title = name
                                     snippet = linesForStation.joinToString(",")
-                                    icon = createLineCircleMarker(res, primaryColor, density, lineNumber, lineCount > 1, lineColors)
+                                    icon = createLineCircleMarker(res, primaryColor, density, lineNumbers, lineColors)
                                     setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                                     setOnMarkerClickListener { m, _ ->
                                         selectedStation = StationInfo(
@@ -716,7 +714,8 @@ private fun removeLineOverlays(map: MapView?, color: Int) {
     map?.overlays?.removeAll { it is Polyline && it.outlinePaint.color == color }
 }
 
-private fun createLineCircleMarker(res: Resources, color: Int, density: Float, lineNumber: String, multiLine: Boolean, lineColors: List<Int> = emptyList()): BitmapDrawable {
+private fun createLineCircleMarker(res: Resources, color: Int, density: Float, lineNumbers: List<String>, lineColors: List<Int>): BitmapDrawable {
+    val multiLine = lineNumbers.size > 1
     val size = (28 * density).toInt()
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
@@ -731,9 +730,9 @@ private fun createLineCircleMarker(res: Resources, color: Int, density: Float, l
         canvas.drawCircle(cx, cy, r + 0.5f, p)
     }
 
-    val colors = if (multiLine && lineColors.size > 1) lineColors else listOf(color)
+    val colors = if (multiLine) lineColors else listOf(color)
 
-    if (colors.size > 1) {
+    if (multiLine) {
         val arcPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
         val anglePerSegment = 360f / colors.size
         colors.forEachIndexed { i, c ->
@@ -743,20 +742,19 @@ private fun createLineCircleMarker(res: Resources, color: Int, density: Float, l
                 i * anglePerSegment - 90f, anglePerSegment - 0.5f, true, arcPaint,
             )
         }
-        val innerR = ri * 0.55f
         Paint(Paint.ANTI_ALIAS_FLAG).let { p ->
             p.color = AndroidColor.WHITE
             p.style = Paint.Style.FILL
-            canvas.drawCircle(cx, cy, innerR, p)
-        }
-        Paint(Paint.ANTI_ALIAS_FLAG).let { p ->
-            p.color = AndroidColor.DKGRAY
-            p.style = Paint.Style.FILL
-            p.textSize = 10f * density
+            p.textSize = when {
+                lineNumbers.size <= 2 -> 10f
+                lineNumbers.size <= 4 -> 8f
+                else -> 6.5f
+            } * density
             p.textAlign = Paint.Align.CENTER
             p.isFakeBoldText = true
             val fm = p.fontMetrics
-            canvas.drawText("${colors.size}", cx, cy - (fm.ascent + fm.descent) / 2f, p)
+            val text = lineNumbers.joinToString("·")
+            canvas.drawText(text, cx, cy - (fm.ascent + fm.descent) / 2f, p)
         }
     } else {
         Paint(Paint.ANTI_ALIAS_FLAG).let { p ->
@@ -777,7 +775,7 @@ private fun createLineCircleMarker(res: Resources, color: Int, density: Float, l
             p.textAlign = Paint.Align.CENTER
             p.isFakeBoldText = true
             val fm = p.fontMetrics
-            canvas.drawText(lineNumber, cx, cy - (fm.ascent + fm.descent) / 2f, p)
+            canvas.drawText(lineNumbers.first(), cx, cy - (fm.ascent + fm.descent) / 2f, p)
         }
     }
 
