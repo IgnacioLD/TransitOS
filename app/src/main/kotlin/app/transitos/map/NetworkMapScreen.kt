@@ -1,6 +1,6 @@
 package app.transitos.map
 
-import android.content.res.Resources
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Bitmap.Config
 import android.graphics.pdf.PdfRenderer
@@ -41,23 +41,26 @@ import androidx.compose.ui.unit.dp
 import app.transitos.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NetworkMapRoute(onBack: () -> Unit) {
     val context = LocalContext.current
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var error by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         bitmap = withContext(Dispatchers.Default) {
-            renderPdf(context.resources, R.raw.mapa_metro)
+            renderPdf(context)
         }
+        if (bitmap == null) error = true
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Plano de Metrovalencia") },
+                title = { Text("Plano PDF Metrovalencia") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -81,6 +84,17 @@ fun NetworkMapRoute(onBack: () -> Unit) {
             val bmp = bitmap
             if (bmp != null) {
                 ZoomablePdfViewer(bitmap = bmp)
+            } else if (error) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = "Error al cargar el plano PDF",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             } else {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -145,20 +159,22 @@ private fun ZoomablePdfViewer(bitmap: Bitmap) {
     }
 }
 
-private fun renderPdf(resources: Resources, rawId: Int): Bitmap? {
+private fun renderPdf(context: Context): Bitmap? {
     return try {
-        val fd = resources.openRawResourceFd(rawId)
-        val pfd = fd?.let {
-            ParcelFileDescriptor.dup(it.fileDescriptor)
-        } ?: return null
-        fd.close()
+        val cacheFile = File(context.cacheDir, "mapa_metro.pdf")
+        context.resources.openRawResource(R.raw.mapa_metro).use { input ->
+            cacheFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+        val pfd = ParcelFileDescriptor.open(cacheFile, ParcelFileDescriptor.MODE_READ_ONLY)
 
         PdfRenderer(pfd).use { renderer ->
             if (renderer.pageCount == 0) return null
             val page = renderer.openPage(0)
-            val scale = 0.5f
-            val width = (page.width * scale).toInt().coerceAtMost(1200)
-            val height = (page.height * scale).toInt().coerceAtMost(1200)
+            val scale = 0.4f
+            val width = (page.width * scale).toInt().coerceAtMost(1000)
+            val height = (page.height * scale).toInt().coerceAtMost(1000)
             val bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888)
             page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
             page.close()
