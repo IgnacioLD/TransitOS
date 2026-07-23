@@ -1,5 +1,6 @@
 package app.transitos.feature.planner
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,6 +31,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -393,14 +397,32 @@ private fun DateChipRow(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ArriveByRow(
     arriveBy: String?,
     onSetArriveBy: (String?) -> Unit,
 ) {
     val spacing = LocalSpacing.current
+    var showTimePicker by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var selectedDate by remember { mutableStateOf(
+        arriveBy?.let {
+            val parts = it.split(" ")
+            if (parts.size == 2) parts[0] else null
+        } ?: ""
+    ) }
+    var selectedTime by remember { mutableStateOf(
+        arriveBy?.let {
+            val parts = it.split(" ")
+            if (parts.size == 2) parts[1] else it
+        } ?: ""
+    ) }
+
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { showDatePicker = true },
         horizontalArrangement = Arrangement.spacedBy(spacing.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -420,6 +442,87 @@ private fun ArriveByRow(
                 Text("Quitar")
             }
         }
+    }
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDate.let { dateStr ->
+                if (dateStr.isNotBlank()) {
+                    try {
+                        val parts = dateStr.split("/")
+                        java.time.LocalDate.of(
+                            parts[2].toInt(), parts[1].toInt(), parts[0].toInt()
+                        ).atStartOfDay(java.time.ZoneId.systemDefault())
+                            .toInstant().toEpochMilli()
+                    } catch (_: Exception) { null }
+                } else null
+            },
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val ld = java.time.Instant.ofEpochMilli(millis)
+                            .atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+                        selectedDate = "${ld.dayOfMonth.toString().padStart(2, '0')}/${
+                            ld.monthValue.toString().padStart(2, '0')}/${ld.year}"
+                    }
+                    showDatePicker = false
+                    showTimePicker = true
+                }) { Text("Siguiente") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancelar")
+                }
+            },
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    if (showTimePicker) {
+        val timePickerState = rememberTimePickerState(
+            initialHour = selectedTime.let { timeStr ->
+                if (timeStr.isNotBlank()) {
+                    try { timeStr.substringBefore(":").toInt() }
+                    catch (_: Exception) { 12 }
+                } else 12
+            },
+            initialMinute = selectedTime.let { timeStr ->
+                if (timeStr.isNotBlank()) {
+                    try { timeStr.substringAfter(":").toInt() }
+                    catch (_: Exception) { 0 }
+                } else 0
+            },
+            is24Hour = true,
+        )
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            title = { Text("Hora de llegada") },
+            text = {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    TimePicker(state = timePickerState)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val h = timePickerState.hour.toString().padStart(2, '0')
+                    val m = timePickerState.minute.toString().padStart(2, '0')
+                    onSetArriveBy("$selectedDate $h:$m")
+                    showTimePicker = false
+                }) { Text("Aceptar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) {
+                    Text("Cancelar")
+                }
+            },
+        )
     }
 }
 

@@ -2,6 +2,7 @@ package app.transitos.map
 
 import android.content.res.Resources
 import android.graphics.Bitmap
+import android.graphics.Bitmap.Config
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import androidx.compose.foundation.Canvas
@@ -33,11 +34,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import app.transitos.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,7 +49,9 @@ fun NetworkMapRoute(onBack: () -> Unit) {
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
 
     LaunchedEffect(Unit) {
-        bitmap = renderPdf(context.resources, R.raw.mapa_metro)
+        bitmap = withContext(Dispatchers.Default) {
+            renderPdf(context.resources, R.raw.mapa_metro)
+        }
     }
 
     Scaffold(
@@ -151,9 +156,10 @@ private fun renderPdf(resources: Resources, rawId: Int): Bitmap? {
         PdfRenderer(pfd).use { renderer ->
             if (renderer.pageCount == 0) return null
             val page = renderer.openPage(0)
-            val width = page.width.coerceAtMost(2048)
-            val height = page.height.coerceAtMost(2048)
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val scale = 0.5f
+            val width = (page.width * scale).toInt().coerceAtMost(1200)
+            val height = (page.height * scale).toInt().coerceAtMost(1200)
+            val bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888)
             page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
             page.close()
             bitmap

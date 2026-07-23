@@ -17,6 +17,7 @@ import app.transitos.feature.planner.PrefilledPlannerRoute
 import app.transitos.feature.search.SearchRoute
 import app.transitos.feature.settings.SettingsRoute
 import app.transitos.map.NetworkMapRoute
+import app.transitos.map.OSMNetworkMapRoute
 import app.transitos.navigation.TopLevelDestination
 import app.transitos.navigation.TransitOSBottomBar
 
@@ -81,6 +82,12 @@ private fun TransitOSNavHost(
             )
         }
         composable("map") {
+            OSMNetworkMapRoute(
+                onBack = { navController.popBackStack() },
+                onOpenPdf = { navController.navigate("map/pdf") },
+            )
+        }
+        composable("map/pdf") {
             NetworkMapRoute(onBack = { navController.popBackStack() })
         }
         composable(TopLevelDestination.SETTINGS.route) {
