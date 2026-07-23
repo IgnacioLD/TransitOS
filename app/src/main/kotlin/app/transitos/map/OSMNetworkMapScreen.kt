@@ -742,20 +742,6 @@ private fun createLineCircleMarker(res: Resources, color: Int, density: Float, l
                 i * anglePerSegment - 90f, anglePerSegment - 0.5f, true, arcPaint,
             )
         }
-        Paint(Paint.ANTI_ALIAS_FLAG).let { p ->
-            p.color = AndroidColor.WHITE
-            p.style = Paint.Style.FILL
-            p.textSize = when {
-                lineNumbers.size <= 2 -> 10f
-                lineNumbers.size <= 4 -> 8f
-                else -> 6.5f
-            } * density
-            p.textAlign = Paint.Align.CENTER
-            p.isFakeBoldText = true
-            val fm = p.fontMetrics
-            val text = lineNumbers.joinToString("·")
-            canvas.drawText(text, cx, cy - (fm.ascent + fm.descent) / 2f, p)
-        }
     } else {
         Paint(Paint.ANTI_ALIAS_FLAG).let { p ->
             p.color = color
