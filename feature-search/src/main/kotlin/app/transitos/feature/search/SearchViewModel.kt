@@ -4,50 +4,46 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.transitos.core.repository.FavoritesRepository
 import app.transitos.core.repository.TransitRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-/**
- * Drives the Search screen: holds the query, observes the stop catalogue and
- * the user's favourites, and exposes the derived filtered list. Toggle actions
- * are forwarded to [FavoritesRepository]; the resulting favourite-id flow
- * automatically refreshes the Home screen via its own subscription.
- */
+@OptIn(ExperimentalCoroutinesApi::class)
 class SearchViewModel(
     private val repository: TransitRepository,
     private val favorites: FavoritesRepository,
 ) : ViewModel() {
 
-    private val query = MutableStateFlow("")
+    private val _query = MutableStateFlow("")
+    val query: StateFlow<String> = _query.asStateFlow()
 
-    val uiState: StateFlow<SearchUiState> = combine(
-        repository.observeStops(),
-        favorites.observeFavoriteStopIds(),
-        query,
-    ) { stops, favIds, q ->
-        SearchUiState(
-            query = q,
-            allStops = stops,
-            favoriteIds = favIds,
-            isLoading = false,
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = SearchUiState(),
-    )
+    val allStops: StateFlow<List<app.transitos.core.model.Stop>> = repository.observeStops()
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val favoriteIds: StateFlow<Set<String>> = favorites.observeFavoriteStopIds()
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
+
+    val filteredStops: StateFlow<List<app.transitos.core.model.Stop>> =
+        combine(allStops, query) { stops, q ->
+            if (q.isBlank()) stops
+            else stops.filter { it.name.contains(q, ignoreCase = true) }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun onQueryChange(newQuery: String) {
-        query.value = newQuery
+        _query.value = newQuery
     }
 
     fun toggleFavorite(stopId: String) {
         viewModelScope.launch {
-            if (stopId in uiState.value.favoriteIds) {
+            if (stopId in favoriteIds.value) {
                 favorites.removeFavorite(stopId)
             } else {
                 favorites.addFavorite(stopId)

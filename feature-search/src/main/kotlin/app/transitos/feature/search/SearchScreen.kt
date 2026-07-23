@@ -1,7 +1,6 @@
 package app.transitos.feature.search
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Search
@@ -21,21 +19,23 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.transitos.core.design.theme.LocalSpacing
 import app.transitos.core.model.Stop
 import app.transitos.core.ui.EmptyState
+import app.transitos.core.ui.SkeletonBlock
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -43,9 +43,16 @@ fun SearchRoute(
     modifier: Modifier = Modifier,
     viewModel: SearchViewModel = koinViewModel(),
 ) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val query by viewModel.query.collectAsStateWithLifecycle()
+    val filteredStops by viewModel.filteredStops.collectAsStateWithLifecycle()
+    val favoriteIds by viewModel.favoriteIds.collectAsStateWithLifecycle()
+    val allStops by viewModel.allStops.collectAsStateWithLifecycle()
+
     SearchScreen(
-        state = state,
+        query = query,
+        filteredStops = filteredStops,
+        favoriteIds = favoriteIds,
+        allStopsSize = allStops.size,
         onQueryChange = viewModel::onQueryChange,
         onToggleFavorite = viewModel::toggleFavorite,
         modifier = modifier,
@@ -55,7 +62,10 @@ fun SearchRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SearchScreen(
-    state: SearchUiState,
+    query: String,
+    filteredStops: List<Stop>,
+    favoriteIds: Set<String>,
+    allStopsSize: Int,
     onQueryChange: (String) -> Unit,
     onToggleFavorite: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -71,7 +81,7 @@ internal fun SearchScreen(
                             style = MaterialTheme.typography.titleLarge,
                         )
                         Text(
-                            text = "${state.allStops.size} estaciones",
+                            text = "$allStopsSize estaciones",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -85,20 +95,19 @@ internal fun SearchScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            SearchField(query = state.query, onQueryChange = onQueryChange)
+            SearchField(query = query, onQueryChange = onQueryChange)
 
-            val stops = state.filteredStops
             when {
-                state.isLoading -> SearchSkeleton()
-                stops.isEmpty() -> EmptyState(
+                allStopsSize == 0 -> SearchSkeleton()
+                filteredStops.isEmpty() -> EmptyState(
                     icon = Icons.Outlined.Search,
                     title = "Sin resultados",
-                    subtitle = if (state.query.isBlank()) "Cargando estaciones…"
-                    else "No hay estaciones que coincidan con «${state.query}».",
+                    subtitle = if (query.isBlank()) "Cargando estaciones…"
+                    else "No hay estaciones que coincidan con «${query}».",
                 )
                 else -> StopsList(
-                    stops = stops,
-                    favoriteIds = state.favoriteIds,
+                    stops = filteredStops,
+                    favoriteIds = favoriteIds,
                     onToggleFavorite = onToggleFavorite,
                 )
             }
@@ -123,8 +132,8 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
             focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-            unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
         ),
     )
 }
@@ -146,9 +155,10 @@ private fun StopsList(
         verticalArrangement = Arrangement.spacedBy(spacing.xs),
     ) {
         items(stops, key = { it.id }) { stop ->
+            val isFavorite = remember(stop.id, favoriteIds) { stop.id in favoriteIds }
             StopRow(
                 stop = stop,
-                isFavorite = stop.id in favoriteIds,
+                isFavorite = isFavorite,
                 onToggleFavorite = { onToggleFavorite(stop.id) },
             )
         }
@@ -162,7 +172,7 @@ private fun StopRow(
     onToggleFavorite: () -> Unit,
 ) {
     val spacing = LocalSpacing.current
-    androidx.compose.material3.Surface(
+    Surface(
         onClick = onToggleFavorite,
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
@@ -207,7 +217,7 @@ private fun SearchSkeleton() {
         verticalArrangement = Arrangement.spacedBy(spacing.xs),
     ) {
         repeat(8) {
-            app.transitos.core.ui.SkeletonBlock(
+            SkeletonBlock(
                 modifier = Modifier.fillMaxWidth(),
                 height = 56.dp,
                 shape = MaterialTheme.shapes.medium,
