@@ -1,5 +1,6 @@
 package app.transitos.feature.planner
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.LocationOn
@@ -21,6 +23,9 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.SwapVert
+import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.Schedule
+
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
@@ -74,6 +79,7 @@ import org.koin.androidx.compose.koinViewModel
 fun PlannerRoute(
     modifier: Modifier = Modifier,
     viewModel: PlannerViewModel = koinViewModel(),
+    onOpenMap: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val stops by viewModel.stops.collectAsStateWithLifecycle()
@@ -86,6 +92,9 @@ fun PlannerRoute(
         onSwap = viewModel::swapEndpoints,
         onSaveRoute = viewModel::saveCurrentRoute,
         onRemoveRoute = viewModel::removeCurrentRoute,
+        onSelectJourney = viewModel::selectJourney,
+        onSetArriveBy = viewModel::setArriveBy,
+        onOpenMap = onOpenMap,
         modifier = modifier,
     )
 }
@@ -96,11 +105,12 @@ fun PrefilledPlannerRoute(
     destinationStopId: String,
     modifier: Modifier = Modifier,
     viewModel: PlannerViewModel = koinViewModel(),
+    onOpenMap: () -> Unit = {},
 ) {
     LaunchedEffect(originStopId, destinationStopId) {
         viewModel.prefillRoute(originStopId, destinationStopId)
     }
-    PlannerRoute(modifier = modifier, viewModel = viewModel)
+    PlannerRoute(modifier = modifier, viewModel = viewModel, onOpenMap = onOpenMap)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -115,6 +125,9 @@ internal fun PlannerScreen(
     modifier: Modifier = Modifier,
     onSaveRoute: () -> Unit = {},
     onRemoveRoute: () -> Unit = {},
+    onSelectJourney: (Int) -> Unit = {},
+    onSetArriveBy: (String?) -> Unit = {},
+    onOpenMap: () -> Unit = {},
 ) {
     val spacing = LocalSpacing.current
     var picking by rememberSaveable { mutableStateOf<PickingTarget?>(null) }
@@ -165,16 +178,50 @@ internal fun PlannerScreen(
                 )
             }
 
+            item {
+                ArriveByRow(
+                    arriveBy = state.arriveBy,
+                    onSetArriveBy = onSetArriveBy,
+                )
+            }
+
+            item {
+                TextButton(
+                    onClick = onOpenMap,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Map,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.width(LocalSpacing.current.sm))
+                    Text("Ver plano de la red")
+                }
+            }
+
             when {
                 !state.canPlan -> item { HintCard() }
                 state.isPlanning -> item { PlanningSkeleton() }
-                state.journey != null -> item {
-                    JourneyResultCard(
-                        journey = state.journey!!,
-                        isSaved = state.isSaved,
-                        onSaveRoute = onSaveRoute,
-                        onRemoveRoute = onRemoveRoute,
-                    )
+                state.journeys.isNotEmpty() -> {
+                    if (state.journeys.size > 1) {
+                        item {
+                            JourneyAlternatives(
+                                journeys = state.journeys,
+                                selectedIndex = state.selectedJourneyIndex,
+                                onSelect = onSelectJourney,
+                            )
+                        }
+                    }
+                    item {
+                        val journey = state.selectedJourney!!
+                        JourneyResultCard(
+                            journey = journey,
+                            isSaved = state.isSaved,
+                            onSaveRoute = onSaveRoute,
+                            onRemoveRoute = onRemoveRoute,
+                        )
+                    }
                 }
                 state.errorMessage != null -> item {
                     EmptyState(
@@ -343,6 +390,64 @@ private fun DateChipRow(
             },
             leadingIcon = { Icon(Icons.Outlined.CalendarMonth, contentDescription = null) },
         )
+    }
+}
+
+@Composable
+private fun ArriveByRow(
+    arriveBy: String?,
+    onSetArriveBy: (String?) -> Unit,
+) {
+    val spacing = LocalSpacing.current
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Schedule,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = if (arriveBy != null) "Llegada: $arriveBy" else "Llegada: —",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (arriveBy != null) {
+            TextButton(onClick = { onSetArriveBy(null) }) {
+                Text("Quitar")
+            }
+        }
+    }
+}
+
+@Composable
+private fun JourneyAlternatives(
+    journeys: List<Journey>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+) {
+    val spacing = LocalSpacing.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+    ) {
+        journeys.forEachIndexed { i, journey ->
+            val label = buildString {
+                append("${journey.durationMinutes} min")
+                if (journey.hasTransfers) append(" · ${journey.legs.size}t")
+                journey.firstDeparture?.let { append(" · $it") }
+            }
+            FilterChip(
+                selected = i == selectedIndex,
+                onClick = { onSelect(i) },
+                label = { Text(label, maxLines = 1) },
+            )
+        }
     }
 }
 

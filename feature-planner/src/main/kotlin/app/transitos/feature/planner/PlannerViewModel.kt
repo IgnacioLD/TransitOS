@@ -19,15 +19,6 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 
-/**
- * Drives the Planner screen. Holds the (origin, destination, date) triple and
- * re-plans whenever it changes. Planning is a one-shot [TransitRepository.planJourney]
- * call — not a polling flow — because the user is asking a discrete question
- * ("how do I get from A to B on day X?").
- *
- * Also exposes the catalogue of stops so the screen's station picker has the
- * full list without needing its own repository injection.
- */
 class PlannerViewModel(
     private val repository: TransitRepository,
     private val routeFavorites: RouteFavoritesRepository,
@@ -60,7 +51,15 @@ class PlannerViewModel(
         planIfReady()
     }
 
-    /** Swaps origin and destination — common "I want to come back" action. */
+    fun setArriveBy(time: String?) {
+        _state.update { it.copy(arriveBy = time) }
+        planIfReady()
+    }
+
+    fun selectJourney(index: Int) {
+        _state.update { it.copy(selectedJourneyIndex = index) }
+    }
+
     fun prefillRoute(originId: String, destinationId: String) {
         val stops = stops.value
         val origin = stops.find { it.id == originId }
@@ -103,18 +102,22 @@ class PlannerViewModel(
         val origin = current.origin ?: return
         val destination = current.destination ?: return
         if (origin.id == destination.id) {
-            _state.update { it.copy(journey = null, errorMessage = null) }
+            _state.update { it.copy(journeys = emptyList(), errorMessage = null) }
             return
         }
         val routeId = routeIdFor(origin.id, destination.id)
         viewModelScope.launch {
             _state.update { it.copy(isPlanning = true, errorMessage = null) }
-            val result = runCatching { repository.planJourney(origin.id, destination.id, current.date) }
-            _state.update { state ->
-                state.copy(
+            val result = runCatching {
+                repository.planJourney(origin.id, destination.id, current.date, current.arriveBy)
+            }
+            _state.update { s ->
+                val journeys = result.getOrDefault(emptyList())
+                s.copy(
                     isPlanning = false,
-                    journey = result.getOrNull(),
-                    errorMessage = result.exceptionOrNull()?.message,
+                    journeys = journeys,
+                    selectedJourneyIndex = 0,
+                    errorMessage = if (journeys.isEmpty()) result.exceptionOrNull()?.message else null,
                     isSaved = routeId in savedRouteIds.value,
                 )
             }

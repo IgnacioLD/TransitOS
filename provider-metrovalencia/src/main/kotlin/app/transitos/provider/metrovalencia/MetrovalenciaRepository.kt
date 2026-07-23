@@ -146,19 +146,21 @@ class MetrovalenciaRepository(
         originStopId: String,
         destinationStopId: String,
         date: LocalDate,
-    ): Journey? {
-        if (backend.value == MetrovalenciaBackend.NAP) return null
+        arriveBy: String?,
+    ): List<Journey> {
+        if (backend.value == MetrovalenciaBackend.NAP) return emptyList()
         return runCatching {
-            val originInternal = resolveInternalStationId(originStopId) ?: return null
-            val destinationInternal = resolveInternalStationId(destinationStopId) ?: return null
+            val originInternal = resolveInternalStationId(originStopId) ?: return emptyList()
+            val destinationInternal = resolveInternalStationId(destinationStopId) ?: return emptyList()
             val response = api.planJourney(
                 originInternalId = originInternal,
                 destinationInternalId = destinationInternal,
                 fecha = date.formatAsFgvFecha(),
+                hora = arriveBy,
             )
-            if (response.status != 200) return null
-            response.resultado.firstOrNull()?.toJourney(date)
-        }.getOrNull()
+            if (response.status != 200) emptyList()
+            else response.resultado.mapNotNull { it.toJourney(date) }
+        }.getOrDefault(emptyList())
     }
 
     /**

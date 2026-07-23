@@ -31,11 +31,13 @@ public interface TransitRepository {
      * @param originStopId canonical stop id (e.g. `"mv:12"`).
      * @param destinationStopId canonical stop id.
      * @param date the service date to plan for.
-     * @return the planned [Journey], or null if no route exists for this O/D.
+     * @param arriveBy optional time to arrive by (when set, plans backward).
+     * @return planned journey alternatives (empty list if no route exists).
      */
     public suspend fun planJourney(
         originStopId: String,
         destinationStopId: String,
         date: LocalDate,
-    ): Journey?
+        arriveBy: String? = null,
+    ): List<Journey>
 }
