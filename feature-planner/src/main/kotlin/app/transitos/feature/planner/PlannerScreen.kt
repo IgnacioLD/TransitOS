@@ -226,7 +226,7 @@ private fun EndpointSelector(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(spacing.lg),
+                    .padding(vertical = spacing.lg),
                 verticalArrangement = Arrangement.spacedBy(spacing.sm),
             ) {
                 EndpointRow(label = "Desde", stop = origin, onClick = onPickOrigin)

@@ -27,7 +27,7 @@ val metrovalenciaModule = module {
 
     // Register this provider in the global registry so the Settings screen
     // can discover it without knowing the module at compile time.
-    single {
+    single(createdAtStart = true) {
         val registry = get<ProviderRegistry>()
         registry.register(
             ProviderInfo(
