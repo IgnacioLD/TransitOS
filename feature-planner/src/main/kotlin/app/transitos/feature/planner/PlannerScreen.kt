@@ -25,6 +25,8 @@ import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.SwapVert
 import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Schedule
 
 import androidx.compose.material3.Card
@@ -419,27 +421,58 @@ private fun ArriveByRow(
         } ?: ""
     ) }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { showDatePicker = true },
-        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
+    Surface(
+        onClick = { showDatePicker = true },
+        shape = MaterialTheme.shapes.medium,
+        color = if (arriveBy != null)
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+        else
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        Icon(
-            imageVector = Icons.Outlined.Schedule,
-            contentDescription = null,
-            modifier = Modifier.size(18.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = if (arriveBy != null) "Llegada: $arriveBy" else "Llegada: —",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        if (arriveBy != null) {
-            TextButton(onClick = { onSetArriveBy(null) }) {
-                Text("Quitar")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Schedule,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = if (arriveBy != null) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Llegada",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = arriveBy ?: "Pulsar para establecer hora de llegada",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (arriveBy != null) MaterialTheme.colorScheme.onSurface
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (arriveBy != null) {
+                IconButton(onClick = { onSetArriveBy(null) }) {
+                    Icon(
+                        Icons.Outlined.Close,
+                        contentDescription = "Quitar hora de llegada",
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            } else {
+                Icon(
+                    Icons.Outlined.ChevronRight,
+                    contentDescription = "Seleccionar",
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }

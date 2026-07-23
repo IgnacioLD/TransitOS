@@ -1,6 +1,11 @@
 package app.transitos.map
 
+import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color as AndroidColor
+import android.graphics.Paint
+import android.graphics.drawable.BitmapDrawable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -240,13 +245,20 @@ fun OSMNetworkMapRoute(
                             setAlignRight(true)
                         })
 
+                        val res = ctx.resources
+                        val markerSizePx = (20 * ctx.resources.displayMetrics.density).toInt()
                         metrovalenciaLines.forEach { line ->
                             addLineOverlay(this, line)
                             line.stations.forEach { (name, point) ->
+                                val primaryColor = stationLines[name]?.firstOrNull()
+                                    ?.let { lineName ->
+                                        metrovalenciaLines.find { it.name == lineName }?.color
+                                    } ?: line.color
                                 overlays.add(Marker(this).apply {
                                     position = point
                                     title = name
-                                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                                    icon = createCircleMarker(res, primaryColor, markerSizePx)
+                                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                                     setOnMarkerClickListener { m, _ ->
                                         selectedStation = StationInfo(
                                             name = m.title ?: "",
@@ -335,4 +347,32 @@ private fun addLineOverlay(map: MapView?, line: MetroLine) {
 
 private fun removeLineOverlays(map: MapView?, color: Int) {
     map?.overlays?.removeAll { it is Polyline && it.outlinePaint.color == color }
+}
+
+private fun createCircleMarker(
+    res: Resources,
+    color: Int,
+    sizePx: Int,
+): BitmapDrawable {
+    val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    val cx = sizePx / 2f
+    val cy = sizePx / 2f
+    val radius = sizePx / 2f - 2f
+
+    Paint(Paint.ANTI_ALIAS_FLAG).let { paint ->
+        paint.color = AndroidColor.WHITE
+        paint.style = Paint.Style.FILL
+        canvas.drawCircle(cx, cy, radius + 1f, paint)
+
+        paint.color = color
+        paint.style = Paint.Style.FILL
+        canvas.drawCircle(cx, cy, radius - 2f, paint)
+
+        paint.color = AndroidColor.WHITE
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 2f
+        canvas.drawCircle(cx, cy, radius - 1f, paint)
+    }
+    return BitmapDrawable(res, bitmap)
 }
