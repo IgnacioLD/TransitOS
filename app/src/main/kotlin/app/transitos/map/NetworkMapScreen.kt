@@ -172,9 +172,12 @@ private fun renderPdf(context: Context): Bitmap? {
         PdfRenderer(pfd).use { renderer ->
             if (renderer.pageCount == 0) return null
             val page = renderer.openPage(0)
-            val scale = 1.0f
-            val width = (page.width * scale).toInt().coerceAtMost(1800)
-            val height = (page.height * scale).toInt().coerceAtMost(1800)
+            val maxDim = 1800f
+            val srcW = page.width.toFloat()
+            val srcH = page.height.toFloat()
+            val scale = minOf(maxDim / srcW, maxDim / srcH, 1f)
+            val width = (srcW * scale).toInt()
+            val height = (srcH * scale).toInt()
             val bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888)
             page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
             page.close()
