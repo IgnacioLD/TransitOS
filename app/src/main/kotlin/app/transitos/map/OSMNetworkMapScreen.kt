@@ -1,11 +1,24 @@
 package app.transitos.map
 
+import android.Manifest
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color as AndroidColor
 import android.graphics.Paint
 import android.graphics.drawable.BitmapDrawable
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.EaseInOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -20,15 +33,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Layers
+import androidx.compose.material.icons.outlined.LocationOff
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.MyLocation
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,7 +60,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,11 +70,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.transitos.R
+import app.transitos.core.model.Arrival
 import app.transitos.core.ui.R as coreUiR
+import org.koin.androidx.compose.koinViewModel
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -64,10 +87,12 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.ScaleBarOverlay
-
+import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
+import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 private data class StationInfo(
     val name: String,
     val lines: List<String>,
+    val position: GeoPoint,
 )
 
 private data class LineData(
@@ -811,6 +836,7 @@ private val stationPoints: Map<String, GeoPoint> by lazy {
 fun OSMNetworkMapRoute(
     onBack: () -> Unit,
     onOpenPdf: () -> Unit,
+    viewModel: MapViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
 
@@ -821,12 +847,39 @@ fun OSMNetworkMapRoute(
         }
     }
 
+    val stops by viewModel.stops.collectAsStateWithLifecycle()
+    val alerts by viewModel.alerts.collectAsStateWithLifecycle()
+    val alertedLineNames = remember(alerts) { viewModel.alertedLineNames }
+
     var mapView by remember { mutableStateOf<MapView?>(null) }
     var focusedLine by remember { mutableStateOf<String?>(null) }
     var selectedStation by remember { mutableStateOf<StationInfo?>(null) }
+    var showLocation by remember { mutableStateOf(false) }
+    var locationOverlay by remember { mutableStateOf<MyLocationNewOverlay?>(null) }
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { result ->
+        val granted = result[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+            result[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (granted) {
+            showLocation = true
+            mapView?.let { map ->
+                locationOverlay?.let { overlay ->
+                    overlay.enableMyLocation()
+                    overlay.lastFix?.let { fix ->
+                        map.controller.animateTo(GeoPoint(fix.latitude, fix.longitude))
+                    }
+                }
+            }
+        }
+    }
 
     LaunchedEffect(mapView, focusedLine) {
-        rebuildOverlays(mapView, focusedLine) { info -> selectedStation = info }
+        rebuildOverlays(mapView, focusedLine, alertedLineNames) { info ->
+            selectedStation = info
+            mapView?.controller?.animateTo(info.position)
+        }
     }
 
     Scaffold(
@@ -839,6 +892,30 @@ fun OSMNetworkMapRoute(
                     }
                 },
                 actions = {
+                    IconButton(onClick = {
+                        if (showLocation) {
+                            locationOverlay?.let { overlay ->
+                                overlay.lastFix?.let { fix ->
+                                    mapView?.controller?.animateTo(GeoPoint(fix))
+                                }
+                            }
+                        } else {
+                            locationPermissionLauncher.launch(
+                                arrayOf(
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                                ),
+                            )
+                        }
+                    }) {
+                        Icon(
+                            imageVector = if (showLocation) Icons.Outlined.MyLocation
+                            else Icons.Outlined.LocationOff,
+                            contentDescription = null,
+                            tint = if (showLocation) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     IconButton(onClick = onOpenPdf) {
                         Icon(Icons.Outlined.Map, contentDescription = stringResource(R.string.map_pdf_cd))
                     }
@@ -851,46 +928,13 @@ fun OSMNetworkMapRoute(
         bottomBar = {
             Column {
                 selectedStation?.let { info ->
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.surface,
-                        tonalElevation = 3.dp,
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    info.name,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                                Spacer(Modifier.height(4.dp))
-                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    info.lines.forEach { lineName ->
-                                        val line = metroLines.find { it.name == lineName }
-                                        Box(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(4.dp))
-                                                .background(Color(line?.color ?: AndroidColor.GRAY))
-                                                .padding(horizontal = 8.dp, vertical = 2.dp),
-                                        ) {
-                                            Text(
-                                                lineName.removePrefix("L"),
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = Color.White,
-                                                fontWeight = FontWeight.Bold,
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                            IconButton(onClick = { selectedStation = null }) {
-                                Icon(Icons.Outlined.Close, contentDescription = stringResource(coreUiR.string.cd_close))
-                            }
-                        }
-                    }
+                    val stop = remember(info) { viewModel.stopByName(info.name) }
+                    StationArrivalsPanel(
+                        stationInfo = info,
+                        stopId = stop?.id,
+                        viewModel = viewModel,
+                        onClose = { selectedStation = null },
+                    )
                 }
 
                 Surface(
@@ -907,6 +951,8 @@ fun OSMNetworkMapRoute(
                         metroLines.forEach { line ->
                             val isFocused = focusedLine == line.name
                             val isDimmed = focusedLine != null && !isFocused
+                            val hasAlert = line.name.removePrefix("L") in
+                                alertedLineNames.map { it.removePrefix("L") }
 
                             Row(
                                 modifier = Modifier
@@ -936,6 +982,17 @@ fun OSMNetworkMapRoute(
                                         else -> MaterialTheme.colorScheme.onSurface
                                     },
                                 )
+                                if (hasAlert) {
+                                    Spacer(Modifier.width(4.dp))
+                                    Icon(
+                                        Icons.Outlined.Warning,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(14.dp),
+                                        tint = if (isFocused) Color.White
+                                        else if (isDimmed) MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
+                                        else MaterialTheme.colorScheme.error,
+                                    )
+                                }
                             }
                         }
                     }
@@ -957,6 +1014,10 @@ fun OSMNetworkMapRoute(
                         setAlignRight(true)
                     })
 
+                    val locOverlay = MyLocationNewOverlay(GpsMyLocationProvider(ctx), this)
+                    overlays.add(locOverlay)
+                    locationOverlay = locOverlay
+
                     mapView = this
                 }
             },
@@ -967,15 +1028,195 @@ fun OSMNetworkMapRoute(
     }
 }
 
+@Composable
+private fun StationArrivalsPanel(
+    stationInfo: StationInfo,
+    stopId: String?,
+    viewModel: MapViewModel,
+    onClose: () -> Unit,
+) {
+    val arrivalsLoaded by remember(stopId) {
+        if (stopId != null) {
+            kotlinx.coroutines.flow.flow {
+                emit(false)
+                viewModel.observeArrivals(stopId).collect { emit(true) }
+            }
+        } else {
+            kotlinx.coroutines.flow.flowOf(true)
+        }
+    }.collectAsStateWithLifecycle(initialValue = false)
+
+    val arrivals by remember(stopId) {
+        if (stopId != null) viewModel.observeArrivals(stopId)
+        else kotlinx.coroutines.flow.flowOf(emptyList())
+    }.collectAsStateWithLifecycle(initialValue = emptyList())
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 3.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        stationInfo.name,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        stationInfo.lines.forEach { lineName ->
+                            val line = metroLines.find { it.name == lineName }
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(Color(line?.color ?: AndroidColor.GRAY))
+                                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                            ) {
+                                Text(
+                                    lineName.removePrefix("L"),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        }
+                    }
+                }
+                IconButton(onClick = onClose) {
+                    Icon(Icons.Outlined.Close, contentDescription = stringResource(coreUiR.string.cd_close))
+                }
+            }
+
+            if (stopId == null) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    stringResource(coreUiR.string.arrival_unconfirmed_title),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else if (!arrivalsLoaded) {
+                Spacer(Modifier.height(8.dp))
+                repeat(3) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        SkeletonBox(modifier = Modifier.size(24.dp), cornerRadius = 4.dp)
+                        SkeletonBox(modifier = Modifier.weight(1f).height(14.dp), cornerRadius = 4.dp)
+                        SkeletonBox(modifier = Modifier.width(40.dp).height(14.dp), cornerRadius = 4.dp)
+                    }
+                }
+            } else if (arrivals.isEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Icon(
+                        Icons.Outlined.Schedule,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        stringResource(coreUiR.string.arrival_unconfirmed_title),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            } else {
+                Spacer(Modifier.height(8.dp))
+                arrivals.take(4).forEach { arrival ->
+                    ArrivalRowCompact(arrival)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SkeletonBox(modifier: Modifier, cornerRadius: Dp = 4.dp) {
+    val transition = rememberInfiniteTransition(label = "skeleton")
+    val alpha by transition.animateFloat(
+        initialValue = 0.25f,
+        targetValue = 0.55f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(900, easing = EaseInOut),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "shimmer",
+    )
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(cornerRadius))
+            .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha)),
+    )
+}
+
+@Composable
+private fun ArrivalRowCompact(arrival: Arrival) {
+    val lineColor = arrival.lineColor?.let { Color(it) } ?: MaterialTheme.colorScheme.outline
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(lineColor),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                arrival.lineShortName ?: "",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+        Text(
+            arrival.destination,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+            text = if ((arrival.minutesAway ?: 1) <= 0) stringResource(coreUiR.string.arrival_boarding)
+                   else "${arrival.minutesAway} ${stringResource(coreUiR.string.unit_minutes)}",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = if ((arrival.minutesAway ?: 99) <= 0) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
 private fun rebuildOverlays(
     map: MapView?,
     focusedLine: String?,
+    alertedLineNames: Set<String>,
     onStationTap: (StationInfo) -> Unit,
 ) {
     val m = map ?: return
     val isAnyFocused = focusedLine != null
 
-    m.overlays.retainAll { it is ScaleBarOverlay }
+    m.overlays.retainAll { it is ScaleBarOverlay || it is MyLocationNewOverlay }
 
     val res = m.context.resources
     val density = res.displayMetrics.density
@@ -1035,8 +1276,8 @@ private fun rebuildOverlays(
                     onStationTap(StationInfo(
                         name = marker.title ?: "",
                         lines = linesForStation,
+                        position = marker.position,
                     ))
-                    marker.showInfoWindow()
                     true
                 }
             })

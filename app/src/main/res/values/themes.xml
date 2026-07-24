@@ -5,5 +5,5 @@
       remove the platform action bar and stay out of the way during cold start.
       enableEdgeToEdge() + Compose handle the actual system-bar styling.
     -->
-    <style name="Theme.TransitOS" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.TransitOS" parent="Theme.AppCompat.Light.NoActionBar" />
 </resources>

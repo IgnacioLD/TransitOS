@@ -12,8 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.LightMode
+import androidx.compose.material.icons.outlined.SettingsBrightness
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +38,7 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.transitos.core.design.theme.LocalSpacing
 import app.transitos.core.provider.ProviderInfo
+import app.transitos.core.repository.ThemeMode
 import app.transitos.core.ui.SectionHeader
 import org.koin.androidx.compose.koinViewModel
 
@@ -44,6 +48,7 @@ fun SettingsRoute(
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     SettingsScreen(
         state = state,
         onBackendChange = viewModel::setBackend,
@@ -54,6 +59,8 @@ fun SettingsRoute(
                 LocaleListCompat.forLanguageTags(lang),
             )
         },
+        currentTheme = themeMode,
+        onThemeChange = viewModel::setThemeMode,
         modifier = modifier,
     )
 }
@@ -65,6 +72,8 @@ internal fun SettingsScreen(
     onBackendChange: (providerId: String, backendId: String) -> Unit,
     currentLanguage: String,
     onLanguageChange: (String) -> Unit,
+    currentTheme: ThemeMode,
+    onThemeChange: (ThemeMode) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -89,6 +98,14 @@ internal fun SettingsScreen(
             LanguageSection(
                 currentLanguage = currentLanguage,
                 onLanguageChange = onLanguageChange,
+                modifier = Modifier.padding(horizontal = spacing.screenGutter),
+            )
+
+            Spacer(modifier = Modifier.height(spacing.lg))
+
+            ThemeSection(
+                currentTheme = currentTheme,
+                onThemeChange = onThemeChange,
                 modifier = Modifier.padding(horizontal = spacing.screenGutter),
             )
 
@@ -183,6 +200,93 @@ private fun LanguageOption(
             style = MaterialTheme.typography.bodyLarge,
             color = if (selected) MaterialTheme.colorScheme.primary
             else MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+@Composable
+private fun ThemeSection(
+    currentTheme: ThemeMode,
+    onThemeChange: (ThemeMode) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val spacing = LocalSpacing.current
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.SettingsBrightness,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = stringResource(R.string.settings_theme),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+
+        Spacer(modifier = Modifier.height(spacing.xs))
+
+        ThemeOption(
+            icon = Icons.Outlined.SettingsBrightness,
+            label = stringResource(R.string.theme_system),
+            selected = currentTheme == ThemeMode.SYSTEM,
+            onClick = { onThemeChange(ThemeMode.SYSTEM) },
+        )
+        ThemeOption(
+            icon = Icons.Outlined.LightMode,
+            label = stringResource(R.string.theme_light),
+            selected = currentTheme == ThemeMode.LIGHT,
+            onClick = { onThemeChange(ThemeMode.LIGHT) },
+        )
+        ThemeOption(
+            icon = Icons.Outlined.DarkMode,
+            label = stringResource(R.string.theme_dark),
+            selected = currentTheme == ThemeMode.DARK,
+            onClick = { onThemeChange(ThemeMode.DARK) },
+        )
+        ThemeOption(
+            icon = Icons.Outlined.DarkMode,
+            label = stringResource(R.string.theme_amoled),
+            selected = currentTheme == ThemeMode.AMOLED,
+            onClick = { onThemeChange(ThemeMode.AMOLED) },
+        )
+    }
+}
+
+@Composable
+private fun ThemeOption(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = LocalSpacing.current.xs),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = onClick,
+        )
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = if (selected) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = LocalSpacing.current.xs),
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (selected) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(start = LocalSpacing.current.sm),
         )
     }
 }

@@ -10,6 +10,7 @@ import app.transitos.feature.home.di.homeModule
 import app.transitos.feature.planner.di.plannerModule
 import app.transitos.feature.search.di.searchModule
 import app.transitos.feature.settings.di.settingsModule
+import app.transitos.map.appMapModule
 import app.transitos.provider.metrovalencia.di.metrovalenciaModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -37,6 +38,7 @@ class TransitOSApplication : Application() {
                 searchModule,
                 plannerModule,
                 settingsModule,
+                appMapModule,
             )
         }
     }

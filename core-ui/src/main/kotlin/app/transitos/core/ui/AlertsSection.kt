@@ -61,6 +61,7 @@ fun AlertsSection(
         alerts.take(visibleCount).forEach { alert ->
             AlertRow(
                 title = alert.title,
+                body = alert.body,
                 lineShortName = alert.lineShortName,
                 lineColor = alert.lineColor,
                 modifier = Modifier.fillMaxWidth(),

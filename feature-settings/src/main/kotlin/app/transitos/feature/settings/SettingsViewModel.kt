@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import app.transitos.core.provider.ProviderRegistry
 import app.transitos.core.provider.ProviderSettingsRepository
 import app.transitos.core.repository.LanguagePreference
+import app.transitos.core.repository.ThemeMode
+import app.transitos.core.repository.ThemePreference
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +21,7 @@ class SettingsViewModel(
     private val registry: ProviderRegistry,
     private val settings: ProviderSettingsRepository,
     private val languagePreference: LanguagePreference,
+    private val themePreference: ThemePreference,
 ) : ViewModel() {
 
     val uiState: StateFlow<SettingsUiState> =
@@ -28,6 +31,13 @@ class SettingsViewModel(
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = SettingsUiState(providers = registry.providers),
             )
+
+    val themeMode: StateFlow<ThemeMode> =
+        themePreference.flow.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = themePreference.current(),
+        )
 
     val currentLanguage: String get() = languagePreference.current
 
@@ -39,6 +49,12 @@ class SettingsViewModel(
 
     fun setLanguage(language: String) {
         languagePreference.set(language)
+    }
+
+    fun setThemeMode(mode: ThemeMode) {
+        viewModelScope.launch {
+            themePreference.set(mode)
+        }
     }
 
     private fun observeAllBackends(): kotlinx.coroutines.flow.Flow<SettingsUiState> {

@@ -146,3 +146,16 @@ val DarkColors = darkColorScheme(
     surfaceTint = SurfaceTintDark,
     scrim = ScrimColor,
 )
+
+/**
+ * AMOLED variant — identical to [DarkColors] but with pure-black surfaces so
+ * pixels switch off entirely, maximising battery savings on OLED panels.
+ */
+val AmoledColors = DarkColors.copy(
+    background = Color(0xFF000000),
+    onBackground = Color(0xFFE0E3E2),
+    surface = Color(0xFF000000),
+    onSurface = Color(0xFFE0E3E2),
+    surfaceVariant = Color(0xFF1A1E1E),
+    onSurfaceVariant = Color(0xFFBEC9C7),
+)
