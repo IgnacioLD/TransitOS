@@ -1,17 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 500" width="1024" height="500">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#004D40"/>
+      <stop offset="60%" stop-color="#003329"/>
+      <stop offset="100%" stop-color="#001A14"/>
+    </linearGradient>
+    <linearGradient id="iconBg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#00897B"/>
       <stop offset="100%" stop-color="#004D40"/>
     </linearGradient>
-    <linearGradient id="iconShine" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#00695C"/>
-      <stop offset="100%" stop-color="#004D40"/>
+    <linearGradient id="cardBg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.04"/>
     </linearGradient>
-    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
-      <feOffset dx="0" dy="6" result="offsetblur"/>
-      <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+      <feOffset dx="0" dy="8" result="off"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.4"/></feComponentTransfer>
       <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
@@ -19,33 +28,22 @@
   <!-- Background -->
   <rect width="1024" height="500" fill="url(#bg)"/>
 
-  <!-- Diagonal accent stripes (Metrovalencia line colors) -->
-  <g opacity="0.12">
-    <polygon points="0,0 120,0 0,120" fill="#FEC601"/>
-    <polygon points="120,0 240,0 0,240 0,120" fill="#E60096"/>
-    <polygon points="240,0 360,0 0,360 0,240" fill="#DD052C"/>
-    <polygon points="900,500 1024,500 1024,380" fill="#014A99"/>
-    <polygon points="780,500 900,500 1024,380 1024,260" fill="#008F71"/>
-  </g>
+  <!-- Ambient glow orbs -->
+  <circle cx="120" cy="120" r="200" fill="#00E5C7" opacity="0.06" filter="url(#glow)"/>
+  <circle cx="900" cy="400" r="180" fill="#FEC601" opacity="0.04" filter="url(#glow)"/>
+  <circle cx="512" cy="250" r="300" fill="#00897B" opacity="0.05" filter="url(#glow)"/>
 
-  <!-- Route line decorations -->
-  <g stroke="#FFFFFF" stroke-opacity="0.1" stroke-width="2.5" fill="none" stroke-linecap="round">
-    <path d="M 400,420 Q 500,420 500,350 Q 500,280 600,280 Q 700,280 700,200 Q 700,120 800,120"/>
-    <circle cx="400" cy="420" r="5" fill="#FFFFFF" fill-opacity="0.15"/>
-    <circle cx="500" cy="350" r="5" fill="#FFFFFF" fill-opacity="0.15"/>
-    <circle cx="600" cy="280" r="5" fill="#FFFFFF" fill-opacity="0.15"/>
-    <circle cx="700" cy="200" r="5" fill="#FFFFFF" fill-opacity="0.15"/>
-    <circle cx="800" cy="120" r="5" fill="#FFFFFF" fill-opacity="0.15"/>
-  </g>
+  <!-- Top accent bar -->
+  <rect x="0" y="0" width="1024" height="4" fill="#00E5C7" opacity="0.6"/>
 
-  <!-- Glow behind icon -->
-  <circle cx="156" cy="250" r="120" fill="#00E5C7" opacity="0.1"/>
+  <!-- ===== LEFT: Brand ===== -->
 
-  <!-- ===== LEFT: Icon + Brand ===== -->
+  <!-- App icon with glow -->
+  <circle cx="150" cy="200" r="90" fill="#00E5C7" opacity="0.08"/>
+  <circle cx="150" cy="200" r="65" fill="#00E5C7" opacity="0.12"/>
 
-  <!-- App icon -->
-  <g transform="translate(76, 170)" filter="url(#shadow)">
-    <rect width="160" height="160" rx="38" fill="url(#iconShine)"/>
+  <g transform="translate(70, 120)" filter="url(#dropShadow)">
+    <rect width="160" height="160" rx="40" fill="url(#iconBg)"/>
     <!-- Train body -->
     <path d="M28,44 Q28,34 38,34 L122,34 Q132,34 132,44 L132,102 Q132,108 126,108 L34,108 Q28,108 28,102 Z" fill="#FFFFFF"/>
     <!-- Windshield -->
@@ -61,53 +59,65 @@
   </g>
 
   <!-- Title -->
-  <text x="76" y="395" font-family="Inter, sans-serif" font-size="56" font-weight="800" fill="#FFFFFF" letter-spacing="-0.02em">TransitOS</text>
+  <text x="76" y="340" font-family="Inter, sans-serif" font-size="52" font-weight="800" fill="#FFFFFF" letter-spacing="-0.03em">TransitOS</text>
 
   <!-- Tagline -->
-  <text x="76" y="432" font-family="Inter, sans-serif" font-size="20" font-weight="500" fill="#FFFFFF" fill-opacity="0.7">Real-time public transport planner</text>
+  <text x="78" y="370" font-family="Inter, sans-serif" font-size="18" font-weight="500" fill="#00E5C7" fill-opacity="0.9">Public transport, reimagined</text>
 
-  <!-- ===== RIGHT: Feature highlights ===== -->
+  <!-- Stats row -->
+  <g transform="translate(78, 400)" font-family="Inter, sans-serif">
+    <text x="0" y="0" font-size="13" font-weight="700" fill="#FFFFFF" fill-opacity="0.5">FREE</text>
+    <rect x="48" y="-12" width="1" height="16" fill="#FFFFFF" fill-opacity="0.15"/>
+    <text x="60" y="0" font-size="13" font-weight="700" fill="#FFFFFF" fill-opacity="0.5">OPEN SOURCE</text>
+    <rect x="160" y="-12" width="1" height="16" fill="#FFFFFF" fill-opacity="0.15"/>
+    <text x="172" y="0" font-size="13" font-weight="700" fill="#FFFFFF" fill-opacity="0.5">NO TRACKING</text>
+  </g>
+
+  <!-- Vertical divider -->
+  <line x1="370" y1="60" x2="370" y2="440" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="1"/>
+
+  <!-- ===== RIGHT: Feature cards ===== -->
 
   <!-- Feature 1 -->
-  <g transform="translate(400, 80)">
-    <rect x="0" y="0" width="548" height="76" rx="16" fill="#FFFFFF" fill-opacity="0.08"/>
-    <circle cx="38" cy="38" r="18" fill="#FEC601"/>
-    <text x="38" y="43" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#004D40" text-anchor="middle">01</text>
-    <text x="72" y="32" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Real-time Planner</text>
-    <text x="72" y="56" font-family="Inter, sans-serif" font-size="15" font-weight="400" fill="#FFFFFF" fill-opacity="0.6">Departure and arrival-based trip planning with exact times and station details</text>
+  <g transform="translate(410, 70)" filter="url(#dropShadow)">
+    <rect x="0" y="0" width="540" height="80" rx="18" fill="url(#cardBg)" stroke="#FEC601" stroke-opacity="0.3" stroke-width="1"/>
+    <rect x="0" y="0" width="4" height="80" rx="2" fill="#FEC601"/>
+    <text x="24" y="50" font-family="Inter, sans-serif" font-size="32" font-weight="800" fill="#FEC601" fill-opacity="0.4">01</text>
+    <text x="68" y="34" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Real-time Planner</text>
+    <text x="68" y="58" font-family="Inter, sans-serif" font-size="14" font-weight="400" fill="#FFFFFF" fill-opacity="0.5">Exact times, line colors, and station details from FGV's API</text>
   </g>
 
   <!-- Feature 2 -->
-  <g transform="translate(400, 172)">
-    <rect x="0" y="0" width="548" height="76" rx="16" fill="#FFFFFF" fill-opacity="0.08"/>
-    <circle cx="38" cy="38" r="18" fill="#E60096"/>
-    <text x="38" y="43" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#FFFFFF" text-anchor="middle">02</text>
-    <text x="72" y="32" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Privacy-first</text>
-    <text x="72" y="56" font-family="Inter, sans-serif" font-size="15" font-weight="400" fill="#FFFFFF" fill-opacity="0.6">No analytics, no tracking, no ads. Location data stays on your device</text>
+  <g transform="translate(410, 164)" filter="url(#dropShadow)">
+    <rect x="0" y="0" width="540" height="80" rx="18" fill="url(#cardBg)" stroke="#E60096" stroke-opacity="0.3" stroke-width="1"/>
+    <rect x="0" y="0" width="4" height="80" rx="2" fill="#E60096"/>
+    <text x="24" y="50" font-family="Inter, sans-serif" font-size="32" font-weight="800" fill="#E60096" fill-opacity="0.4">02</text>
+    <text x="68" y="34" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Privacy-first</text>
+    <text x="68" y="58" font-family="Inter, sans-serif" font-size="14" font-weight="400" fill="#FFFFFF" fill-opacity="0.5">No analytics, no tracking, no ads — location stays on device</text>
   </g>
 
   <!-- Feature 3 -->
-  <g transform="translate(400, 264)">
-    <rect x="0" y="0" width="548" height="76" rx="16" fill="#FFFFFF" fill-opacity="0.08"/>
-    <circle cx="38" cy="38" r="18" fill="#DD052C"/>
-    <text x="38" y="43" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#FFFFFF" text-anchor="middle">03</text>
-    <text x="72" y="32" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Favorites &amp; Labels</text>
-    <text x="72" y="56" font-family="Inter, sans-serif" font-size="15" font-weight="400" fill="#FFFFFF" fill-opacity="0.6">Save frequent routes with custom labels. Quick access to your daily commute</text>
+  <g transform="translate(410, 258)" filter="url(#dropShadow)">
+    <rect x="0" y="0" width="540" height="80" rx="18" fill="url(#cardBg)" stroke="#DD052C" stroke-opacity="0.3" stroke-width="1"/>
+    <rect x="0" y="0" width="4" height="80" rx="2" fill="#DD052C"/>
+    <text x="24" y="50" font-family="Inter, sans-serif" font-size="32" font-weight="800" fill="#DD052C" fill-opacity="0.4">03</text>
+    <text x="68" y="34" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Favorites &amp; Labels</text>
+    <text x="68" y="58" font-family="Inter, sans-serif" font-size="14" font-weight="400" fill="#FFFFFF" fill-opacity="0.5">Save routes with custom names for your daily commute</text>
   </g>
 
   <!-- Feature 4 -->
-  <g transform="translate(400, 356)">
-    <rect x="0" y="0" width="548" height="76" rx="16" fill="#FFFFFF" fill-opacity="0.08"/>
-    <circle cx="38" cy="38" r="18" fill="#014A99"/>
-    <text x="38" y="43" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#FFFFFF" text-anchor="middle">04</text>
-    <text x="72" y="32" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Transfer Buffer</text>
-    <text x="72" y="56" font-family="Inter, sans-serif" font-size="15" font-weight="400" fill="#FFFFFF" fill-opacity="0.6">Set your minimum transfer time (0-15 min). Perfect for cautious travelers</text>
+  <g transform="translate(410, 352)" filter="url(#dropShadow)">
+    <rect x="0" y="0" width="540" height="80" rx="18" fill="url(#cardBg)" stroke="#014A99" stroke-opacity="0.3" stroke-width="1"/>
+    <rect x="0" y="0" width="4" height="80" rx="2" fill="#014A99"/>
+    <text x="24" y="50" font-family="Inter, sans-serif" font-size="32" font-weight="800" fill="#5B9BD5" fill-opacity="0.5">04</text>
+    <text x="68" y="34" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Transfer Buffer</text>
+    <text x="68" y="58" font-family="Inter, sans-serif" font-size="14" font-weight="400" fill="#FFFFFF" fill-opacity="0.5">Set minimum transfer time (0-15 min) for cautious travelers</text>
   </g>
 
-  <!-- Google Play badge - top right -->
-  <g transform="translate(830, 20)">
-    <rect x="0" y="0" width="170" height="48" rx="10" fill="#000000" fill-opacity="0.4"/>
-    <text x="85" y="19" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="#FFFFFF" fill-opacity="0.6" text-anchor="middle">GET IT ON</text>
-    <text x="85" y="38" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF" text-anchor="middle">Google Play</text>
+  <!-- Google Play badge -->
+  <g transform="translate(834, 18)">
+    <rect x="0" y="0" width="170" height="46" rx="10" fill="#000000" fill-opacity="0.4" stroke="#FFFFFF" stroke-opacity="0.1" stroke-width="1"/>
+    <text x="85" y="18" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="#FFFFFF" fill-opacity="0.5" text-anchor="middle">GET IT ON</text>
+    <text x="85" y="36" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle">Google Play</text>
   </g>
 </svg>
