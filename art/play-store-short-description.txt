@@ -1,1 +1,1 @@
-Real-time public transport planner — open source, no tracking.
+Real-time public transport planner. Open source, no tracking.

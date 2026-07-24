@@ -1,20 +1,51 @@
-TransitOS is a real-time trip planner for public transport, designed to be clean, fast, and private. Currently covering Metrovalencia (FGV) — Valencia's metro and train network — with more operators coming.
+TransitOS is a real-time trip planner for public transport. It is designed to be clean, fast, and private, with no ads and no tracking.
 
-Built from the ground up as an open-source alternative: no analytics, no telemetry, no advertising. Your location data stays on your device and is never shared.
+Currently covering Metrovalencia (FGV), Valencia's metro and tram network. More operators are on the way. If your city is not supported yet, let us know and we will look into adding it.
 
-Features:
+Built from the ground up as an open-source alternative to the official apps. No analytics, no telemetry, no advertising. Your location data stays on your device and is never sent anywhere.
 
-• Real-time trip planning — departure and arrival modes with exact times, line colors, and station details
-• Real line colors — official FGV color scheme for all 10 Metrovalencia lines
-• Favorites with custom labels — save frequent routes and rename them for quick access
-• Configurable transfer buffer — set your minimum transfer time (0–15 minutes)
-• Network map — browse the full Metrovalencia PDF map within the app
-• Live service alerts — know about disruptions before you leave
-• Dark mode — easy on the eyes at night
-• Multi-language — English, Spanish, and Catalan
+PLAN YOUR TRIPS
 
-Privacy:
+Search for any origin and destination in the network. TransitOS finds the best routes using real-time schedule data from FGV's API, so the times you see are the times the trains actually run.
 
-TransitOS does not collect, store, or share any personal data. No analytics SDKs, no crash reporters, no advertising IDs. The app makes HTTPS requests directly to FGV's public API from your device — no intermediate servers.
+Choose between departing now or arriving by a specific time. The app shows you exactly which lines to take, where to transfer, and how long each leg of the journey takes. Every line is shown in its official FGV color, so you can match what you see on screen with the signs in the station.
 
-Open source under AGPL-3.0. Source code available at github.com/IgnacioLD/TransitOS.
+OFFICIAL LINE COLORS
+
+All 10 Metrovalencia lines are displayed using the official FGV color palette:
+
+L1, L2, L3, L4, L5, L6, L7, L8, L9 and L10.
+
+No more guessing which line is which from a generic color scheme.
+
+FAVORITES AND CUSTOM LABELS
+
+Save the routes you use most often: home to work, work to school, or anything else. Give each one a custom name so you can find it instantly. No need to type the same stations every day.
+
+TRANSFER BUFFER
+
+Some connections are tight. If you need extra time to change platforms, set a minimum transfer buffer anywhere from 0 to 15 minutes. The planner will only suggest routes where you have enough time to make the switch comfortably.
+
+LIVE SERVICE ALERTS
+
+Get notified about disruptions, delays, and schedule changes before you leave. If a line is down or a station is closed, you will know about it upfront and can plan an alternative route.
+
+NETWORK MAP
+
+Browse the full Metrovalencia network map without leaving the app. Zoom in on stations, check line connections, and get oriented quickly.
+
+DARK MODE AND AMOLED
+
+A proper dark theme that is easy on the eyes at night. On AMOLED screens, the pure black background also saves battery.
+
+MULTI-LANGUAGE
+
+The app is available in English, Spanish, and Catalan. More languages coming soon.
+
+PRIVACY
+
+TransitOS does not collect, store, or share any personal data. There are no analytics SDKs, no crash reporters, and no advertising identifiers. The app communicates directly with FGV's public API over HTTPS from your device. There are no intermediate servers, and nothing about your usage is recorded.
+
+OPEN SOURCE
+
+TransitOS is open source under the AGPL-3.0 license. The full source code is available at github.com/IgnacioLD/TransitOS. Contributions, bug reports, and feature requests are welcome.
