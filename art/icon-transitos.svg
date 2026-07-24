@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#006A6A"/>
+      <stop offset="100%" stop-color="#004D4D"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="128" fill="url(#bg)"/>
+
+  <!-- Train body -->
+  <path d="M96,136 Q96,104 128,104 L384,104 Q416,104 416,136 L416,288 Q416,304 400,304 L112,304 Q96,304 96,288 Z" fill="#FFFFFF"/>
+
+  <!-- Windshield -->
+  <path d="M120,136 L392,136 L392,192 Q392,208 376,208 L136,208 Q120,208 120,192 Z" fill="#1B4332"/>
+
+  <!-- Window pillar left -->
+  <rect x="176" y="136" width="12" height="72" fill="#FFFFFF"/>
+
+  <!-- Window pillar right -->
+  <rect x="324" y="136" width="12" height="72" fill="#FFFFFF"/>
+
+  <!-- Headlight left -->
+  <circle cx="136" cy="248" r="20" fill="#FFD700"/>
+
+  <!-- Headlight right -->
+  <circle cx="376" cy="248" r="20" fill="#FFD700"/>
+
+  <!-- Bumper -->
+  <path d="M112,304 L400,304 L400,318 Q400,334 384,334 L128,334 Q112,334 112,318 Z" fill="#FFFFFF"/>
+</svg>
