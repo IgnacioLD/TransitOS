@@ -14,16 +14,19 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
  * change faster than these windows, and we want to be a polite client of an
  * undocumented endpoint.
  */
-data class MetrovalenciaConfig(
+class MetrovalenciaConfig(
     val baseUrl: String = DEFAULT_BASE_URL,
-    val language: String = "es",
+    private val languageProvider: () -> String = { "es" },
     val sede: String = "V",
     val arrivalsPollMs: Long = 30_000L,
     val alertsPollMs: Long = 5 * 60_000L,
     val catalogRefreshMs: Long = 6 * 60 * 60_000L,
 ) {
+    val language: String
+        get() = languageProvider()
+
     val fullBaseUrl: String
-        get() = "$baseUrl$language/api/v1/$sede/"
+        get() = "$baseUrl${languageProvider()}/api/v1/$sede/"
 
     @OptIn(ExperimentalCoroutinesApi::class)
     companion object {

@@ -30,12 +30,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.transitos.core.design.theme.LocalSpacing
 import app.transitos.core.model.Stop
 import app.transitos.core.ui.EmptyState
+import app.transitos.core.ui.R as coreUiR
 import app.transitos.core.ui.SkeletonBlock
+import app.transitos.feature.search.R
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -77,11 +80,11 @@ internal fun SearchScreen(
                 title = {
                     Column {
                         Text(
-                            text = "Buscar",
+                            text = stringResource(R.string.search_title),
                             style = MaterialTheme.typography.titleLarge,
                         )
                         Text(
-                            text = "$allStopsSize estaciones",
+                            text = stringResource(R.string.search_stations_count, allStopsSize),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -101,9 +104,9 @@ internal fun SearchScreen(
                 allStopsSize == 0 -> SearchSkeleton()
                 filteredStops.isEmpty() -> EmptyState(
                     icon = Icons.Outlined.Search,
-                    title = "Sin resultados",
-                    subtitle = if (query.isBlank()) "Cargando estaciones…"
-                    else "No hay estaciones que coincidan con «${query}».",
+                    title = stringResource(R.string.search_no_results),
+                    subtitle = if (query.isBlank()) stringResource(R.string.search_loading)
+                    else stringResource(R.string.search_no_match, query),
                 )
                 else -> StopsList(
                     stops = filteredStops,
@@ -124,7 +127,7 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = spacing.screenGutter, vertical = spacing.md),
-        placeholder = { Text("Estación, línea o destino") },
+        placeholder = { Text(stringResource(R.string.search_placeholder)) },
         leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
         singleLine = true,
         shape = MaterialTheme.shapes.large,
@@ -199,7 +202,7 @@ private fun StopRow(
             IconButton(onClick = onToggleFavorite) {
                 Icon(
                     imageVector = if (isFavorite) Icons.Outlined.Star else Icons.Outlined.StarBorder,
-                    contentDescription = if (isFavorite) "Quitar de favoritos" else "Añadir a favoritos",
+                    contentDescription = if (isFavorite) stringResource(coreUiR.string.cd_remove_favorite) else stringResource(coreUiR.string.cd_add_favorite),
                     tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                 )
             }

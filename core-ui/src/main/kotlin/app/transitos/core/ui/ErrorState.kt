@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.transitos.core.design.theme.LocalSpacing
@@ -32,7 +33,13 @@ fun ErrorState(
     error: AppError,
     modifier: Modifier = Modifier,
 ) {
-    val (icon, title, body) = error.toPresentation()
+    val presentation = error.toPresentation()
+    val title = if (presentation.titleFormatArg != null) {
+        stringResource(presentation.titleRes, presentation.titleFormatArg)
+    } else {
+        stringResource(presentation.titleRes)
+    }
+    val body = presentation.dynamicBody ?: stringResource(presentation.bodyRes)
     val spacing = LocalSpacing.current
     Column(
         modifier = modifier
@@ -42,7 +49,7 @@ fun ErrorState(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
-            imageVector = icon,
+            imageVector = presentation.icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.outline,
             modifier = Modifier.size(56.dp),
@@ -64,13 +71,21 @@ fun ErrorState(
     }
 }
 
-private fun AppError.toPresentation(): Triple<ImageVector, String, String> = when (this) {
-    is AppError.Offline -> Triple(Icons.Outlined.WifiOff, "Sin conexión", "Reintentando en cuanto vuelva la señal.")
-    is AppError.Network -> Triple(Icons.Outlined.CloudOff, "No se pudo conectar", "El servicio no responde. Vuelve a intentarlo en un momento.")
-    is AppError.Timeout -> Triple(Icons.Outlined.CloudOff, "La respuesta tardó demasiado", "El servidor de Metrovalencia está tardando más de lo habitual.")
-    is AppError.Unauthorized -> Triple(Icons.Outlined.ErrorOutline, "Acceso no autorizado", "El servicio rechazó la petición.")
-    is AppError.Server -> Triple(Icons.Outlined.ErrorOutline, "Error del servidor ($code)", "Problema temporal en el lado de Metrovalencia.")
-    is AppError.NotFound -> Triple(Icons.Outlined.Info, "Sin resultados", "No encontramos ese dato.")
-    is AppError.Parsing -> Triple(Icons.Outlined.ErrorOutline, "No se pudo leer la respuesta", "El formato de los datos ha cambiado.")
-    is AppError.Unknown -> Triple(Icons.Outlined.ErrorOutline, "Algo ha salido mal", message)
+private data class ErrorPresentation(
+    val icon: ImageVector,
+    val titleRes: Int,
+    val bodyRes: Int,
+    val titleFormatArg: Any? = null,
+    val dynamicBody: String? = null,
+)
+
+private fun AppError.toPresentation(): ErrorPresentation = when (this) {
+    is AppError.Offline -> ErrorPresentation(Icons.Outlined.WifiOff, R.string.error_offline_title, R.string.error_offline_body)
+    is AppError.Network -> ErrorPresentation(Icons.Outlined.CloudOff, R.string.error_network_title, R.string.error_network_body)
+    is AppError.Timeout -> ErrorPresentation(Icons.Outlined.CloudOff, R.string.error_timeout_title, R.string.error_timeout_body)
+    is AppError.Unauthorized -> ErrorPresentation(Icons.Outlined.ErrorOutline, R.string.error_unauthorized_title, R.string.error_unauthorized_body)
+    is AppError.Server -> ErrorPresentation(Icons.Outlined.ErrorOutline, R.string.error_server_title, R.string.error_server_body, titleFormatArg = code)
+    is AppError.NotFound -> ErrorPresentation(Icons.Outlined.Info, R.string.error_not_found_title, R.string.error_not_found_body)
+    is AppError.Parsing -> ErrorPresentation(Icons.Outlined.ErrorOutline, R.string.error_parsing_title, R.string.error_parsing_body)
+    is AppError.Unknown -> ErrorPresentation(Icons.Outlined.ErrorOutline, R.string.error_unknown_title, bodyRes = 0, dynamicBody = message)
 }

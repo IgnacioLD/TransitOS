@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_no_alerts">Sense avisos a Metrovalencia</string>
+    <string name="home_alerts_singular">1 línia amb avisos</string>
+    <string name="home_alerts_plural">%1$d línies amb avisos</string>
+    <string name="home_saved_routes">Rutes guardades</string>
+    <string name="home_favorites">Preferits</string>
+    <string name="home_no_favorites_title">Encara no tens parades preferides</string>
+    <string name="home_no_favorites_subtitle">Busca una estació i marca-la per vore ací les seues pròximes arribades.</string>
+    <string name="settings_cd">Ajustos</string>
+</resources>

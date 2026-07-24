@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="planner_title">Plan trip</string>
+    <string name="planner_view_network_map">View network map</string>
+    <string name="planner_error_title">Could not plan trip</string>
+    <string name="planner_no_route_title">No route found</string>
+    <string name="planner_no_route_subtitle">There are no trains between these stations on the selected date.</string>
+    <string name="planner_origin">Origin</string>
+    <string name="planner_destination">Destination</string>
+    <string name="planner_from">From</string>
+    <string name="planner_to">To</string>
+    <string name="planner_swap_cd">Swap origin and destination</string>
+    <string name="planner_pick_station">Pick a station</string>
+    <string name="planner_pick_with_title">Pick %1$s</string>
+    <string name="planner_search_station">Search station</string>
+    <string name="planner_pick_date">Pick date</string>
+    <string name="planner_arrival">Arrive by</string>
+    <string name="planner_arrival_hint">Tap to set arrival time</string>
+    <string name="planner_arrival_time_title">Arrival time</string>
+    <string name="planner_clear_arrival_cd">Clear arrival time</string>
+    <string name="planner_select_cd">Select</string>
+    <string name="planner_hint">Choose origin and destination to see schedules, first and last train.</string>
+    <string name="planner_first_departure">First</string>
+    <string name="planner_last_departure">Last</string>
+    <string name="planner_departures">Departures</string>
+    <string name="planner_full_schedule">Full schedule</string>
+    <string name="planner_route_saved">Route saved to Favorites</string>
+    <string name="planner_save_route">Save route to Favorites</string>
+    <string name="planner_legs_unit">legs</string>
+    <string name="planner_departures_count">%1$d departures</string>
+    <string name="planner_direction">Direction: %1$s</string>
+    <string name="planner_distance">Distance</string>
+    <string name="planner_fare">Fare</string>
+    <string name="planner_fare_zone">Zone %1$s</string>
+    <string name="planner_co2">CO₂</string>
+    <string name="date_today">Today</string>
+    <string name="date_tomorrow">Tomorrow</string>
+</resources>

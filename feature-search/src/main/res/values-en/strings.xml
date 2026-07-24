@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_title">Search</string>
+    <string name="search_stations_count">%1$d stations</string>
+    <string name="search_loading">Loading stations…</string>
+    <string name="search_no_results">No results</string>
+    <string name="search_no_match">No stations match \"%1$s\".</string>
+    <string name="search_placeholder">Station, line or destination</string>
+</resources>

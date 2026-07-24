@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="planner_title">Planificar viaje</string>
+    <string name="planner_view_network_map">Ver plano de la red</string>
+    <string name="planner_error_title">No se pudo planificar</string>
+    <string name="planner_no_route_title">Sin ruta encontrada</string>
+    <string name="planner_no_route_subtitle">No hay trenes entre estas estaciones en la fecha seleccionada.</string>
+    <string name="planner_origin">Origen</string>
+    <string name="planner_destination">Destino</string>
+    <string name="planner_from">Desde</string>
+    <string name="planner_to">Hasta</string>
+    <string name="planner_swap_cd">Intercambiar origen y destino</string>
+    <string name="planner_pick_station">Elige estación</string>
+    <string name="planner_pick_with_title">Elige %1$s</string>
+    <string name="planner_search_station">Buscar estación</string>
+    <string name="planner_pick_date">Elegir fecha</string>
+    <string name="planner_arrival">Llegada</string>
+    <string name="planner_arrival_hint">Pulsar para establecer hora de llegada</string>
+    <string name="planner_arrival_time_title">Hora de llegada</string>
+    <string name="planner_clear_arrival_cd">Quitar hora de llegada</string>
+    <string name="planner_select_cd">Seleccionar</string>
+    <string name="planner_hint">Elige origen y destino para ver horarios, primer y último tren.</string>
+    <string name="planner_first_departure">Primero</string>
+    <string name="planner_last_departure">Último</string>
+    <string name="planner_departures">Salidas</string>
+    <string name="planner_full_schedule">Horario completo</string>
+    <string name="planner_route_saved">Ruta guardada en Favoritos</string>
+    <string name="planner_save_route">Guardar ruta en Favoritos</string>
+    <string name="planner_legs_unit">tramos</string>
+    <string name="planner_departures_count">%1$d salidas</string>
+    <string name="planner_direction">Dirección: %1$s</string>
+    <string name="planner_distance">Distancia</string>
+    <string name="planner_fare">Tarifa</string>
+    <string name="planner_fare_zone">Zona %1$s</string>
+    <string name="planner_co2">CO₂</string>
+    <string name="date_today">Hoy</string>
+    <string name="date_tomorrow">Mañana</string>
+</resources>

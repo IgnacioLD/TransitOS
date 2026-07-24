@@ -5,6 +5,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 
 /**
  * The app's bottom navigation. Stateless: receives the current route and emits
@@ -28,7 +29,7 @@ fun TransitOSBottomBar(
                         contentDescription = null,
                     )
                 },
-                label = { Text(destination.label) },
+                label = { Text(stringResource(destination.labelRes)) },
             )
         }
     }

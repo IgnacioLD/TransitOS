@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common actions -->
+    <string name="action_accept">Aceptar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_next">Siguiente</string>
+    <string name="action_plan">Planificar</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_back">Volver</string>
+    <string name="cd_close">Cerrar</string>
+    <string name="cd_add_favorite">Añadir a favoritos</string>
+    <string name="cd_remove_favorite">Quitar de favoritos</string>
+
+    <!-- Units -->
+    <string name="unit_minutes">min</string>
+
+    <!-- Error states -->
+    <string name="error_offline_title">Sin conexión</string>
+    <string name="error_offline_body">Reintentando en cuanto vuelva la señal.</string>
+    <string name="error_network_title">No se pudo conectar</string>
+    <string name="error_network_body">El servicio no responde. Vuelve a intentarlo en un momento.</string>
+    <string name="error_timeout_title">La respuesta tardó demasiado</string>
+    <string name="error_timeout_body">El servidor de Metrovalencia está tardando más de lo habitual.</string>
+    <string name="error_unauthorized_title">Acceso no autorizado</string>
+    <string name="error_unauthorized_body">El servicio rechazó la petición.</string>
+    <string name="error_server_title">Error del servidor (%1$d)</string>
+    <string name="error_server_body">Problema temporal en el lado de Metrovalencia.</string>
+    <string name="error_not_found_title">Sin resultados</string>
+    <string name="error_not_found_body">No encontramos ese dato.</string>
+    <string name="error_parsing_title">No se pudo leer la respuesta</string>
+    <string name="error_parsing_body">El formato de los datos ha cambiado.</string>
+    <string name="error_unknown_title">Algo ha salido mal</string>
+    <string name="error_unknown_message">Error desconocido</string>
+
+    <!-- Relative time -->
+    <string name="time_just_now">justo ahora</string>
+    <string name="time_minutes_ago">hace %1$d min</string>
+    <string name="time_hours_ago">hace %1$d h</string>
+
+    <!-- Favorite stop card -->
+    <string name="card_updated_prefix">Actualizado %1$s</string>
+    <string name="arrival_unconfirmed_title">Próximo tren sin confirmar</string>
+    <string name="arrival_unconfirmed_subtitle">Usa el Planificador para ver horarios programados</string>
+    <string name="arrival_no_line">—</string>
+    <string name="arrival_live">En vivo</string>
+    <string name="arrival_scheduled">Horario</string>
+    <string name="arrival_boarding">Próximo</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_line_prefix">línea %1$s</string>
+    <string name="a11y_eta_minutes">%1$d minutos</string>
+    <string name="a11y_eta_unavailable">hora no disponible</string>
+    <string name="a11y_towards">hacia %1$s</string>
+
+    <!-- Alerts -->
+    <string name="alerts_section_title">Avisos del servicio · %1$d</string>
+    <string name="alerts_show_less">Ver menos</string>
+    <string name="alerts_show_all">Ver las %1$d líneas</string>
+    <string name="alert_line_incident_title">Línea %1$s con incidencias</string>
+
+    <!-- Language -->
+    <string name="language_spanish">Español</string>
+    <string name="language_valencian">Valenciano</string>
+    <string name="language_english">English</string>
+</resources>

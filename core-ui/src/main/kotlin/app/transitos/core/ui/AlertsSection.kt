@@ -19,6 +19,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import app.transitos.core.design.theme.LocalSpacing
 import app.transitos.core.model.Alert
@@ -54,7 +55,7 @@ fun AlertsSection(
             .padding(bottom = spacing.md),
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
-        SectionHeader(text = "Avisos del servicio · ${alerts.size}")
+        SectionHeader(text = stringResource(R.string.alerts_section_title, alerts.size))
 
         // Stable keys so animated visibility doesn't fight the LazyColumn.
         alerts.take(visibleCount).forEach { alert ->
@@ -82,7 +83,11 @@ private fun ExpandToggle(
     totalCount: Int,
     onClick: () -> Unit,
 ) {
-    val label = if (expanded) "Ver menos" else "Ver las $totalCount líneas"
+    val label = if (expanded) {
+        stringResource(R.string.alerts_show_less)
+    } else {
+        stringResource(R.string.alerts_show_all, totalCount)
+    }
     TextButton(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),

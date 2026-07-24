@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common actions -->
+    <string name="action_accept">Acceptar</string>
+    <string name="action_cancel">Cancel·lar</string>
+    <string name="action_next">Següent</string>
+    <string name="action_plan">Planificar</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_back">Tornar</string>
+    <string name="cd_close">Tancar</string>
+    <string name="cd_add_favorite">Afegir a preferits</string>
+    <string name="cd_remove_favorite">Traure de preferits</string>
+
+    <!-- Units -->
+    <string name="unit_minutes">min</string>
+
+    <!-- Error states -->
+    <string name="error_offline_title">Sense connexió</string>
+    <string name="error_offline_body">Reintentant quan torne la senyal.</string>
+    <string name="error_network_title">No s\'ha pogut connectar</string>
+    <string name="error_network_body">El servei no respon. Torna a intentar-ho en un moment.</string>
+    <string name="error_timeout_title">La resposta ha tardat massa</string>
+    <string name="error_timeout_body">El servidor de Metrovalencia està tardant més del compte.</string>
+    <string name="error_unauthorized_title">Accés no autoritzat</string>
+    <string name="error_unauthorized_body">El servei ha rebutjat la petició.</string>
+    <string name="error_server_title">Error del servidor (%1$d)</string>
+    <string name="error_server_body">Problema temporal en la part de Metrovalencia.</string>
+    <string name="error_not_found_title">Sense resultats</string>
+    <string name="error_not_found_body">No hem trobat esta dada.</string>
+    <string name="error_parsing_title">No s\'ha pogut llegir la resposta</string>
+    <string name="error_parsing_body">El format de les dades ha canviat.</string>
+    <string name="error_unknown_title">Alguna cosa ha eixit malament</string>
+    <string name="error_unknown_message">Error desconegut</string>
+
+    <!-- Relative time -->
+    <string name="time_just_now">ara mateix</string>
+    <string name="time_minutes_ago">fa %1$d min</string>
+    <string name="time_hours_ago">fa %1$d h</string>
+
+    <!-- Favorite stop card -->
+    <string name="card_updated_prefix">Actualitzat %1$s</string>
+    <string name="arrival_unconfirmed_title">Pròxim tren sense confirmar</string>
+    <string name="arrival_unconfirmed_subtitle">Utilitza el Planificador per veure horaris programats</string>
+    <string name="arrival_no_line">—</string>
+    <string name="arrival_live">En directe</string>
+    <string name="arrival_scheduled">Horari</string>
+    <string name="arrival_boarding">Pròxim</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_line_prefix">línia %1$s</string>
+    <string name="a11y_eta_minutes">%1$d minuts</string>
+    <string name="a11y_eta_unavailable">hora no disponible</string>
+    <string name="a11y_towards">cap a %1$s</string>
+
+    <!-- Alerts -->
+    <string name="alerts_section_title">Avisos del servei · %1$d</string>
+    <string name="alerts_show_less">Veure menys</string>
+    <string name="alerts_show_all">Veure les %1$d línies</string>
+    <string name="alert_line_incident_title">Línia %1$s amb incidències</string>
+
+    <!-- Language -->
+    <string name="language_spanish">Espanyol</string>
+    <string name="language_valencian">Valencià</string>
+    <string name="language_english">English</string>
+</resources>

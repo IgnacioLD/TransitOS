@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TransitOS</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_search">Buscar</string>
+    <string name="nav_planner">Planificar</string>
+    <string name="nav_map">Mapa</string>
+
+    <!-- Map -->
+    <string name="map_title">Mapa</string>
+    <string name="map_pdf_cd">Plano PDF</string>
+    <string name="map_pdf_title">Plano PDF Metrovalencia</string>
+    <string name="map_pdf_error">Error al cargar el plano PDF</string>
+    <string name="map_pdf_loading">Cargando plano…</string>
+    <string name="settings_cd">Ajustes</string>
 </resources>

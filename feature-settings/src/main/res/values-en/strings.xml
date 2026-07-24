@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Settings</string>
+    <string name="settings_providers">Providers</string>
+    <string name="settings_data_source">Data source</string>
+    <string name="settings_no_providers">No providers available.</string>
+    <string name="settings_language">Language</string>
+</resources>

@@ -50,10 +50,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import app.transitos.R
+import app.transitos.core.ui.R as coreUiR
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -829,15 +832,15 @@ fun OSMNetworkMapRoute(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mapa") },
+                title = { Text(stringResource(R.string.map_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(coreUiR.string.cd_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = onOpenPdf) {
-                        Icon(Icons.Outlined.Map, contentDescription = "Plano PDF")
+                        Icon(Icons.Outlined.Map, contentDescription = stringResource(R.string.map_pdf_cd))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -884,7 +887,7 @@ fun OSMNetworkMapRoute(
                                 }
                             }
                             IconButton(onClick = { selectedStation = null }) {
-                                Icon(Icons.Outlined.Close, contentDescription = "Cerrar")
+                                Icon(Icons.Outlined.Close, contentDescription = stringResource(coreUiR.string.cd_close))
                             }
                         }
                     }

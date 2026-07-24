@@ -37,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -48,6 +49,7 @@ import app.transitos.core.ui.ErrorState
 import app.transitos.core.ui.FavoriteStopCard
 import app.transitos.core.ui.FavoritesSkeleton
 import app.transitos.core.ui.SectionHeader
+import app.transitos.core.ui.R as coreUiR
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -80,7 +82,7 @@ internal fun HomeScreen(
     Scaffold(
         topBar = {
             HomeTopBar(
-                subtitle = networkStatusText(alertCount),
+                alertCount = alertCount,
                 scrollBehavior = scrollBehavior,
                 onNavigateToSettings = onNavigateToSettings,
             )
@@ -108,11 +110,16 @@ internal fun HomeScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeTopBar(
-    subtitle: String,
+    alertCount: Int,
     scrollBehavior: TopAppBarScrollBehavior,
     onNavigateToSettings: () -> Unit,
 ) {
-    val subtitleColor = if (subtitle.startsWith("Sin avisos")) {
+    val subtitle = when {
+        alertCount == 0 -> stringResource(R.string.home_no_alerts)
+        alertCount == 1 -> stringResource(R.string.home_alerts_singular)
+        else -> stringResource(R.string.home_alerts_plural, alertCount)
+    }
+    val subtitleColor = if (alertCount == 0) {
         MaterialTheme.colorScheme.primary
     } else {
         MaterialTheme.colorScheme.error
@@ -134,17 +141,11 @@ private fun HomeTopBar(
         },
         actions = {
             IconButton(onClick = onNavigateToSettings) {
-                Icon(Icons.Outlined.Settings, contentDescription = "Ajustes")
+                Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.settings_cd))
             }
         },
         scrollBehavior = scrollBehavior,
     )
-}
-
-private fun networkStatusText(alertCount: Int): String = when {
-    alertCount == 0 -> "Sin avisos en Metrovalencia"
-    alertCount == 1 -> "1 línea con avisos"
-    else -> "$alertCount líneas con avisos"
 }
 
 @Composable
@@ -153,6 +154,10 @@ private fun HomeContent(
     onNavigateToPlanner: (originStopId: String, destinationStopId: String) -> Unit = { _, _ -> },
 ) {
     val spacing = LocalSpacing.current
+    val savedRoutesTitle = stringResource(R.string.home_saved_routes)
+    val favoritesTitle = stringResource(R.string.home_favorites)
+    val noFavoritesTitle = stringResource(R.string.home_no_favorites_title)
+    val noFavoritesSubtitle = stringResource(R.string.home_no_favorites_subtitle)
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
@@ -162,7 +167,7 @@ private fun HomeContent(
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
         if (state.savedRoutes.isNotEmpty()) {
-            item { SectionHeader("Rutas guardadas") }
+            item { SectionHeader(savedRoutesTitle) }
             items(state.savedRoutes, key = { it.id }) { route ->
                 SavedRouteCard(
                     route = route,
@@ -175,14 +180,14 @@ private fun HomeContent(
             item { Spacer(Modifier.height(spacing.md)) }
         }
 
-        item { SectionHeader("Favoritos") }
+        item { SectionHeader(favoritesTitle) }
 
         if (state.favorites.isEmpty()) {
             item {
                 EmptyState(
                     icon = Icons.Outlined.BookmarkAdd,
-                    title = "Aún no tienes paradas favoritas",
-                    subtitle = "Busca una estación y márcala para ver aquí sus próximas llegadas.",
+                    title = noFavoritesTitle,
+                    subtitle = noFavoritesSubtitle,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -254,7 +259,7 @@ private fun SavedRouteCard(
                 )
             }
             TextButton(onClick = onClick) {
-                Text("Planificar")
+                Text(stringResource(coreUiR.string.action_plan))
             }
         }
     }

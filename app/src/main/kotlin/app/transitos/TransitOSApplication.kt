@@ -1,6 +1,9 @@
 package app.transitos
 
 import android.app.Application
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
+import app.transitos.core.data.SharedPrefsLanguagePreference
 import app.transitos.core.data.di.coreDataModule
 import app.transitos.core.network.di.networkModule
 import app.transitos.feature.home.di.homeModule
@@ -15,6 +18,13 @@ import org.koin.core.context.startKoin
 class TransitOSApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+
+        val langPref = SharedPrefsLanguagePreference(this)
+        if (AppCompatDelegate.getApplicationLocales().isEmpty) {
+            AppCompatDelegate.setApplicationLocales(
+                LocaleListCompat.forLanguageTags(langPref.current),
+            )
+        }
 
         startKoin {
             androidLogger()

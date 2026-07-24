@@ -1,5 +1,6 @@
 package app.transitos.feature.settings
 
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,9 +13,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -26,7 +29,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.transitos.core.design.theme.LocalSpacing
 import app.transitos.core.provider.ProviderInfo
@@ -39,7 +44,18 @@ fun SettingsRoute(
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    SettingsScreen(state = state, onBackendChange = viewModel::setBackend, modifier = modifier)
+    SettingsScreen(
+        state = state,
+        onBackendChange = viewModel::setBackend,
+        currentLanguage = viewModel.currentLanguage,
+        onLanguageChange = { lang ->
+            viewModel.setLanguage(lang)
+            AppCompatDelegate.setApplicationLocales(
+                LocaleListCompat.forLanguageTags(lang),
+            )
+        },
+        modifier = modifier,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,12 +63,14 @@ fun SettingsRoute(
 internal fun SettingsScreen(
     state: SettingsUiState,
     onBackendChange: (providerId: String, backendId: String) -> Unit,
+    currentLanguage: String,
+    onLanguageChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Ajustes") },
+                title = { Text(stringResource(R.string.settings_title)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                 ),
@@ -68,7 +86,15 @@ internal fun SettingsScreen(
         ) {
             val spacing = LocalSpacing.current
 
-            SectionHeader("Proveedores")
+            LanguageSection(
+                currentLanguage = currentLanguage,
+                onLanguageChange = onLanguageChange,
+                modifier = Modifier.padding(horizontal = spacing.screenGutter),
+            )
+
+            Spacer(modifier = Modifier.height(spacing.lg))
+
+            SectionHeader(stringResource(R.string.settings_providers))
 
             if (state.providers.isEmpty()) {
                 EmptyProviders(modifier = Modifier.padding(horizontal = spacing.screenGutter))
@@ -93,6 +119,75 @@ internal fun SettingsScreen(
 }
 
 @Composable
+private fun LanguageSection(
+    currentLanguage: String,
+    onLanguageChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val spacing = LocalSpacing.current
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Language,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = stringResource(R.string.settings_language),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+
+        Spacer(modifier = Modifier.height(spacing.xs))
+
+        LanguageOption(
+            label = stringResource(app.transitos.core.ui.R.string.language_spanish),
+            selected = currentLanguage == "es",
+            onClick = { onLanguageChange("es") },
+        )
+        LanguageOption(
+            label = stringResource(app.transitos.core.ui.R.string.language_valencian),
+            selected = currentLanguage == "ca",
+            onClick = { onLanguageChange("ca") },
+        )
+        LanguageOption(
+            label = stringResource(app.transitos.core.ui.R.string.language_english),
+            selected = currentLanguage == "en",
+            onClick = { onLanguageChange("en") },
+        )
+    }
+}
+
+@Composable
+private fun LanguageOption(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = LocalSpacing.current.xs),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = onClick,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (selected) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+@Composable
 private fun ProviderSection(
     provider: ProviderInfo,
     selectedBackendId: String?,
@@ -109,7 +204,7 @@ private fun ProviderSection(
         Spacer(modifier = Modifier.height(LocalSpacing.current.xs))
 
         Text(
-            text = "Fuente de datos",
+            text = stringResource(R.string.settings_data_source),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -146,7 +241,7 @@ private fun EmptyProviders(modifier: Modifier = Modifier) {
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
-            text = "No hay proveedores disponibles.",
+            text = stringResource(R.string.settings_no_providers),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

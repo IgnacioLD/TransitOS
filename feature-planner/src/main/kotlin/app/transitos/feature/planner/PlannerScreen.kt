@@ -60,6 +60,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -68,7 +69,9 @@ import app.transitos.core.model.Journey
 import app.transitos.core.model.JourneyLeg
 import app.transitos.core.model.Stop
 import app.transitos.core.ui.EmptyState
+import app.transitos.core.ui.R as coreUiR
 import app.transitos.core.ui.SkeletonBlock
+import app.transitos.feature.planner.R
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.Instant
@@ -157,7 +160,7 @@ internal fun PlannerScreen(
         ) {
             item {
                 Text(
-                    text = "Planificar viaje",
+                    text = stringResource(R.string.planner_title),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(top = spacing.md, bottom = spacing.xs),
@@ -202,7 +205,7 @@ internal fun PlannerScreen(
                         modifier = Modifier.size(18.dp),
                     )
                     Spacer(Modifier.width(LocalSpacing.current.sm))
-                    Text("Ver plano de la red")
+                    Text(stringResource(R.string.planner_view_network_map))
                 }
             }
 
@@ -232,15 +235,15 @@ internal fun PlannerScreen(
                 state.errorMessage != null -> item {
                     EmptyState(
                         icon = Icons.Outlined.Search,
-                        title = "No se pudo planificar",
+                        title = stringResource(R.string.planner_error_title),
                         subtitle = state.errorMessage,
                     )
                 }
                 else -> item {
                     EmptyState(
                         icon = Icons.Outlined.Search,
-                        title = "Sin ruta encontrada",
-                        subtitle = "No hay trenes entre estas estaciones en la fecha seleccionada.",
+                        title = stringResource(R.string.planner_no_route_title),
+                        subtitle = stringResource(R.string.planner_no_route_subtitle),
                     )
                 }
             }
@@ -250,7 +253,8 @@ internal fun PlannerScreen(
     val target = picking
     if (target != null) {
         StationPickerSheet(
-            title = if (target == PickingTarget.ORIGIN) "Origen" else "Destino",
+            title = if (target == PickingTarget.ORIGIN) stringResource(R.string.planner_origin)
+            else stringResource(R.string.planner_destination),
             stops = stops,
             onPick = { stop ->
                 when (target) {
@@ -278,10 +282,10 @@ internal fun PlannerScreen(
                         }
                         showDatePicker = false
                     },
-                ) { Text("Aceptar") }
+                ) { Text(stringResource(coreUiR.string.action_accept)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") }
+                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(coreUiR.string.action_cancel)) }
             },
         ) {
             DatePicker(state = pickerState)
@@ -311,9 +315,9 @@ private fun EndpointSelector(
                     .padding(vertical = spacing.lg),
                 verticalArrangement = Arrangement.spacedBy(spacing.sm),
             ) {
-                EndpointRow(label = "Desde", stop = origin, onClick = onPickOrigin)
+                EndpointRow(label = stringResource(R.string.planner_from), stop = origin, onClick = onPickOrigin)
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                EndpointRow(label = "Hasta", stop = destination, onClick = onPickDestination)
+                EndpointRow(label = stringResource(R.string.planner_to), stop = destination, onClick = onPickDestination)
             }
             IconButton(
                 onClick = onSwap,
@@ -321,7 +325,7 @@ private fun EndpointSelector(
             ) {
                 Icon(
                     imageVector = Icons.Outlined.SwapVert,
-                    contentDescription = "Intercambiar origen y destino",
+                    contentDescription = stringResource(R.string.planner_swap_cd),
                     tint = MaterialTheme.colorScheme.primary,
                 )
             }
@@ -352,7 +356,7 @@ private fun EndpointRow(label: String, stop: Stop?, onClick: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    text = stop?.name ?: "Elige estación",
+                    text = stop?.name ?: stringResource(R.string.planner_pick_station),
                     style = MaterialTheme.typography.bodyLarge,
                     color = if (stop == null) MaterialTheme.colorScheme.outline
                     else MaterialTheme.colorScheme.onSurface,
@@ -378,12 +382,12 @@ private fun DateChipRow(
         FilterChip(
             selected = selected == today,
             onClick = { onSelect(today) },
-            label = { Text("Hoy") },
+            label = { Text(stringResource(R.string.date_today)) },
         )
         FilterChip(
             selected = selected == tomorrow,
             onClick = { onSelect(tomorrow) },
-            label = { Text("Mañana") },
+            label = { Text(stringResource(R.string.date_tomorrow)) },
         )
         FilterChip(
             selected = selected != today && selected != tomorrow,
@@ -391,7 +395,7 @@ private fun DateChipRow(
             label = {
                 Text(
                     if (selected != today && selected != tomorrow) formatHumanDate(selected)
-                    else "Elegir fecha",
+                    else stringResource(R.string.planner_pick_date),
                 )
             },
             leadingIcon = { Icon(Icons.Outlined.CalendarMonth, contentDescription = null) },
@@ -446,12 +450,12 @@ private fun ArriveByRow(
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Llegada",
+                    text = stringResource(R.string.planner_arrival),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    text = arriveBy ?: "Pulsar para establecer hora de llegada",
+                    text = arriveBy ?: stringResource(R.string.planner_arrival_hint),
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (arriveBy != null) MaterialTheme.colorScheme.onSurface
                     else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -461,7 +465,7 @@ private fun ArriveByRow(
                 IconButton(onClick = { onSetArriveBy(null) }) {
                     Icon(
                         Icons.Outlined.Close,
-                        contentDescription = "Quitar hora de llegada",
+                        contentDescription = stringResource(R.string.planner_clear_arrival_cd),
                         modifier = Modifier.size(18.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -469,7 +473,7 @@ private fun ArriveByRow(
             } else {
                 Icon(
                     Icons.Outlined.ChevronRight,
-                    contentDescription = "Seleccionar",
+                    contentDescription = stringResource(R.string.planner_select_cd),
                     modifier = Modifier.size(20.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -503,11 +507,11 @@ private fun ArriveByRow(
                     }
                     showDatePicker = false
                     showTimePicker = true
-                }) { Text("Siguiente") }
+                }) { Text(stringResource(coreUiR.string.action_next)) }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(coreUiR.string.action_cancel))
                 }
             },
         ) {
@@ -533,7 +537,7 @@ private fun ArriveByRow(
         )
         AlertDialog(
             onDismissRequest = { showTimePicker = false },
-            title = { Text("Hora de llegada") },
+            title = { Text(stringResource(R.string.planner_arrival_time_title)) },
             text = {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -548,11 +552,11 @@ private fun ArriveByRow(
                     val m = timePickerState.minute.toString().padStart(2, '0')
                     onSetArriveBy("$selectedDate $h:$m")
                     showTimePicker = false
-                }) { Text("Aceptar") }
+                }) { Text(stringResource(coreUiR.string.action_accept)) }
             },
             dismissButton = {
                 TextButton(onClick = { showTimePicker = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(coreUiR.string.action_cancel))
                 }
             },
         )
@@ -595,7 +599,7 @@ private fun HintCard() {
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
     ) {
         Text(
-            text = "Elige origen y destino para ver horarios, primer y último tren.",
+            text = stringResource(R.string.planner_hint),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(spacing.lg),
@@ -654,17 +658,17 @@ private fun JourneyResultCard(
                 horizontalArrangement = Arrangement.spacedBy(spacing.md),
             ) {
                 HighlightBox(
-                    label = "Primero",
+                    label = stringResource(R.string.planner_first_departure),
                     value = journey.firstDeparture ?: "—",
                     modifier = Modifier.weight(1f),
                 )
                 HighlightBox(
-                    label = "Último",
+                    label = stringResource(R.string.planner_last_departure),
                     value = journey.lastDeparture ?: "—",
                     modifier = Modifier.weight(1f),
                 )
                 HighlightBox(
-                    label = "Salidas",
+                    label = stringResource(R.string.planner_departures),
                     value = journey.legs.firstOrNull()?.departures?.count()?.toString() ?: "—",
                     modifier = Modifier.weight(1f),
                 )
@@ -673,7 +677,7 @@ private fun JourneyResultCard(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             Text(
-                text = "Horario completo",
+                text = stringResource(R.string.planner_full_schedule),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -691,7 +695,10 @@ private fun JourneyResultCard(
                     modifier = Modifier.size(18.dp),
                 )
                 Spacer(Modifier.width(spacing.sm))
-                Text(if (isSaved) "Ruta guardada en Favoritos" else "Guardar ruta en Favoritos")
+                Text(
+                    if (isSaved) stringResource(R.string.planner_route_saved)
+                    else stringResource(R.string.planner_save_route)
+                )
             }
         }
     }
@@ -714,21 +721,21 @@ private fun JourneySummaryRow(journey: Journey) {
             )
             if (journey.hasTransfers) {
                 Text(
-                    text = "${journey.legs.size} tramos",
+                    text = "${journey.legs.size} ${stringResource(R.string.planner_legs_unit)}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
         if (journey.distanceMeters > 0) {
-            StatChip(value = "${"%.1f".format(journey.distanceMeters / 1000.0)} km", label = "Distancia")
+            StatChip(value = "${"%.1f".format(journey.distanceMeters / 1000.0)} km", label = stringResource(R.string.planner_distance))
         }
         journey.fareZone?.let {
-            StatChip(value = "Zona $it", label = "Tarifa")
+            StatChip(value = stringResource(R.string.planner_fare_zone, it), label = stringResource(R.string.planner_fare))
         }
         val carbonKg = journey.carbonKg
         if (carbonKg != null && carbonKg > 0.0) {
-            StatChip(value = "${"%.1f".format(carbonKg)} kg", label = "CO₂")
+            StatChip(value = "${"%.1f".format(carbonKg)} kg", label = stringResource(R.string.planner_co2))
         }
     }
 }
@@ -774,14 +781,14 @@ private fun JourneyLegSection(leg: JourneyLeg, index: Int) {
                 modifier = Modifier.weight(1f),
             )
             Text(
-                text = "${leg.departures.size} salidas",
+                text = stringResource(R.string.planner_departures_count, leg.departures.size),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         if (leg.headsigns.isNotEmpty()) {
             Text(
-                text = "Dirección: ${leg.headsigns.joinToString()}",
+                text = stringResource(R.string.planner_direction, leg.headsigns.joinToString()),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -866,7 +873,7 @@ private fun StationPickerSheet(
         val spacing = LocalSpacing.current
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = "Elige $title",
+                text = stringResource(R.string.planner_pick_with_title, title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(start = spacing.lg, bottom = spacing.xs),
@@ -877,7 +884,7 @@ private fun StationPickerSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = spacing.lg, vertical = spacing.md),
-                placeholder = { Text("Buscar estación") },
+                placeholder = { Text(stringResource(R.string.planner_search_station)) },
                 leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                 singleLine = true,
                 shape = MaterialTheme.shapes.large,
