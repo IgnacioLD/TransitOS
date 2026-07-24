@@ -1,0 +1,51 @@
+TransitOS es un planificador de viajes en transporte público en tiempo real. Está diseñado para ser limpio, rápido y privado, sin anuncios ni rastreo.
+
+Actualmente cubre Metrovalencia (FGV), la red de metro y tranvía de Valencia. Próximamente se añadirán más operadores. Si tu ciudad no está soportada todavía, dínoslo y estudiaremos la posibilidad de incluirla.
+
+Desarrollado desde cero como alternativa de código abierto a las aplicaciones oficiales. Sin analítica, sin telemetría, sin publicidad. Los datos de tu ubicación permanecen en tu dispositivo y nunca se envían a ningún sitio.
+
+PLANIFICA TUS VIAJES
+
+Busca cualquier origen y destino en la red. TransitOS encuentra las mejores rutas utilizando los datos en tiempo real del API de FGV, por lo que los horarios que ves son los horarios reales a los que circulan los trenes.
+
+Elige entre salir ahora o llegar a una hora concreta. La aplicación te muestra exactamente qué líneas tomar, dónde hacer transbordo y cuánto dura cada tramo del viaje. Cada línea se muestra con su color oficial de FGV, para que puedas relacionar lo que ves en la pantalla con las señales de la estación.
+
+COLORES OFICIALES DE LÍNEA
+
+Las 10 líneas de Metrovalencia se muestran con la paleta oficial de colores de FGV:
+
+L1, L2, L3, L4, L5, L6, L7, L8, L9 y L10.
+
+Ya no tendrás que adivinar qué línea es cuál con colores genéricos.
+
+FAVORITOS Y ETIQUETAS PERSONALIZADAS
+
+Guarda las rutas que más utilizas: de casa al trabajo, del trabajo a clase, o cualquier otra. Ponle a cada una un nombre personalizado para encontrarla al instante. No hace falta escribir las mismas estaciones todos los días.
+
+MARGEN DE TRANSBORDO
+
+Algunas conexiones son ajustadas. Si necesitas más tiempo para cambiar de andén, configura un margen mínimo de transbordo de entre 0 y 15 minutos. El planificador solo te sugerirá rutas en las que tengas tiempo suficiente para hacer el cambio cómodamente.
+
+AVISOS DE SERVICIO EN VIVO
+
+Recibe notificaciones sobre incidencias, retrasos y cambios de horario antes de salir. Si una línea está cortada o una estación está cerrada, lo sabrás con antelación y podrás planificar una ruta alternativa.
+
+MAPA DE LA RED
+
+Consulta el mapa completo de la red de Metrovalencia sin salir de la aplicación. Haz zoom en las estaciones, comprueba las conexiones de líneas y oriéntate rápidamente.
+
+MODO OSCURO Y AMOLED
+
+Un tema oscuro adecuado que resulta cómodo para los ojos por la noche. En pantallas AMOLED, el fondo negro puro también ahorra batería.
+
+MULTIIDIOMA
+
+La aplicación está disponible en inglés, español y catalán. Próximamente más idiomas.
+
+PRIVACIDAD
+
+TransitOS no recopila, almacena ni comparte ningún dato personal. No hay SDKs de analítica, ni informes de fallos, ni identificadores de publicidad. La aplicación se comunica directamente con el API público de FGV mediante HTTPS desde tu dispositivo. No hay servidores intermedios y no se registra nada sobre tu uso.
+
+CÓDIGO ABIERTO
+
+TransitOS es de código abierto bajo la licencia AGPL-3.0. El código fuente completo está disponible en github.com/IgnacioLD/TransitOS. Se aceptan contribuciones, reportes de errores y solicitudes de funcionalidades.
