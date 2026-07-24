@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,6 +18,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.SwapVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -50,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.transitos.core.design.theme.LocalSpacing
 import app.transitos.core.model.Journey
+import app.transitos.core.model.JourneyLeg
 import app.transitos.core.model.Stop
 import app.transitos.core.ui.EmptyState
 import app.transitos.core.ui.SkeletonBlock
@@ -59,6 +64,7 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
+import androidx.compose.runtime.LaunchedEffect
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
@@ -78,8 +84,23 @@ fun PlannerRoute(
         onDestinationSelected = viewModel::setDestination,
         onDateSelected = viewModel::setDate,
         onSwap = viewModel::swapEndpoints,
+        onSaveRoute = viewModel::saveCurrentRoute,
+        onRemoveRoute = viewModel::removeCurrentRoute,
         modifier = modifier,
     )
+}
+
+@Composable
+fun PrefilledPlannerRoute(
+    originStopId: String,
+    destinationStopId: String,
+    modifier: Modifier = Modifier,
+    viewModel: PlannerViewModel = koinViewModel(),
+) {
+    LaunchedEffect(originStopId, destinationStopId) {
+        viewModel.prefillRoute(originStopId, destinationStopId)
+    }
+    PlannerRoute(modifier = modifier, viewModel = viewModel)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -92,6 +113,8 @@ internal fun PlannerScreen(
     onDateSelected: (LocalDate) -> Unit,
     onSwap: () -> Unit,
     modifier: Modifier = Modifier,
+    onSaveRoute: () -> Unit = {},
+    onRemoveRoute: () -> Unit = {},
 ) {
     val spacing = LocalSpacing.current
     var picking by rememberSaveable { mutableStateOf<PickingTarget?>(null) }
@@ -145,7 +168,14 @@ internal fun PlannerScreen(
             when {
                 !state.canPlan -> item { HintCard() }
                 state.isPlanning -> item { PlanningSkeleton() }
-                state.journey != null -> item { JourneyResultCard(journey = state.journey!!) }
+                state.journey != null -> item {
+                    JourneyResultCard(
+                        journey = state.journey!!,
+                        isSaved = state.isSaved,
+                        onSaveRoute = onSaveRoute,
+                        onRemoveRoute = onRemoveRoute,
+                    )
+                }
                 state.errorMessage != null -> item {
                     EmptyState(
                         icon = Icons.Outlined.Search,
@@ -225,7 +255,7 @@ private fun EndpointSelector(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(spacing.lg),
+                    .padding(vertical = spacing.lg),
                 verticalArrangement = Arrangement.spacedBy(spacing.sm),
             ) {
                 EndpointRow(label = "Desde", stop = origin, onClick = onPickOrigin)
@@ -351,7 +381,12 @@ private fun PlanningSkeleton() {
 }
 
 @Composable
-private fun JourneyResultCard(journey: Journey) {
+private fun JourneyResultCard(
+    journey: Journey,
+    isSaved: Boolean = false,
+    onSaveRoute: () -> Unit = {},
+    onRemoveRoute: () -> Unit = {},
+) {
     val spacing = LocalSpacing.current
     Card(
         shape = MaterialTheme.shapes.medium,
@@ -364,34 +399,11 @@ private fun JourneyResultCard(journey: Journey) {
                 .padding(spacing.lg),
             verticalArrangement = Arrangement.spacedBy(spacing.md),
         ) {
-            Text(
-                text = buildString {
-                    append("${journey.durationMinutes} min")
-                    append("  ·  ${"%.1f".format(journey.distanceMeters / 1000.0)} km")
-                    journey.fareZone?.let { append("  ·  Zona $it") }
-                    journey.carbonKg?.let { append("  ·  ${"%.2f".format(it)} kg CO₂") }
-                },
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.SemiBold,
-            )
+            JourneySummaryRow(journey = journey)
 
-            journey.legs.forEach { leg ->
-                Column(verticalArrangement = Arrangement.spacedBy(spacing.xxs)) {
-                    Text(
-                        text = "${leg.originName} → ${leg.destinationName}",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Medium,
-                    )
-                    if (leg.headsigns.isNotEmpty()) {
-                        Text(
-                            text = "Tren con destino ${leg.headsigns.joinToString()}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
+            journey.legs.forEachIndexed { i, leg ->
+                if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                JourneyLegSection(leg = leg, index = i)
             }
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -425,6 +437,113 @@ private fun JourneyResultCard(journey: Journey) {
                 color = MaterialTheme.colorScheme.primary,
             )
             journey.legs.firstOrNull()?.let { leg -> DepartureSchedule(departures = leg.departures) }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+            TextButton(
+                onClick = if (isSaved) onRemoveRoute else onSaveRoute,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(
+                    imageVector = if (isSaved) Icons.Outlined.Star else Icons.Outlined.StarBorder,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.width(spacing.sm))
+                Text(if (isSaved) "Ruta guardada en Favoritos" else "Guardar ruta en Favoritos")
+            }
+        }
+    }
+}
+
+@Composable
+private fun JourneySummaryRow(journey: Journey) {
+    val spacing = LocalSpacing.current
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "${journey.durationMinutes} min",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            if (journey.hasTransfers) {
+                Text(
+                    text = "${journey.legs.size} tramos",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        if (journey.distanceMeters > 0) {
+            StatChip(value = "${"%.1f".format(journey.distanceMeters / 1000.0)} km", label = "Distancia")
+        }
+        journey.fareZone?.let {
+            StatChip(value = "Zona $it", label = "Tarifa")
+        }
+        val carbonKg = journey.carbonKg
+        if (carbonKg != null && carbonKg > 0.0) {
+            StatChip(value = "${"%.1f".format(carbonKg)} kg", label = "CO₂")
+        }
+    }
+}
+
+@Composable
+private fun StatChip(value: String, label: String) {
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = LocalSpacing.current.sm, vertical = LocalSpacing.current.xs),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun JourneyLegSection(leg: JourneyLeg, index: Int) {
+    val spacing = LocalSpacing.current
+    Column(verticalArrangement = Arrangement.spacedBy(spacing.xxs)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+        ) {
+            Text(
+                text = "${leg.originName} → ${leg.destinationName}",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = "${leg.departures.size} salidas",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (leg.headsigns.isNotEmpty()) {
+            Text(
+                text = "Dirección: ${leg.headsigns.joinToString()}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

@@ -3,14 +3,11 @@ package app.transitos.core.data
 import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import app.transitos.core.provider.ProviderSettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-
-private val Context.transitosDataStore by preferencesDataStore(name = "transitos")
 
 class DataStoreProviderSettingsRepository(
     private val context: Context,

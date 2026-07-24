@@ -6,8 +6,8 @@ enum class MetrovalenciaBackend(
     override val id: String,
     override val displayName: String,
 ) : ProviderBackend {
-    FGV("fgv", "FGV (Tiempo real)"),
-    NAP("nap", "NAP (Horarios)"),
+    FGV("fgv", "FGV (Tiempo real — inestable)"),
+    NAP("nap", "NAP (Horarios programados)"),
 }
 
 val METROVALENCIA_BACKENDS: List<MetrovalenciaBackend> = MetrovalenciaBackend.entries

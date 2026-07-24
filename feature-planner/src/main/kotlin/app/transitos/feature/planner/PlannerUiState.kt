@@ -15,6 +15,7 @@ data class PlannerUiState(
     val date: LocalDate,
     val journey: Journey? = null,
     val isPlanning: Boolean = false,
+    val isSaved: Boolean = false,
     val errorMessage: String? = null,
 ) {
     /** True when both endpoints are selected — the minimum needed to plan. */

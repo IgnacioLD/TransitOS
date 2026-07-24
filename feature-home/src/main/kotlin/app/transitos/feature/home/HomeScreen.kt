@@ -8,18 +8,26 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BookmarkAdd
+import androidx.compose.material.icons.outlined.Directions
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -28,6 +36,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.transitos.core.design.theme.LocalSpacing
 import app.transitos.core.ui.AlertsSection
@@ -42,9 +52,14 @@ import org.koin.androidx.compose.koinViewModel
 fun HomeRoute(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = koinViewModel(),
+    onNavigateToPlanner: (originStopId: String, destinationStopId: String) -> Unit = { _, _ -> },
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    HomeScreen(state = state, modifier = modifier)
+    HomeScreen(
+        state = state,
+        onNavigateToPlanner = onNavigateToPlanner,
+        modifier = modifier,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,6 +67,7 @@ fun HomeRoute(
 internal fun HomeScreen(
     state: HomeUiState,
     modifier: Modifier = Modifier,
+    onNavigateToPlanner: (originStopId: String, destinationStopId: String) -> Unit = { _, _ -> },
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val alertCount = (state as? HomeUiState.Ready)?.alerts?.size ?: 0
@@ -71,7 +87,7 @@ internal fun HomeScreen(
                 when (current) {
                     HomeUiState.Loading -> FavoritesSkeleton()
                     is HomeUiState.Error -> ErrorState(error = current.error)
-                    is HomeUiState.Ready -> HomeContent(state = current)
+                    is HomeUiState.Ready -> HomeContent(state = current, onNavigateToPlanner = onNavigateToPlanner)
                 }
             }
         }
@@ -115,7 +131,10 @@ private fun networkStatusText(alertCount: Int): String = when {
 }
 
 @Composable
-private fun HomeContent(state: HomeUiState.Ready) {
+private fun HomeContent(
+    state: HomeUiState.Ready,
+    onNavigateToPlanner: (originStopId: String, destinationStopId: String) -> Unit = { _, _ -> },
+) {
     val spacing = LocalSpacing.current
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -125,6 +144,20 @@ private fun HomeContent(state: HomeUiState.Ready) {
         ),
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
+        if (state.savedRoutes.isNotEmpty()) {
+            item { SectionHeader("Rutas guardadas") }
+            items(state.savedRoutes, key = { it.id }) { route ->
+                SavedRouteCard(
+                    route = route,
+                    onClick = { onNavigateToPlanner(route.originStopId, route.destinationStopId) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = spacing.screenGutter),
+                )
+            }
+            item { Spacer(Modifier.height(spacing.md)) }
+        }
+
         item { SectionHeader("Favoritos") }
 
         if (state.favorites.isEmpty()) {
@@ -157,6 +190,54 @@ private fun HomeContent(state: HomeUiState.Ready) {
                         .fillMaxWidth()
                         .padding(top = spacing.md),
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SavedRouteCard(
+    route: SavedRouteInfo,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Directions,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = route.originName,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = route.destinationName,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            TextButton(onClick = onClick) {
+                Text("Planificar")
             }
         }
     }
