@@ -6,7 +6,7 @@ enum class MetrovalenciaBackend(
     override val id: String,
     override val displayName: String,
 ) : ProviderBackend {
-    FGV("fgv", "FGV (Tiempo real — inestable)"),
+    FGV("fgv", "FGV (Tiempo real, inestable)"),
     NAP("nap", "NAP (Horarios programados)"),
 }
 

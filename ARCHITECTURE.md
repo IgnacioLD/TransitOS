@@ -1,48 +1,48 @@
-# TransitOS — Architecture
+# TransitOS: Architecture
 
-This document captures the layering, module graph and the foundational decisions
-that govern the codebase. New code must respect what's written here; changes to
-the architecture should be proposed, discussed and then reflected back into this
-file.
+This document captures the layering, module graph, and the foundational
+decisions that govern the codebase. New code must respect what is written here;
+changes to the architecture should be proposed, discussed, and then reflected
+back into this file.
 
 ## Guiding principles
 
-1. **Strict layer boundaries.** Dependencies point inward (presentation →
-   domain → data). The UI never touches the network. Network DTOs never escape
+1. **Strict layer boundaries.** Dependencies point inward (presentation to
+   domain to data). The UI never touches the network. Network DTOs never escape
    the data layer.
 2. **One transit contract.** The rest of the app depends on
    `TransitRepository`; every operator implements it against its own data source.
-3. **Universal domain models.** `Stop`, `Line`, `Arrival`, `Alert`, `Operator` —
-   modelled once, reused by every provider. Provider-specific concepts stay
-   inside provider modules.
+3. **Universal domain models.** `Stop`, `Line`, `Arrival`, `Alert`, `Operator`
+   are modelled once and reused by every provider. Provider-specific concepts
+   stay inside provider modules.
 4. **Immutability and Flow.** UI state is immutable; repositories expose cold
    `Flow`s so the UI observes continuous updates (essential for live arrivals).
-5. **Composition over inheritance.** Small composables; one responsibility each.
+5. **Composition over inheritance.** Small composables, one responsibility each.
 6. **Accessibility is not optional.** Every screen is navigable with TalkBack,
-   respects dynamic font sizes and stays usable at high contrast.
+   respects dynamic font sizes, and stays usable at high contrast.
 
 ## Layered architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│ Presentation                                                │
-│   :app · :feature-* · :core-ui · :core-design               │
-│   Compose UI, ViewModels, navigation, theme                 │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ depends on
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│ Domain                                                      │
-│   :core                                                     │
-│   Pure Kotlin. Models, repository contracts, AppResult      │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ implemented by
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│ Data                                                        │
-│   :provider-metrovalencia · :core-network                   │
-│   Repository impls, Ktor HttpClient, network DTOs + mappers │
-└─────────────────────────────────────────────────────────────┘
++-------------------------------------------------------------+
+| Presentation                                                |
+|   :app  :feature-*  :core-ui  :core-design                  |
+|   Compose UI, ViewModels, navigation, theme                 |
++----------------------------+--------------------------------+
+                             | depends on
+                             v
++-------------------------------------------------------------+
+| Domain                                                      |
+|   :core                                                     |
+|   Pure Kotlin. Models, repository contracts, AppResult      |
++----------------------------+--------------------------------+
+                             | implemented by
+                             v
++-------------------------------------------------------------+
+| Data                                                        |
+|   :provider-metrovalencia  :core-network  :core-data        |
+|   Repository impls, Ktor HttpClient, DataStore, DTOs        |
++-------------------------------------------------------------+
 ```
 
 Rules:
@@ -59,16 +59,21 @@ Rules:
 
 ```
 :app
- ├── :core
- ├── :core-network
- ├── :core-design
- ├── :core-ui        → :core, :core-design
- ├── :feature-home   → :core, :core-design, :core-ui
- └── :provider-metrovalencia → :core, :core-network
+ +-- :core
+ +-- :core-data
+ +-- :core-network
+ +-- :core-design
+ +-- :core-ui               -> :core, :core-design
+ +-- :feature-home          -> :core, :core-data, :core-design, :core-ui
+ +-- :feature-search        -> :core, :core-data, :core-design, :core-ui
+ +-- :feature-planner       -> :core, :core-data, :core-design, :core-ui
+ +-- :feature-settings      -> :core, :core-data, :core-design, :core-ui
+ +-- :provider-metrovalencia -> :core, :core-network
 
-:core               (pure Kotlin/JVM — no Android)
-:core-network       (Android library — Ktor)
-:core-design        (Android library — Compose theme)
+:core               (pure Kotlin/JVM, no Android)
+:core-data          (Android library, DataStore preferences + favorites)
+:core-network       (Android library, Ktor)
+:core-design        (Android library, Compose theme)
 ```
 
 Adding a feature: create `:feature-<name>` depending on `:core`, `:core-design`,
@@ -82,14 +87,14 @@ register it in `:app`.
 
 Single source of truth. The ViewModel owns a `StateFlow<UiState>`; the screen
 observes it via `collectAsStateWithLifecycle` and renders by switching on the
-sealed `UiState`. User actions become events handed back to the ViewModel. The UI
-never mutates state directly.
+sealed `UiState`. User actions become events handed back to the ViewModel. The
+UI never mutates state directly.
 
 ```kotlin
 sealed interface HomeUiState {
     data object Loading : HomeUiState
-    data class Ready(...)  : HomeUiState
-    data class Error(...)  : HomeUiState
+    data class Ready(...) : HomeUiState
+    data class Error(...) : HomeUiState
 }
 ```
 
@@ -107,11 +112,11 @@ AppError: Offline | Network | Timeout | Unauthorized |
 
 ## Dependency injection
 
-Koin — chosen over Hilt deliberately:
+Koin, chosen over Hilt deliberately:
 
 - Pure Kotlin DSL; no annotation processing, no KSP, faster builds.
 - No reflection at runtime.
-- Trivially removable if a future fork prefers another DI.
+- Trivially removable if a future fork prefers another DI library.
 - Each module exposes its own Koin `module { ... }`; the application aggregates
   them in `TransitOSApplication`.
 
@@ -119,23 +124,30 @@ Koin — chosen over Hilt deliberately:
 
 - **Kotlin 2.0.21**, Coroutines, Flow
 - **Jetpack Compose** (BOM-managed), Material 3, dynamic colour
-- **Ktor 3** — HTTP client (one shared `HttpClient`, providers plug in their own
+- **Ktor 3** for HTTP (one shared `HttpClient`; providers plug in their own
   endpoints)
-- **Koin 4** — dependency injection
-- **Room / DataStore / Coil** — declared in the version catalog, wired when the
-  first feature that needs them lands (favourites cache, preferences, map tiles)
-- **Gradle Version Catalog** (`gradle/libs.versions.toml`) — single source for
-  every dependency and plugin
+- **Koin 4** for dependency injection
+- **DataStore** for preferences and favorites (wired in `:core-data`)
+- **osmdroid** for the network map
+- **Gradle Version Catalog** (`gradle/libs.versions.toml`) as a single source
+  for every dependency and plugin
+
+Room and Coil are declared in the version catalog but not yet wired. They will
+land when the first feature that needs them (an offline cache, image loading)
+arrives.
 
 ## Conventions
 
-- Package root: `app.transitos.<module-suffix>` (e.g. `app.transitos.feature.home`).
-- Public API in `:core` is explicit (`-Xexplicit-api=warning`) — visibility is
+- Package root: `app.transitos.<module-suffix>` (for example
+  `app.transitos.feature.home`). Note the `applicationId` and manifest namespace
+  use `com.glossostudio.transitos`.
+- Public API in `:core` is explicit (`-Xexplicit-api=warning`): visibility is
   always stated, never implied.
-- Composables: `Screen` → `Content` → `Component` → `Primitive`. Keep them small
-  and stateless; hoist state to the route-level composable or ViewModel.
-- Module build files: Kotlin DSL, no `buildSrc` conventions yet — we will extract
-  them once duplication across modules justifies it.
+- Composables follow the `Screen` to `Content` to `Component` to `Primitive`
+  hierarchy. Keep them small and stateless; hoist state to the route-level
+  composable or the ViewModel.
+- Module build files use Kotlin DSL. There are no `buildSrc` convention plugins
+  yet; we will extract them once duplication across modules justifies it.
 
 ## Decisions worth remembering
 
@@ -146,5 +158,5 @@ Koin — chosen over Hilt deliberately:
 - **`Stop` is the universal boarding-point concept.** A metro platform and a bus
   pole are the same thing from the app's perspective. A separate `Station` type
   is deliberately avoided; group facilities with `Stop.parentStationId`.
-- **AGPL-3.0.** Strong copyleft — improvements must stay open, including when
+- **AGPL-3.0.** Strong copyleft. Improvements must stay open, including when
   offered as a service.

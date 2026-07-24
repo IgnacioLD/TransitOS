@@ -39,7 +39,7 @@ import com.glossostudio.transitos.core.model.Stop
  * indicator and a large minutes figure as the visual anchor.
  *
  * The first arrival row gets a subtle surface tint to mark "this is the next
- * one" — the most-glanced piece of information on the screen. The footer shows
+ * one", the most-glanced piece of information on the screen. The footer shows
  * a relative "actualizado hace Xs" so the user can judge freshness at a glance.
  *
  * @param lastUpdatedMs epoch milliseconds of the last arrivals fetch. Pass 0

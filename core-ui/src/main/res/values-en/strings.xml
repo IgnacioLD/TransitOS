@@ -42,7 +42,7 @@
     <string name="card_updated_prefix">Updated %1$s</string>
     <string name="arrival_unconfirmed_title">Next train unconfirmed</string>
     <string name="arrival_unconfirmed_subtitle">Use the Planner to see scheduled times</string>
-    <string name="arrival_no_line">—</string>
+    <string name="arrival_no_line">-</string>
     <string name="arrival_live">Live</string>
     <string name="arrival_scheduled">Scheduled</string>
     <string name="arrival_boarding">Arriving</string>

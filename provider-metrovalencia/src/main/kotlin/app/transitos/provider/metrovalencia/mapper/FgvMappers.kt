@@ -100,7 +100,7 @@ public data class LineDisplayInfo(
 /**
  * Maps an FGV incidencia to a domain [Alert]. [lineByInternalId] is keyed by
  * the FGV **internal** line id (the value `incidencias.linea_id` actually
- * returns — *not* `linea_id_FGV`). Without that distinction the lookup misses
+ * returns, *not* `linea_id_FGV`). Without that distinction the lookup misses
  * every time and titles fall back to raw database ids.
  */
 internal fun FgvIncidenciaDto.toAlert(
@@ -234,7 +234,7 @@ private fun addMinutesToTime(time: String, minutes: Int): String {
  * transbordos array for unreachable O/D pairs).
  *
  * The departures list is flattened from the `horas` map (`"05" → ["05:25",
- * "05:55"]`) and sorted lexically — safe because every entry is zero-padded
+ * "05:55"]`) and sorted lexically, safe because every entry is zero-padded
  * `"HH:mm"`, so lexical order equals chronological order.
  */
 internal fun FgvJourneyAlternativeDto.toJourney(date: LocalDate): Journey? {
@@ -262,7 +262,7 @@ internal fun FgvTransbordoDto.toLeg(): JourneyLeg = JourneyLeg(
 )
 
 /**
- * Formats a [LocalDate] as `dd/MM/yyyy` — the only date format FGV's planner
+ * Formats a [LocalDate] as `dd/MM/yyyy`, the only date format FGV's planner
  * accepts. ISO `yyyy-MM-dd` returns HTTP 400.
  */
 internal fun LocalDate.formatAsFgvFecha(): String {

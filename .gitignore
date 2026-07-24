@@ -38,3 +38,6 @@ hon.json
 plan.json
 cookies.txt
 qemu_adb_*.core
+
+# Internal analysis (not for the public repo)
+COMPETITIVE_ANALYSIS.md

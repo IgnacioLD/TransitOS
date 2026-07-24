@@ -42,7 +42,7 @@
     <string name="card_updated_prefix">Actualitzat %1$s</string>
     <string name="arrival_unconfirmed_title">Pròxim tren sense confirmar</string>
     <string name="arrival_unconfirmed_subtitle">Utilitza el Planificador per veure horaris programats</string>
-    <string name="arrival_no_line">—</string>
+    <string name="arrival_no_line">-</string>
     <string name="arrival_live">En directe</string>
     <string name="arrival_scheduled">Horari</string>
     <string name="arrival_boarding">Pròxim</string>

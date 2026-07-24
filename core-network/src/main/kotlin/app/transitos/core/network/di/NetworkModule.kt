@@ -9,7 +9,7 @@ import org.koin.dsl.module
 /**
  * Owns the network-stack graph: the static [NetworkConfig] and the singleton
  * [HttpClient] built from it. Lives in `:core-network` so the Ktor types never
- * leak to consuming modules — they only see the resulting [Module].
+ * leak to consuming modules, they only see the resulting [Module].
  *
  * `debug` is taken as a parameter because only the application module knows
  * `BuildConfig.DEBUG`.

@@ -11,7 +11,7 @@ import com.glossostudio.transitos.core.design.theme.LocalSpacing
 
 /**
  * Small uppercase label that opens a section ("Favoritos", "Avisos"). Reserved
- * for grouping — never use this for content text.
+ * for grouping, never use this for content text.
  */
 @Composable
 fun SectionHeader(

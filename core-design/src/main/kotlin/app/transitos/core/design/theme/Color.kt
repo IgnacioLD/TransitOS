@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.Color
 
 /**
  * Material 3 colour scheme generated from the brand seed `#006A6A` (a deep
- * transit-in-motion teal). Every role is tuned — not just Primary — so the
+ * transit-in-motion teal). Every role is tuned, not just Primary, so the
  * system reads as a single palette instead of "teal plus defaults".
  *
  * Reference: Material Theme Builder output for `#006A6A`, hand-adjusted for
@@ -148,7 +148,7 @@ val DarkColors = darkColorScheme(
 )
 
 /**
- * AMOLED variant — identical to [DarkColors] but with pure-black surfaces so
+ * AMOLED variant, identical to [DarkColors] but with pure-black surfaces so
  * pixels switch off entirely, maximising battery savings on OLED panels.
  */
 val AmoledColors = DarkColors.copy(

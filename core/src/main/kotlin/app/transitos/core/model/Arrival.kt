@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
  * data so the UI can badge them differently.
  *
  * [lineShortName] and [lineColor] are denormalised display hints so the UI can
- * render a line badge without a separate lookup table — every provider that
+ * render a line badge without a separate lookup table, every provider that
  * knows the line identity (most do) populates them; providers that don't leave
  * them null and the UI falls back to neutral styling.
  */

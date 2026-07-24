@@ -150,7 +150,11 @@ class FgvMappersTest {
             3L to LineDisplayInfo(canonicalId = "mv:3", shortName = "L3", color = 0xFFDD052CL),
         )
 
-        val alert = dto.toAlert(lineByInternalId = lookup)
+        val alert = dto.toAlert(
+            lineByInternalId = lookup,
+            translations = emptyList(),
+            locale = "es",
+        )
 
         assertThat(alert.id).isEqualTo("mv:42")
         assertThat(alert.lineIds).containsExactly("mv:3")
@@ -166,7 +170,11 @@ class FgvMappersTest {
     fun `incidencia falls back to raw line id when name unknown`() {
         val dto = FgvIncidenciaDto(id = 1, lineaId = 99)
 
-        val alert = dto.toAlert(lineByInternalId = emptyMap())
+        val alert = dto.toAlert(
+            lineByInternalId = emptyMap(),
+            translations = emptyList(),
+            locale = "es",
+        )
 
         assertThat(alert.title).isEqualTo("Línea 99 con incidencias")
         assertThat(alert.lineShortName).isNull()
@@ -212,9 +220,9 @@ class FgvMappersTest {
         assertThat(leg.headsigns).containsExactly("Rafelbunyol")
         // Sorted across hours, not insertion order.
         assertThat(leg.departures).containsExactly("05:25", "05:55", "06:25", "23:00").inOrder()
-        // Convenience accessors.
-        assertThat(journey.firstDeparture).isEqualTo("05:25")
-        assertThat(journey.lastDeparture).isEqualTo("23:00")
+        // First and last departure across the sorted list.
+        assertThat(leg.departures.first()).isEqualTo("05:25")
+        assertThat(leg.departures.last()).isEqualTo("23:00")
     }
 
     @Test

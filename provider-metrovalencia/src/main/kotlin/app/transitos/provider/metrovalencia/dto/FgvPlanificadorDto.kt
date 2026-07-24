@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
  * with exact departure/arrival times per leg, line colors, and transfer info.
  *
  * Parameters: `estacion_origen_id`, `estacion_destino_id`, `fecha` (dd/MM/yyyy),
- * and either `hora_salida` or `hora_llegada` (HH:mm) — never both.
+ * and either `hora_salida` or `hora_llegada` (HH:mm), never both.
  */
 @Serializable
 data class FgvPlanificadorResponseDto(

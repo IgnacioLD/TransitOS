@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
  *
  * For grouped facilities (a metro station with multiple platforms) use
  * [parentStationId] to link sibling stops; do not model a separate Station type.
- * This keeps the model uniform across modes — a bus stop and a metro platform
+ * This keeps the model uniform across modes, a bus stop and a metro platform
  * are the same concept from the application's perspective.
  */
 @Serializable

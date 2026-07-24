@@ -6,7 +6,7 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Spatial rhythm of the app. Every padding, gap and inset resolves through
- * [LocalSpacing] — no hard-coded `.dp` in feature code. Two-rule ladder:
+ * [LocalSpacing], no hard-coded `.dp` in feature code. Two-rule ladder:
  *  - the spacing scale is small and easy to internalise (xxs..xxl);
  *  - meaningful names win over magic numbers (`Spacing.lg`, not `16.dp`).
  */

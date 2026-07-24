@@ -14,7 +14,7 @@ import kotlinx.datetime.LocalDate
  *
  * Methods return cold [Flow]s so the UI observes continuous updates (essential
  * for live arrivals). Implementations decide their own refresh cadence and
- * caching strategy — the contract is silent on those.
+ * caching strategy, the contract is silent on those.
  *
  * [planJourney] is the exception: it is a one-shot suspend because a journey
  * plan is a discrete query, not an observable stream. It returns null when the

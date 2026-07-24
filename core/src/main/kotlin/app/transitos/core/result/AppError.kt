@@ -5,7 +5,7 @@ package com.glossostudio.transitos.core.result
  * into these; the UI switches on them to produce user-facing messages.
  *
  * Keep this list small. Add a variant only when the UI needs to differentiate
- * the response — otherwise reuse [Unknown].
+ * the response, otherwise reuse [Unknown].
  */
 public sealed class AppError(public open val message: String) {
     public data class Offline(public override val message: String) : AppError(message)

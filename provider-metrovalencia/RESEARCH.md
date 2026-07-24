@@ -1,11 +1,11 @@
-# Metrovalencia API — Research findings
+# Metrovalencia API, Research findings
 
 Investigation of every data source available for Metrovalencia (FGV), carried
 out before writing the provider. Findings dated **2026-07-23** and confirmed
 both by live HTTP probes and by decompiling the official app
 `es.fgv.metrovalencia` v1.18.0 (Dec 2025).
 
-## TL;DR — what we use, and why (Option 3)
+## TL;DR, what we use, and why (Option 3)
 
 | Need                        | Source                                        | Auth       | Status       |
 | --------------------------- | --------------------------------------------- | ---------- | ------------ |
@@ -18,7 +18,7 @@ both by live HTTP probes and by decompiling the official app
 | Journey planner             | FGV `/horarios-online2` (POST form)           | none       | 🟡 flaky     |
 | Service alerts (rich)       | NAP GTFS-RT                                    | ApiKey     | ❌ not published |
 
-*`/incidencias` returns only `{id, linea_id, fecha, sede, timestamps}` — line-status
+*`/incidencias` returns only `{id, linea_id, fecha, sede, timestamps}`, line-status
 flags with no message text. Sufficient for the MVP's "Estado de líneas" view
 (green/red per line); insufficient for human-readable alert bodies.
 
@@ -66,15 +66,15 @@ Base URL: `https://www.fgv.es/fgv/app/{lang}/api/v1/{sede}/`
 Endpoints that require OAuth (`oauth/login`, `usuarios/*`, `tarjetas/*`,
 `compra-venta/*`, `mensajes/*`, `reclamaciones/*`, `sugerencias/*`,
 `users/estaciones/{id}/favorito`, `sincronizacion/{usuarioId}/...`) are
-**out of scope** — they handle personal/financial data and are not needed for
+**out of scope**, they handle personal/financial data and are not needed for
 the MVP.
 
 ### Station shape
 
 ```json
 {
-  "id": 226,                          // internal id — used by planners
-  "estacion_id_FGV": 12,              // FGV's own id — used by horarios-prevision-3 and lineas.stops
+  "id": 226,                          // internal id, used by planners
+  "estacion_id_FGV": 12,              // FGV's own id, used by horarios-prevision-3 and lineas.stops
   "nombre": "Benimaclet",
   "transbordo": 1,                    // interchange flag (0/1)
   "latitud": 39.4848518372,
@@ -150,12 +150,12 @@ Maps cleanly onto our `Arrival` domain model:
 | `isRealTime`       | `true`                         |
 
 `configuracion_aforo` and `aforo_bloqueado` describe station occupancy
-thresholds — useful for a future "how full is this station" indicator, not for
+thresholds, useful for a future "how full is this station" indicator, not for
 the MVP.
 
 ### Latency and rate limits
 
-No published limits. Empirically each call returns in 50–300 ms. We
+No published limits. Empirically each call returns in 50-300 ms. We
 **voluntarily** rate-limit at the provider level (poll arrivals at 30 s, refresh
 catalogs at most hourly, cache in memory) to stay polite and to avoid tripping
 any undocumented anti-abuse rules.
@@ -170,14 +170,14 @@ by EU ITS Directive 2010/40/EU. **Reserved for future use** under Option 3.
 - **Authentication: required.** HTTP header `ApiKey: <key>`. Returns 401 with
   body `Api Key was not provided.` without it. Free registration at
   `https://nap.transportes.gob.es/`.
-- **Licence: AGPL-compatible** — see [Legal](#legal).
-- GTFS **static only** — no GTFS-Realtime for FGV.
+- **Licence: AGPL-compatible**, see [Legal](#legal).
+- GTFS **static only**, no GTFS-Realtime for FGV.
 
 ## 3. Renfe Cercanías (future `:provider-renfe`)
 
 Public, no auth. Static at `https://ssl.renfe.com/ftransit/Fichero_CER_FOMENTO/fomento_transit.zip`,
 realtime at `https://gtfsrt.renfe.com/{alerts,trip_updates,vehicle_positions}.pb`.
-National coverage — filter to Valencia Cercanías at the provider level.
+National coverage, filter to Valencia Cercanías at the provider level.
 
 ## 4. EMT Valencia (future `:provider-emt-valencia`)
 
@@ -192,17 +192,17 @@ by the Generalitat Valenciana; the data is transit information of clear public
 interest. The legal frame that bears on reusing their endpoints:
 
 - **EU PSI Directive 2003/98/EC (as amended by 2013/37/EU)**, transposed in
-  Spain by **Ley 37/2007** — favours reuse of public-sector information.
-- **EU ITS Directive 2010/40/EU** — actually obliges Member States to make
+  Spain by **Ley 37/2007**, favours reuse of public-sector information.
+- **EU ITS Directive 2010/40/EU**, actually obliges Member States to make
   travel data available through National Access Points, on open terms.
-- **CJEU C-30/14, *PR Aviation v Ryanair*** — a publicly-accessible website's
+- **CJEU C-30/14, *PR Aviation v Ryanair***, a publicly-accessible website's
   data may be reused even against clickwrap terms, absent a sui generis
   database right or a contract actually agreed to. The user clicked nothing.
-- **Código Penal art. 197 bis** — usually requires circumventing an effective
+- **Código Penal art. 197 bis**, usually requires circumventing an effective
   access control. No auth, no bypass.
 
 What's clearly **out of bounds**: any endpoint under `tarjetas-transporte`,
-`usuarios/*`, `mensajes/*`, `compra-venta/*` — those expose personal/financial
+`usuarios/*`, `mensajes/*`, `compra-venta/*`, those expose personal/financial
 data (card balances, accounts) and fall under GDPR. TransitOS does not call
 them.
 
@@ -223,7 +223,7 @@ baked into the project:
    regardless of channel.
 5. **Reverse-engineering discipline.** The decompiled APK stays in
    `.research/` (gitignored). Only the publicly-observable endpoint URLs and
-   field names — re-verified by direct HTTP probes — are referenced in source.
+   field names, re-verified by direct HTTP probes, are referenced in source.
 
 ## Recommended implementation order (this milestone)
 

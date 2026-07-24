@@ -21,7 +21,7 @@ import com.glossostudio.transitos.core.design.theme.Alpha
 
 /**
  * Content-shaped shimmer placeholder. Used by the skeleton loading state to
- * preview upcoming cards without the cognitive cost of a spinner — calmer,
+ * preview upcoming cards without the cognitive cost of a spinner, calmer,
  * and the screen doesn't jump when data arrives.
  */
 @Composable

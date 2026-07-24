@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * A scheduled journey between two stops on a given [date]. Composed of one or
- * more [JourneyLeg]s — direct trips have a single leg, transfers have several.
+ * more [JourneyLeg]s, direct trips have a single leg, transfers have several.
  */
 @Serializable
 public data class Journey(

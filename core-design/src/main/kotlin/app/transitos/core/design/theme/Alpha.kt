@@ -23,7 +23,7 @@ object Alpha {
     /** Skeleton shimmer baseline; shimmer animation oscillates around this. */
     const val SKELETON = 0.12f
 
-    /** Subtle hint of presence — used for non-interactive decorative text. */
+    /** Subtle hint of presence, used for non-interactive decorative text. */
     const val HINT = 0.72f
 }
 

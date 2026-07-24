@@ -4,7 +4,7 @@ package com.glossostudio.transitos.core.result
  * Result type for repository operations. Use cases return [AppResult] so the UI
  * can render Loading / Failure / Success uniformly without try/catch in Compose.
  *
- * This is intentionally not Kotlin's `Result` — that type is discouraged in API
+ * This is intentionally not Kotlin's `Result`, that type is discouraged in API
  * signatures. A sealed type also exhausts when switched on.
  */
 public sealed interface AppResult<out T> {

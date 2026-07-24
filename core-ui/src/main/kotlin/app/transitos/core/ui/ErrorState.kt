@@ -25,7 +25,7 @@ import com.glossostudio.transitos.core.result.AppError
 
 /**
  * Maps an [AppError] into a calm, centred, user-facing block. The UI never
- * shows raw exception text — every failure becomes one sentence the user can
+ * shows raw exception text, every failure becomes one sentence the user can
  * act on, paired with an icon that signals the category at a glance.
  */
 @Composable

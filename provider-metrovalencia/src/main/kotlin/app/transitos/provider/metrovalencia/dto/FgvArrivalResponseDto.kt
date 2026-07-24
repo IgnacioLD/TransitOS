@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * Wire shape of `GET /horarios-prevision-3/{id}`. The outer object also carries
- * station-occupancy configuration which is not modelled here — we only consume
+ * station-occupancy configuration which is not modelled here, we only consume
  * [previsiones] for the MVP.
  */
 @Serializable

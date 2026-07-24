@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.glossostudio.transitos.core.design.theme.onColor
 
 /**
- * The coloured line identifier chip — `L3` on the line's brand colour. This is
+ * The coloured line identifier chip, `L3` on the line's brand colour. This is
  * the single most recognizable transit-app element; every provider that knows
  * the line colour should populate [Arrival.lineColor] so this renders correctly.
  *
@@ -28,7 +28,7 @@ import com.glossostudio.transitos.core.design.theme.onColor
  *
  * @param label       short line name, e.g. "L3" or "C5"
  * @param colorArgb   optional ARGB colour from the operator; null uses primary
- * @param contentDescription spoken label for TalkBack — pass through the
+ * @param contentDescription spoken label for TalkBack, pass through the
  *   semantic meaning ("Línea L3"), not just the visible text
  */
 @Composable

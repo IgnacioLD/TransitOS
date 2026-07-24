@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 /**
- * Centred skeleton screen — used for the very first paint of a screen before
+ * Centred skeleton screen, used for the very first paint of a screen before
  * any data is available. Calmer than a spinner, and the layout doesn't jump
  * when real content arrives because the placeholder is content-shaped.
  *

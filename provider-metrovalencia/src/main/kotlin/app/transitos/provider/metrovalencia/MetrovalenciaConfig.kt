@@ -10,7 +10,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
  * differs from the 2022-era `ap18/api/public/...` URL referenced by some
  * third-party projects.
  *
- * Poll intervals are deliberately conservative — the underlying data does not
+ * Poll intervals are deliberately conservative, the underlying data does not
  * change faster than these windows, and we want to be a polite client of an
  * undocumented endpoint.
  */

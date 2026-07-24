@@ -34,7 +34,7 @@ import kotlin.math.min
 /**
  * FGV-backed implementation of [TransitRepository]. Replaces the earlier stub.
  *
- * Network footprint was a deliberate design concern — FGV's endpoints are
+ * Network footprint was a deliberate design concern, FGV's endpoints are
  * undocumented and we want to be a polite client. The strategy:
  *
  *  - **Catalogs** (`stops`, `lines`, `alerts`) are shared [StateFlow]s. `lines`
@@ -44,7 +44,7 @@ import kotlin.math.min
  *    pause when nobody's looking.
  *  - **Live arrivals** poll per stop at [MetrovalenciaConfig.arrivalsPollMs].
  *    Each tick does ONE call (`horarios-prevision-3`) and reads the cached
- *    lines table — no extra fetches.
+ *    lines table, no extra fetches.
  *  - **Identical emissions are dropped** via [distinctUntilChanged] so a
  *    server that returns the same data doesn't trigger UI re-subscriptions or
  *    downstream polling cascades.
@@ -53,7 +53,7 @@ import kotlin.math.min
  * [com.glossostudio.transitos.core.result.AppError] mapping is a future refinement.
  *
  * If FGV ever objects to the undocumented endpoint, this file is the only
- * thing that needs replacing — see `RESEARCH.md` (Option 3).
+ * thing that needs replacing, see `RESEARCH.md` (Option 3).
  */
 class MetrovalenciaRepository(
     private val api: MetrovalenciaApi,
@@ -70,7 +70,7 @@ class MetrovalenciaRepository(
 
     // Eager: the lines catalogue is needed by both arrivals and alerts to look
     // up display info. Warming it once here means we never re-fetch it per
-    // poll — one GET every `catalogRefreshMs`, regardless of how many favorites
+    // poll, one GET every `catalogRefreshMs`, regardless of how many favorites
     // the user has.
     private val linesState: StateFlow<List<Line>> = pollingState(
         fetch = { api.getLines().map { it.toLine() } },
@@ -128,7 +128,7 @@ class MetrovalenciaRepository(
 
     /**
      * Resolves a canonical stop id (`"mv:12"`) to FGV's internal station id
-     * (`226`) by fetching the stations catalogue. One GET per plan call —
+     * (`226`) by fetching the stations catalogue. One GET per plan call -
      * acceptable because planJourney is user-initiated, not polled.
      *
      * If this ever becomes hot, cache the raw station DTOs in a StateFlow

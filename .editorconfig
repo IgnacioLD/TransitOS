@@ -1,0 +1,27 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+indent_size = 4
+max_line_length = off
+
+[*.{xml,json,yml,yaml,toml,md,html,css}]
+indent_size = 2
+
+[*.{md,mdx}]
+trim_trailing_whitespace = false
+
+# Gradle / properties
+[*.properties]
+indent_size = 2
+
+# Shell scripts
+[*.sh]
+indent_size = 4
+end_of_line = lf

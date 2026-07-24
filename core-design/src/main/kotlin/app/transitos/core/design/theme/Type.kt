@@ -8,7 +8,7 @@ import androidx.compose.ui.unit.sp
 
 /**
  * Full Material 3 type scale. Slightly larger body and title sizes than the
- * spec defaults — the brief is "spacious, calm", and a touch more size on the
+ * spec defaults, the brief is "spacious, calm", and a touch more size on the
  * primary reading roles makes the app feel less dense.
  *
  * Font family is system default for now; swapping in a real brand face is a

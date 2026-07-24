@@ -3,7 +3,7 @@ package com.glossostudio.transitos.core.repository
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Persisted user favourites — the canonical source of "which stops the user
+ * Persisted user favourites, the canonical source of "which stops the user
  * cares about". Lives in the domain layer so the contract is independent of
  * the storage mechanism (DataStore today, Room tomorrow, sync eventually).
  *

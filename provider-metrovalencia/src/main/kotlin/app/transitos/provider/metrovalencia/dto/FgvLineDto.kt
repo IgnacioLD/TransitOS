@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * Wire shape of `GET /lineas`. [stops] is a CSV of `estacion_id_FGV` values in
- * line order — useful for future route/transfer modelling.
+ * line order, useful for future route/transfer modelling.
  */
 @Serializable
 data class FgvLineDto(

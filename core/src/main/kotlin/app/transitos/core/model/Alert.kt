@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
  * ServiceAlerts where the provider exposes them, or from operator-specific feeds.
  *
  * [lineShortName] and [lineColor] are denormalised display hints populated when
- * the alert affects exactly one line — lets the UI render a line badge without
+ * the alert affects exactly one line, lets the UI render a line badge without
  * a separate lookup table. Multi-line alerts leave them null.
  */
 @Serializable

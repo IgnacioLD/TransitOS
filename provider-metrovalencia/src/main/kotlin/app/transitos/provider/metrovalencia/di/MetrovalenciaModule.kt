@@ -19,7 +19,7 @@ import org.koin.dsl.module
  * Wires the Metrovalencia provider into the app graph.
  *
  * Adding a second operator (EMT, Renfe, …) means adding another provider module
- * like this one and reconciling the [TransitRepository] binding — the rest of
+ * like this one and reconciling the [TransitRepository] binding, the rest of
  * the app stays untouched.
  */
 val metrovalenciaModule = module {

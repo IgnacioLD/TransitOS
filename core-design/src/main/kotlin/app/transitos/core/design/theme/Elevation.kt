@@ -7,7 +7,7 @@ import androidx.compose.ui.unit.dp
 /**
  * Tonal elevation steps for surfaces. Material 3 in dark mode uses tonal
  * elevation (a colour shift) more than shadow elevation; in light mode we lean
- * on gentle shadow. Keep this small — the design brief is "calm", not "deep".
+ * on gentle shadow. Keep this small, the design brief is "calm", not "deep".
  */
 data class Elevation(
     val level0: Dp = 0.dp,

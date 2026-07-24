@@ -19,7 +19,7 @@ import io.ktor.http.contentType
 /**
  * Thin Ktor wrapper around the public FGV endpoints TransitOS consumes.
  *
- * No retry, no caching, no error mapping at this layer — that is the repository's
+ * No retry, no caching, no error mapping at this layer, that is the repository's
  * job. The only responsibility here is to issue the request and decode the JSON
  * into DTOs. A single shared [HttpClient] is injected from `:core-network`'s
  * Koin module so connection pooling, JSON policy and timeouts stay consistent.
@@ -115,7 +115,7 @@ class MetrovalenciaApi(
 
     private companion object {
         // Identifies TransitOS to FGV's logs. Polite, traceable, no version
-        // churn — bumping it on releases is enough.
+        // churn, bumping it on releases is enough.
         const val USER_AGENT = "TransitOS/0.1 (+https://github.com/) [Metrovalencia provider]"
     }
 }

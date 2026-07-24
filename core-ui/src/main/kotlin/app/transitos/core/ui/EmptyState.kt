@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.glossostudio.transitos.core.design.theme.LocalSpacing
 
 /**
- * Generic, illustrated empty state — used for "no favorites yet", "no search
+ * Generic, illustrated empty state, used for "no favorites yet", "no search
  * results", etc. Calm, centred, never apologetic in tone.
  *
  * @param icon large decorative vector; pass a Material outlined icon

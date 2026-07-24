@@ -5,7 +5,7 @@ import androidx.compose.material3.Shapes
 import androidx.compose.ui.unit.dp
 
 /**
- * Per-role corner radii. Generous and consistent — the design brief calls for
+ * Per-role corner radii. Generous and consistent, the design brief calls for
  * "calm, spacious", and softer corners are most of how that reads visually.
  *
  * The jump from `medium` to `large` is deliberate: cards (medium) feel

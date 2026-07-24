@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * Wire shape of `POST /horarios-online2`. FGV returns one [FgvJourneyAlternativeDto]
- * per routing alternative — for Metrovalencia's small network this is almost
+ * per routing alternative, for Metrovalencia's small network this is almost
  * always a single direct option, but multi-transfer journeys can yield several.
  *
  * The outer envelope is the same `status/error/resultado` triple FGV uses
@@ -39,7 +39,7 @@ data class FgvLocalizedTextDto(
 
 /**
  * One segment of a planned journey. Despite the name "transbordo" (transfer),
- * FGV returns one of these per leg even for direct trips — so a direct
+ * FGV returns one of these per leg even for direct trips, so a direct
  * Benimaclet → Pobla de Farnals journey has exactly one transbordo whose
  * origin and destination match the journey's.
  *
