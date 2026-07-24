@@ -14,5 +14,8 @@
     <string name="map_pdf_title">Metrovalencia PDF map</string>
     <string name="map_pdf_error">Error loading PDF map</string>
     <string name="map_pdf_loading">Loading map…</string>
+    <string name="map_pdf_download">Download map</string>
+    <string name="map_pdf_saved">Map saved to Downloads</string>
+    <string name="map_pdf_save_error">Error saving map</string>
     <string name="settings_cd">Settings</string>
 </resources>

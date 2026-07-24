@@ -1,10 +1,12 @@
 package app.transitos.map
 
+import android.app.DownloadManager
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Bitmap.Config
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -68,6 +71,22 @@ fun NetworkMapRoute(onBack: () -> Unit) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                             contentDescription = stringResource(coreUiR.string.cd_back),
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        val saved = savePdfToDownloads(context)
+                        Toast.makeText(
+                            context,
+                            if (saved) context.getString(R.string.map_pdf_saved)
+                            else context.getString(R.string.map_pdf_save_error),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Download,
+                            contentDescription = stringResource(R.string.map_pdf_download),
                         )
                     }
                 },
@@ -164,9 +183,11 @@ private fun ZoomablePdfViewer(bitmap: Bitmap) {
 private fun renderPdf(context: Context): Bitmap? {
     return try {
         val cacheFile = File(context.cacheDir, "mapa_metro.pdf")
-        context.resources.openRawResource(R.raw.mapa_metro).use { input ->
-            cacheFile.outputStream().use { output ->
-                input.copyTo(output)
+        if (!cacheFile.exists()) {
+            context.resources.openRawResource(R.raw.mapa_metro).use { input ->
+                cacheFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
             }
         }
         val pfd = ParcelFileDescriptor.open(cacheFile, ParcelFileDescriptor.MODE_READ_ONLY)
@@ -187,5 +208,29 @@ private fun renderPdf(context: Context): Bitmap? {
         }
     } catch (e: Exception) {
         null
+    }
+}
+
+private fun savePdfToDownloads(context: Context): Boolean {
+    return try {
+        val cacheFile = File(context.cacheDir, "mapa_metro.pdf")
+        if (!cacheFile.exists()) {
+            context.resources.openRawResource(R.raw.mapa_metro).use { input ->
+                cacheFile.outputStream().use { output -> input.copyTo(output) }
+            }
+        }
+        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        dm.addCompletedDownload(
+            "Plano Metrovalencia",
+            "Plano de red Metrovalencia",
+            true,
+            "application/pdf",
+            cacheFile.absolutePath,
+            cacheFile.length(),
+            true,
+        )
+        true
+    } catch (e: Exception) {
+        false
     }
 }
