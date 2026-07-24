@@ -1,4 +1,4 @@
-package app.transitos.core.network
+package com.glossostudio.transitos.core.network
 
 /**
  * Static configuration for the network stack. Built once at app start and shared

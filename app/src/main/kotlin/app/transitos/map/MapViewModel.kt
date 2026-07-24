@@ -1,10 +1,10 @@
-package app.transitos.map
+package com.glossostudio.transitos.map
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.transitos.core.model.Alert
-import app.transitos.core.model.Stop
-import app.transitos.core.repository.TransitRepository
+import com.glossostudio.transitos.core.model.Alert
+import com.glossostudio.transitos.core.model.Stop
+import com.glossostudio.transitos.core.repository.TransitRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

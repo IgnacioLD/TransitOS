@@ -1,8 +1,10 @@
-package app.transitos.feature.planner
+package com.glossostudio.transitos.feature.planner
 
-import app.transitos.core.model.Journey
-import app.transitos.core.model.Stop
+import com.glossostudio.transitos.core.model.Journey
+import com.glossostudio.transitos.core.model.Stop
 import kotlinx.datetime.LocalDate
+
+enum class TimeMode { DEPARTURE, ARRIVAL }
 
 data class PlannerUiState(
     val origin: Stop? = null,
@@ -12,7 +14,9 @@ data class PlannerUiState(
     val selectedJourneyIndex: Int = 0,
     val isPlanning: Boolean = false,
     val isSaved: Boolean = false,
-    val arriveBy: String? = null,
+    val timeMode: TimeMode = TimeMode.DEPARTURE,
+    val travelTime: String? = null,
+    val hasSearched: Boolean = false,
     val errorMessage: String? = null,
 ) {
     val canPlan: Boolean get() = origin != null && destination != null && origin != destination

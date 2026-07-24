@@ -1,4 +1,4 @@
-package app.transitos.map
+package com.glossostudio.transitos.map
 
 import android.Manifest
 import android.content.res.Resources
@@ -77,9 +77,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.transitos.R
-import app.transitos.core.model.Arrival
-import app.transitos.core.ui.R as coreUiR
+import com.glossostudio.transitos.R
+import com.glossostudio.transitos.core.model.Arrival
+import com.glossostudio.transitos.core.ui.R as coreUiR
 import org.koin.androidx.compose.koinViewModel
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory

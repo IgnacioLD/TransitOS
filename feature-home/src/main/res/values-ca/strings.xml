@@ -8,4 +8,7 @@
     <string name="home_no_favorites_title">Encara no tens parades preferides</string>
     <string name="home_no_favorites_subtitle">Busca una estació i marca-la per vore ací les seues pròximes arribades.</string>
     <string name="settings_cd">Ajustos</string>
+    <string name="home_rename_route">Canviar nom</string>
+    <string name="home_rename_route_title">Nom de la ruta</string>
+    <string name="home_rename_hint">Casa, Feina…</string>
 </resources>

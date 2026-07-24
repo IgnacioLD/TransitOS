@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  Adaptive-icon foreground: a simple location-pin glyph in white, sized to sit
-  inside the 72dp safe zone of the 108dp canvas. Replaced by a real brand mark
-  once we commission one.
--->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
@@ -11,8 +6,8 @@
     android:viewportHeight="108">
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M54,32 C44.06,32 36,40.06 36,50 C36,65.5 54,82 54,82 C54,82 72,65.5 72,50 C72,40.06 63.94,32 54,32 Z" />
+        android:pathData="M54,28 C42.06,28 32,38.06 32,50 C32,68.5 54,86 54,86 C54,86 76,68.5 76,50 C76,38.06 65.94,28 54,28 Z" />
     <path
-        android:fillColor="#FF006A6A"
-        android:pathData="M54,44 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+        android:fillColor="#FF004A4A"
+        android:pathData="M54,42 m-8,0 a8,8 0 1,0 16,0 a8,8 0 1,0 -16,0" />
 </vector>

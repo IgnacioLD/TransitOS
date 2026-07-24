@@ -1,4 +1,4 @@
-package app.transitos.core.ui
+package com.glossostudio.transitos.core.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,8 +20,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import app.transitos.core.design.theme.LocalSpacing
-import app.transitos.core.result.AppError
+import com.glossostudio.transitos.core.design.theme.LocalSpacing
+import com.glossostudio.transitos.core.result.AppError
 
 /**
  * Maps an [AppError] into a calm, centred, user-facing block. The UI never

@@ -1,4 +1,4 @@
-package app.transitos.core.provider
+package com.glossostudio.transitos.core.provider
 
 public class ProviderRegistry {
     private val _providers: MutableList<ProviderInfo> = mutableListOf()

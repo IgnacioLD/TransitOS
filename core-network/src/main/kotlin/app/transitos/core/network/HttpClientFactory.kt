@@ -1,4 +1,4 @@
-package app.transitos.core.network
+package com.glossostudio.transitos.core.network
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android

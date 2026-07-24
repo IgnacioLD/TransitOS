@@ -1,4 +1,4 @@
-package app.transitos.core.model
+package com.glossostudio.transitos.core.model
 
 /**
  * Universal transport modes. Every provider maps its own taxonomy onto one of these.

@@ -1,6 +1,6 @@
-package app.transitos.feature.planner.di
+package com.glossostudio.transitos.feature.planner.di
 
-import app.transitos.feature.planner.PlannerViewModel
+import com.glossostudio.transitos.feature.planner.PlannerViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 

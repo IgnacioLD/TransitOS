@@ -15,4 +15,8 @@
     <string name="about_privacy">Privacy</string>
     <string name="about_privacy_desc">TransitOS does not collect personal data.</string>
     <string name="about_source">Source code</string>
+    <string name="about_disclaimer">This app is an independent, open-source project. It is not affiliated with or endorsed by Metrovalencia or FGV. Data is obtained from publicly available transport network services.</string>
+    <string name="settings_transfer_buffer">Transfer buffer</string>
+    <string name="settings_transfer_buffer_desc">Minimum wait minutes between transfers. Less buffer means tighter connections.</string>
+    <string name="settings_transfer_buffer_value">%1$d min</string>
 </resources>

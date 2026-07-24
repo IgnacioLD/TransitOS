@@ -1,20 +1,22 @@
-package app.transitos.provider.metrovalencia.mapper
+package com.glossostudio.transitos.provider.metrovalencia.mapper
 
-import app.transitos.core.model.Alert
-import app.transitos.core.model.Arrival
-import app.transitos.core.model.Journey
-import app.transitos.core.model.JourneyLeg
-import app.transitos.core.model.Line
-import app.transitos.core.model.Stop
-import app.transitos.core.model.TransportMode
-import app.transitos.provider.metrovalencia.MetrovalenciaConfig
-import app.transitos.provider.metrovalencia.dto.FgvIncidenciaDto
-import app.transitos.provider.metrovalencia.dto.FgvJourneyAlternativeDto
-import app.transitos.provider.metrovalencia.dto.FgvLineDto
-import app.transitos.provider.metrovalencia.dto.FgvPrevisionDto
-import app.transitos.provider.metrovalencia.dto.FgvStationDto
-import app.transitos.provider.metrovalencia.dto.FgvTrainDto
-import app.transitos.provider.metrovalencia.dto.FgvTransbordoDto
+import com.glossostudio.transitos.core.model.Alert
+import com.glossostudio.transitos.core.model.Arrival
+import com.glossostudio.transitos.core.model.Journey
+import com.glossostudio.transitos.core.model.JourneyLeg
+import com.glossostudio.transitos.core.model.Line
+import com.glossostudio.transitos.core.model.Stop
+import com.glossostudio.transitos.core.model.TransportMode
+import com.glossostudio.transitos.provider.metrovalencia.MetrovalenciaConfig
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvIncidenciaDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvJourneyAlternativeDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvLineDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvPasoDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvPlanificadorDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvPrevisionDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvStationDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvTrainDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvTransbordoDto
 import kotlinx.datetime.LocalDate
 
 /**
@@ -103,7 +105,7 @@ public data class LineDisplayInfo(
  */
 internal fun FgvIncidenciaDto.toAlert(
     lineByInternalId: Map<Long, LineDisplayInfo>,
-    translations: List<app.transitos.provider.metrovalencia.dto.FgvIncidenciaTranslationDto>,
+    translations: List<com.glossostudio.transitos.provider.metrovalencia.dto.FgvIncidenciaTranslationDto>,
     locale: String,
 ): Alert {
     val info = lineByInternalId[lineaId]
@@ -140,6 +142,93 @@ internal fun parseArgbHexOrNull(hex: String): Long? = runCatching {
 }.getOrNull() ?: null
 
 /**
+ * Maps a planificador-online2 response to a domain [Journey]. Unlike the
+ * horarios mapper, this produces legs with specific departure/arrival times,
+ * line colors, and transfer info.
+ *
+ * [minTransferMinutes] is the user-configurable buffer: if the API says a
+ * transfer takes fewer minutes than this, we pad the wait and shift subsequent
+ * leg times so the displayed arrival is realistic.
+ */
+internal fun FgvPlanificadorDto.toJourney(
+    date: LocalDate,
+    minTransferMinutes: Int = 5,
+): Journey? {
+    if (pasos.isEmpty()) return null
+    val rawLegs = pasos.mapIndexed { index, paso ->
+        paso.toLeg(
+            waitFromPrevious = if (index > 0) pasos[index - 1].transbordo?.minEspera else null,
+        )
+    }
+    val legs = applyTransferBuffer(rawLegs, minTransferMinutes)
+    if (legs.isEmpty()) return null
+    val totalBuffer = totalBufferAdded(rawLegs, legs)
+    return Journey(
+        date = date,
+        durationMinutes = duracion_minutos + totalBuffer,
+        distanceMeters = 0L,
+        fareZone = tarifas,
+        carbonKg = huella_de_carbono,
+        legs = legs,
+    )
+}
+
+internal fun FgvPasoDto.toLeg(waitFromPrevious: Int? = null): JourneyLeg {
+    val linea = linea_origen
+    return JourneyLeg(
+        originName = estacion_origen?.nombre.orEmpty(),
+        destinationName = estacion_destino?.nombre.orEmpty(),
+        headsigns = listOfNotNull(tren_origen.takeIf { it.isNotBlank() }),
+        lineNames = listOfNotNull(linea?.nombre_corto?.takeIf { it.isNotBlank() }),
+        lineColors = listOfNotNull(linea?.color?.let(::parseArgbHexOrNull)),
+        departureTime = hora_salida.takeIf { it.isNotBlank() },
+        arrivalTime = hora_llegada.takeIf { it.isNotBlank() },
+        trainId = tren_origen.takeIf { it.isNotBlank() },
+        waitMinutes = waitFromPrevious,
+    )
+}
+
+private fun applyTransferBuffer(
+    legs: List<JourneyLeg>,
+    minTransfer: Int,
+): List<JourneyLeg> {
+    if (legs.size <= 1 || minTransfer <= 0) return legs
+    var cumulativeShift = 0
+    return legs.mapIndexed { index, leg ->
+        if (index == 0) return@mapIndexed leg
+        val wait = leg.waitMinutes ?: 0
+        val needed = if (wait < minTransfer) minTransfer - wait else 0
+        cumulativeShift += needed
+        if (cumulativeShift > 0) {
+            leg.copy(
+                waitMinutes = wait + needed,
+                departureTime = leg.departureTime?.let { addMinutesToTime(it, cumulativeShift) },
+                arrivalTime = leg.arrivalTime?.let { addMinutesToTime(it, cumulativeShift) },
+            )
+        } else leg
+    }
+}
+
+private fun totalBufferAdded(original: List<JourneyLeg>, buffered: List<JourneyLeg>): Int {
+    var total = 0
+    for (i in original.indices) {
+        val o = original[i].waitMinutes ?: 0
+        val b = buffered[i].waitMinutes ?: 0
+        total += (b - o).coerceAtLeast(0)
+    }
+    return total
+}
+
+private fun addMinutesToTime(time: String, minutes: Int): String {
+    val parts = time.split(":")
+    if (parts.size != 2) return time
+    val h = parts[0].toIntOrNull() ?: return time
+    val m = parts[1].toIntOrNull() ?: return time
+    val total = h * 60 + m + minutes
+    return "%02d:%02d".format((total / 60) % 24, total % 60)
+}
+
+/**
  * Maps an FGV journey alternative to a domain [Journey]. Returns null when the
  * response has no usable legs (FGV sometimes returns 200 with an empty
  * transbordos array for unreachable O/D pairs).
@@ -169,6 +258,7 @@ internal fun FgvTransbordoDto.toLeg(): JourneyLeg = JourneyLeg(
     departures = horas
         .flatMap { (hour, times) -> times.map { time -> time } }
         .sorted(),
+    lineNames = lineas,
 )
 
 /**

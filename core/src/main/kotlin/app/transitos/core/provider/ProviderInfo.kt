@@ -1,4 +1,4 @@
-package app.transitos.core.provider
+package com.glossostudio.transitos.core.provider
 
 public data class ProviderInfo(
     val id: String,

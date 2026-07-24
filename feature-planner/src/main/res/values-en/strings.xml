@@ -17,7 +17,8 @@
     <string name="planner_arrival">Arrive by</string>
     <string name="planner_arrival_hint">Tap to set arrival time</string>
     <string name="planner_arrival_time_title">Arrival time</string>
-    <string name="planner_clear_arrival_cd">Clear arrival time</string>
+    <string name="planner_departure_time_title">Departure time</string>
+    <string name="planner_clear_arrival_cd">Clear time</string>
     <string name="planner_select_cd">Select</string>
     <string name="planner_hint">Choose origin and destination to see schedules, first and last train.</string>
     <string name="planner_first_departure">First</string>
@@ -27,12 +28,25 @@
     <string name="planner_route_saved">Route saved to Favorites</string>
     <string name="planner_save_route">Save route to Favorites</string>
     <string name="planner_legs_unit">legs</string>
+    <string name="planner_transfers_count">%1$d transfers</string>
+    <string name="planner_no_transfers">Direct</string>
     <string name="planner_departures_count">%1$d departures</string>
     <string name="planner_direction">Direction: %1$s</string>
+    <string name="planner_transfer_at">Transfer at %1$s</string>
+    <string name="planner_first_train">First: %1$s</string>
+    <string name="time_now">Now</string>
+    <string name="time_choose">Choose time</string>
+    <string name="time_departure">Departure</string>
+    <string name="time_arrival">Arrival</string>
     <string name="planner_distance">Distance</string>
     <string name="planner_fare">Fare</string>
     <string name="planner_fare_zone">Zone %1$s</string>
     <string name="planner_co2">CO₂</string>
     <string name="date_today">Today</string>
     <string name="date_tomorrow">Tomorrow</string>
+    <string name="planner_leave_now">Leave now</string>
+    <string name="planner_arrive_by">Arrive by</string>
+    <string name="planner_search_route">Search route</string>
+    <string name="planner_quick_picks">Suggestions</string>
+    <string name="planner_wait_minutes">Wait %1$d min</string>
 </resources>

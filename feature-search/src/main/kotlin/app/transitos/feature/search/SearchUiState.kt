@@ -1,6 +1,6 @@
-package app.transitos.feature.search
+package com.glossostudio.transitos.feature.search
 
-import app.transitos.core.model.Stop
+import com.glossostudio.transitos.core.model.Stop
 
 data class SearchUiState(
     val query: String = "",

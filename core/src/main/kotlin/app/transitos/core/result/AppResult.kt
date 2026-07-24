@@ -1,4 +1,4 @@
-package app.transitos.core.result
+package com.glossostudio.transitos.core.result
 
 /**
  * Result type for repository operations. Use cases return [AppResult] so the UI

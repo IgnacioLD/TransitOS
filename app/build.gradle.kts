@@ -4,18 +4,36 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+val keystoreProps = file("keystore.properties").let { f ->
+    if (f.exists()) {
+        f.readLines().mapNotNull { line ->
+            val parts = line.split("=", limit = 2)
+            if (parts.size == 2) parts[0].trim() to parts[1].trim() else null
+        }.toMap()
+    } else emptyMap()
+}
+
 android {
-    namespace = "app.transitos"
-    compileSdk = 34
+    namespace = "com.glossostudio.transitos"
+    compileSdk = 35
 
     defaultConfig {
-        applicationId = "app.transitos"
+        applicationId = "com.glossostudio.transitos"
         minSdk = 26
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        targetSdk = 35
+        versionCode = 3
+        versionName = "1.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = keystoreProps["storeFile"]?.let { file(it) }
+            storePassword = keystoreProps["storePassword"]
+            keyAlias = keystoreProps["keyAlias"]
+            keyPassword = keystoreProps["keyPassword"]
+        }
     }
 
     buildTypes {
@@ -28,6 +46,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 

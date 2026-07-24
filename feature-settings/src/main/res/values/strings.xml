@@ -15,4 +15,8 @@
     <string name="about_privacy">Privacidad</string>
     <string name="about_privacy_desc">TransitOS no recopila datos personales.</string>
     <string name="about_source">Código fuente</string>
+    <string name="about_disclaimer">Esta aplicación es un proyecto independiente y de código abierto. No está afiliada ni respaldada por Metrovalencia ni por FGV. Los datos se obtienen de los servicios disponibles de la red de transporte.</string>
+    <string name="settings_transfer_buffer">Margen de transbordo</string>
+    <string name="settings_transfer_buffer_desc">Minutos mínimos de espera entre transbordos. Con menos margen tendrás que ir con prisa.</string>
+    <string name="settings_transfer_buffer_value">%1$d min</string>
 </resources>

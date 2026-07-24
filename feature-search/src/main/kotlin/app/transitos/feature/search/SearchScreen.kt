@@ -1,4 +1,4 @@
-package app.transitos.feature.search
+package com.glossostudio.transitos.feature.search
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,12 +33,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.transitos.core.design.theme.LocalSpacing
-import app.transitos.core.model.Stop
-import app.transitos.core.ui.EmptyState
-import app.transitos.core.ui.R as coreUiR
-import app.transitos.core.ui.SkeletonBlock
-import app.transitos.feature.search.R
+import com.glossostudio.transitos.core.design.theme.LocalSpacing
+import com.glossostudio.transitos.core.model.Stop
+import com.glossostudio.transitos.core.ui.EmptyState
+import com.glossostudio.transitos.core.ui.R as coreUiR
+import com.glossostudio.transitos.core.ui.SkeletonBlock
+import com.glossostudio.transitos.feature.search.R
 import org.koin.androidx.compose.koinViewModel
 
 @Composable

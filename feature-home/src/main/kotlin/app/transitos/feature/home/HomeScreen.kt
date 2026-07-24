@@ -1,9 +1,10 @@
-package app.transitos.feature.home
+package com.glossostudio.transitos.feature.home
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,12 +15,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BookmarkAdd
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Directions
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,29 +32,35 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.transitos.core.design.theme.LocalSpacing
-import app.transitos.core.ui.AlertsSection
-import app.transitos.core.ui.EmptyState
-import app.transitos.core.ui.ErrorState
-import app.transitos.core.ui.FavoriteStopCard
-import app.transitos.core.ui.FavoritesSkeleton
-import app.transitos.core.ui.SectionHeader
-import app.transitos.core.ui.R as coreUiR
+import com.glossostudio.transitos.core.design.theme.LocalSpacing
+import com.glossostudio.transitos.core.ui.AlertsSection
+import com.glossostudio.transitos.core.ui.EmptyState
+import com.glossostudio.transitos.core.ui.ErrorState
+import com.glossostudio.transitos.core.ui.FavoriteStopCard
+import com.glossostudio.transitos.core.ui.FavoritesSkeleton
+import com.glossostudio.transitos.core.ui.SectionHeader
+import com.glossostudio.transitos.core.ui.R as coreUiR
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -64,6 +75,7 @@ fun HomeRoute(
         state = state,
         onNavigateToPlanner = onNavigateToPlanner,
         onNavigateToSettings = onNavigateToSettings,
+        onRenameRoute = viewModel::renameRoute,
         modifier = modifier,
     )
 }
@@ -75,6 +87,7 @@ internal fun HomeScreen(
     modifier: Modifier = Modifier,
     onNavigateToPlanner: (originStopId: String, destinationStopId: String) -> Unit = { _, _ -> },
     onNavigateToSettings: () -> Unit = {},
+    onRenameRoute: (routeId: String, label: String) -> Unit = { _, _ -> },
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val alertCount = (state as? HomeUiState.Ready)?.alerts?.size ?: 0
@@ -100,7 +113,11 @@ internal fun HomeScreen(
                 when (current) {
                     HomeUiState.Loading -> FavoritesSkeleton()
                     is HomeUiState.Error -> ErrorState(error = current.error)
-                    is HomeUiState.Ready -> HomeContent(state = current, onNavigateToPlanner = onNavigateToPlanner)
+                    is HomeUiState.Ready -> HomeContent(
+                state = current,
+                onNavigateToPlanner = onNavigateToPlanner,
+                onRenameRoute = onRenameRoute,
+            )
                 }
             }
         }
@@ -152,6 +169,7 @@ private fun HomeTopBar(
 private fun HomeContent(
     state: HomeUiState.Ready,
     onNavigateToPlanner: (originStopId: String, destinationStopId: String) -> Unit = { _, _ -> },
+    onRenameRoute: (routeId: String, label: String) -> Unit = { _, _ -> },
 ) {
     val spacing = LocalSpacing.current
     val savedRoutesTitle = stringResource(R.string.home_saved_routes)
@@ -172,6 +190,7 @@ private fun HomeContent(
                 SavedRouteCard(
                     route = route,
                     onClick = { onNavigateToPlanner(route.originStopId, route.destinationStopId) },
+                    onRename = { label -> onRenameRoute(route.id, label) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = spacing.screenGutter),
@@ -221,8 +240,11 @@ private fun HomeContent(
 private fun SavedRouteCard(
     route: SavedRouteInfo,
     onClick: () -> Unit,
+    onRename: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var showRenameDialog by remember { mutableStateOf(false) }
+
     Card(
         onClick = onClick,
         modifier = modifier,
@@ -233,7 +255,7 @@ private fun SavedRouteCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(start = 16.dp, top = 14.dp, bottom = 14.dp, end = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -243,24 +265,80 @@ private fun SavedRouteCard(
                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
             )
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = route.originName,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = route.destinationName,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                if (route.label.isNotBlank()) {
+                    Text(
+                        text = route.label,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = "${route.originName} → ${route.destinationName}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                } else {
+                    Text(
+                        text = route.originName,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = route.destinationName,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
-            TextButton(onClick = onClick) {
-                Text(stringResource(coreUiR.string.action_plan))
+            IconButton(onClick = { showRenameDialog = true }) {
+                Icon(
+                    imageVector = Icons.Outlined.Edit,
+                    contentDescription = stringResource(R.string.home_rename_route),
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                    modifier = Modifier.size(20.dp),
+                )
             }
         }
+    }
+
+    if (showRenameDialog) {
+        var text by remember { mutableStateOf(route.label) }
+        AlertDialog(
+            onDismissRequest = { showRenameDialog = false },
+            title = { Text(stringResource(R.string.home_rename_route_title)) },
+            text = {
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text(stringResource(R.string.home_rename_hint)) },
+                    singleLine = true,
+                    shape = MaterialTheme.shapes.large,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onRename(text.trim())
+                    showRenameDialog = false
+                }) { Text(stringResource(coreUiR.string.action_accept)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRenameDialog = false }) {
+                    Text(stringResource(coreUiR.string.action_cancel))
+                }
+            },
+        )
     }
 }

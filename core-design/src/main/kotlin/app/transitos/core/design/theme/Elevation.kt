@@ -1,4 +1,4 @@
-package app.transitos.core.design.theme
+package com.glossostudio.transitos.core.design.theme
 
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.unit.Dp

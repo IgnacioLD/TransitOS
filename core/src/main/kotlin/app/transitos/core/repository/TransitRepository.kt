@@ -1,10 +1,10 @@
-package app.transitos.core.repository
+package com.glossostudio.transitos.core.repository
 
-import app.transitos.core.model.Alert
-import app.transitos.core.model.Arrival
-import app.transitos.core.model.Journey
-import app.transitos.core.model.Line
-import app.transitos.core.model.Stop
+import com.glossostudio.transitos.core.model.Alert
+import com.glossostudio.transitos.core.model.Arrival
+import com.glossostudio.transitos.core.model.Journey
+import com.glossostudio.transitos.core.model.Line
+import com.glossostudio.transitos.core.model.Stop
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDate
 
@@ -31,13 +31,17 @@ public interface TransitRepository {
      * @param originStopId canonical stop id (e.g. `"mv:12"`).
      * @param destinationStopId canonical stop id.
      * @param date the service date to plan for.
-     * @param arriveBy optional time to arrive by (when set, plans backward).
+     * @param hora `"HH:mm"` or null for current time.
+     * @param isDeparture true = depart at [hora], false = arrive by [hora].
+     * @param minTransferMinutes buffer added to tight transfers.
      * @return planned journey alternatives (empty list if no route exists).
      */
     public suspend fun planJourney(
         originStopId: String,
         destinationStopId: String,
         date: LocalDate,
-        arriveBy: String? = null,
+        hora: String? = null,
+        isDeparture: Boolean = true,
+        minTransferMinutes: Int = 5,
     ): List<Journey>
 }

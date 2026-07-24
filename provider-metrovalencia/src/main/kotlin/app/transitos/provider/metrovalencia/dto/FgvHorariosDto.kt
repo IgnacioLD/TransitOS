@@ -1,4 +1,4 @@
-package app.transitos.provider.metrovalencia.dto
+package com.glossostudio.transitos.provider.metrovalencia.dto
 
 import kotlinx.serialization.Serializable
 
@@ -51,6 +51,7 @@ data class FgvLocalizedTextDto(
 data class FgvTransbordoDto(
     val estacion_origen_transbordo: FgvStationDto? = null,
     val estacion_destino_transbordo: FgvStationDto? = null,
+    val lineas: List<String> = emptyList(),
     val destinos: List<String> = emptyList(),
     val horas: Map<String, List<String>> = emptyMap(),
 )

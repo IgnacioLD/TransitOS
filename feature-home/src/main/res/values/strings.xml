@@ -8,4 +8,7 @@
     <string name="home_no_favorites_title">Aún no tienes paradas favoritas</string>
     <string name="home_no_favorites_subtitle">Busca una estación y márcala para ver aquí sus próximas llegadas.</string>
     <string name="settings_cd">Ajustes</string>
+    <string name="home_rename_route">Renombrar ruta</string>
+    <string name="home_rename_route_title">Nombre de la ruta</string>
+    <string name="home_rename_hint">Casa, Trabajo…</string>
 </resources>

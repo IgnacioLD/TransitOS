@@ -1,4 +1,4 @@
-package app.transitos.map
+package com.glossostudio.transitos.map
 
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module

@@ -1,4 +1,4 @@
-package app.transitos
+package com.glossostudio.transitos
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -11,15 +11,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import app.transitos.feature.home.HomeRoute
-import app.transitos.feature.planner.PlannerRoute
-import app.transitos.feature.planner.PrefilledPlannerRoute
-import app.transitos.feature.search.SearchRoute
-import app.transitos.feature.settings.SettingsRoute
-import app.transitos.map.NetworkMapRoute
-import app.transitos.map.OSMNetworkMapRoute
-import app.transitos.navigation.TopLevelDestination
-import app.transitos.navigation.TransitOSBottomBar
+import com.glossostudio.transitos.feature.home.HomeRoute
+import com.glossostudio.transitos.feature.planner.PlannerRoute
+import com.glossostudio.transitos.feature.planner.PrefilledPlannerRoute
+import com.glossostudio.transitos.feature.search.SearchRoute
+import com.glossostudio.transitos.feature.settings.SettingsRoute
+import com.glossostudio.transitos.map.NetworkMapRoute
+import com.glossostudio.transitos.map.OSMNetworkMapRoute
+import com.glossostudio.transitos.navigation.TopLevelDestination
+import com.glossostudio.transitos.navigation.TransitOSBottomBar
 
 @Composable
 fun TransitOSApp() {
@@ -32,10 +32,14 @@ fun TransitOSApp() {
                 .value
                 ?.destination
                 ?.route
-            TransitOSBottomBar(
-                currentRoute = currentRoute,
-                onNavigate = { route -> navController.navigateToTopLevelDestination(route) },
-            )
+            val isTopLevel = TopLevelDestination.entries.any { it.route == currentRoute }
+                || currentRoute?.startsWith("planner/") == true
+            if (isTopLevel) {
+                TransitOSBottomBar(
+                    currentRoute = currentRoute,
+                    onNavigate = { route -> navController.navigateToTopLevelDestination(route) },
+                )
+            }
         },
     ) { padding ->
         TransitOSNavHost(
@@ -69,9 +73,7 @@ private fun TransitOSNavHost(
             SearchRoute()
         }
         composable(TopLevelDestination.PLANNER.route) {
-            PlannerRoute(
-                onOpenMap = { navController.navigate("map") },
-            )
+            PlannerRoute()
         }
         composable("planner/{originId}/{destId}") { backStackEntry ->
             val originId = backStackEntry.arguments?.getString("originId") ?: return@composable
@@ -79,7 +81,6 @@ private fun TransitOSNavHost(
             PrefilledPlannerRoute(
                 originStopId = originId,
                 destinationStopId = destId,
-                onOpenMap = { navController.navigate("map") },
             )
         }
         composable(TopLevelDestination.MAP.route) {
@@ -92,7 +93,9 @@ private fun TransitOSNavHost(
             NetworkMapRoute(onBack = { navController.popBackStack() })
         }
         composable("settings") {
-            SettingsRoute()
+            SettingsRoute(
+                onBack = { navController.popBackStack() },
+            )
         }
     }
 }

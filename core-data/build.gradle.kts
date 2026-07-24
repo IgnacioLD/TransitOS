@@ -5,8 +5,8 @@ plugins {
 }
 
 android {
-    namespace = "app.transitos.core.data"
-    compileSdk = 34
+    namespace = "com.glossostudio.transitos.core.data"
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 26

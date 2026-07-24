@@ -5,8 +5,8 @@ plugins {
 }
 
 android {
-    namespace = "app.transitos.provider.metrovalencia"
-    compileSdk = 34
+    namespace = "com.glossostudio.transitos.provider.metrovalencia"
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 26

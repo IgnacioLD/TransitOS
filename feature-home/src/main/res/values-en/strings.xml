@@ -8,4 +8,7 @@
     <string name="home_no_favorites_title">No favorite stops yet</string>
     <string name="home_no_favorites_subtitle">Search for a station and star it to see its upcoming arrivals here.</string>
     <string name="settings_cd">Settings</string>
+    <string name="home_rename_route">Rename route</string>
+    <string name="home_rename_route_title">Route name</string>
+    <string name="home_rename_hint">Home, Work…</string>
 </resources>

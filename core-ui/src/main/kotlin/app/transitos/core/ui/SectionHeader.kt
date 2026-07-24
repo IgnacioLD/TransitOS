@@ -1,4 +1,4 @@
-package app.transitos.core.ui
+package com.glossostudio.transitos.core.ui
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -7,7 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
-import app.transitos.core.design.theme.LocalSpacing
+import com.glossostudio.transitos.core.design.theme.LocalSpacing
 
 /**
  * Small uppercase label that opens a section ("Favoritos", "Avisos"). Reserved

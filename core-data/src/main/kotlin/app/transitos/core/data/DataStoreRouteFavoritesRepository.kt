@@ -1,10 +1,10 @@
-package app.transitos.core.data
+package com.glossostudio.transitos.core.data
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import app.transitos.core.model.SavedRoute
-import app.transitos.core.repository.RouteFavoritesRepository
+import com.glossostudio.transitos.core.model.SavedRoute
+import com.glossostudio.transitos.core.repository.RouteFavoritesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -28,7 +28,7 @@ class DataStoreRouteFavoritesRepository(
                 val current = prefs[ROUTES_KEY]?.let { json ->
                     runCatching { Json.decodeFromString<List<SavedRoute>>(json) }.getOrDefault(emptyList())
                 } ?: emptyList()
-                val updated = current + route
+                val updated = current.filter { it.id != route.id } + route
                 prefs[ROUTES_KEY] = Json.encodeToString(updated)
             }
         }
@@ -41,6 +41,18 @@ class DataStoreRouteFavoritesRepository(
                     runCatching { Json.decodeFromString<List<SavedRoute>>(json) }.getOrDefault(emptyList())
                 } ?: emptyList()
                 val updated = current.filter { it.id != routeId }
+                prefs[ROUTES_KEY] = Json.encodeToString(updated)
+            }
+        }
+    }
+
+    override suspend fun renameRoute(routeId: String, label: String) {
+        withContext(Dispatchers.IO) {
+            context.transitosDataStore.edit { prefs ->
+                val current = prefs[ROUTES_KEY]?.let { json ->
+                    runCatching { Json.decodeFromString<List<SavedRoute>>(json) }.getOrDefault(emptyList())
+                } ?: emptyList()
+                val updated = current.map { if (it.id == routeId) it.copy(label = label) else it }
                 prefs[ROUTES_KEY] = Json.encodeToString(updated)
             }
         }

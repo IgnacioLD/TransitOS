@@ -1,9 +1,9 @@
-package app.transitos.feature.search
+package com.glossostudio.transitos.feature.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.transitos.core.repository.FavoritesRepository
-import app.transitos.core.repository.TransitRepository
+import com.glossostudio.transitos.core.repository.FavoritesRepository
+import com.glossostudio.transitos.core.repository.TransitRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,7 +23,7 @@ class SearchViewModel(
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
 
-    val allStops: StateFlow<List<app.transitos.core.model.Stop>> = repository.observeStops()
+    val allStops: StateFlow<List<com.glossostudio.transitos.core.model.Stop>> = repository.observeStops()
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
@@ -31,7 +31,7 @@ class SearchViewModel(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
 
-    val filteredStops: StateFlow<List<app.transitos.core.model.Stop>> =
+    val filteredStops: StateFlow<List<com.glossostudio.transitos.core.model.Stop>> =
         combine(allStops, query) { stops, q ->
             if (q.isBlank()) stops
             else stops.filter { it.name.contains(q, ignoreCase = true) }

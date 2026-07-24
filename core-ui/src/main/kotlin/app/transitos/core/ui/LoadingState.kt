@@ -1,4 +1,4 @@
-package app.transitos.core.ui
+package com.glossostudio.transitos.core.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier

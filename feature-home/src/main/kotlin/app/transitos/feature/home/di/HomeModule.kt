@@ -1,6 +1,6 @@
-package app.transitos.feature.home.di
+package com.glossostudio.transitos.feature.home.di
 
-import app.transitos.feature.home.HomeViewModel
+import com.glossostudio.transitos.feature.home.HomeViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 

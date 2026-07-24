@@ -1,4 +1,4 @@
-package app.transitos.core.repository
+package com.glossostudio.transitos.core.repository
 
 import kotlinx.coroutines.flow.Flow
 

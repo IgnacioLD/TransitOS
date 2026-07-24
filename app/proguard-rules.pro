@@ -13,4 +13,4 @@
 }
 
 # Keep domain model classes (serialised across the network boundary).
--keep class app.transitos.core.model.** { *; }
+-keep class com.glossostudio.transitos.core.model.** { *; }

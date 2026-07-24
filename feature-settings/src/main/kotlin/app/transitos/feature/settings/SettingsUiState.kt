@@ -1,7 +1,7 @@
-package app.transitos.feature.settings
+package com.glossostudio.transitos.feature.settings
 
-import app.transitos.core.provider.ProviderBackend
-import app.transitos.core.provider.ProviderInfo
+import com.glossostudio.transitos.core.provider.ProviderBackend
+import com.glossostudio.transitos.core.provider.ProviderInfo
 
 data class SettingsUiState(
     val providers: List<ProviderInfo> = emptyList(),

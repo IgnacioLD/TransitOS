@@ -1,7 +1,7 @@
-package app.transitos.core.network.di
+package com.glossostudio.transitos.core.network.di
 
-import app.transitos.core.network.HttpClientFactory
-import app.transitos.core.network.NetworkConfig
+import com.glossostudio.transitos.core.network.HttpClientFactory
+import com.glossostudio.transitos.core.network.NetworkConfig
 import io.ktor.client.HttpClient
 import org.koin.core.module.Module
 import org.koin.dsl.module
