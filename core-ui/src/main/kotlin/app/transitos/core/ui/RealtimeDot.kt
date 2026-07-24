@@ -1,4 +1,4 @@
-package app.transitos.core.ui
+package com.glossostudio.transitos.core.ui
 
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -17,7 +17,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import app.transitos.core.design.theme.Alpha
+import com.glossostudio.transitos.core.design.theme.Alpha
 
 /**
  * Small pulsing dot signalling "this datum is live". Calm cadence (1.6 s

@@ -1,4 +1,4 @@
-package app.transitos.core.design.theme
+package com.glossostudio.transitos.core.design.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -8,7 +8,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
-import app.transitos.core.repository.ThemeMode
+import com.glossostudio.transitos.core.repository.ThemeMode
 
 /**
  * Root theme of the app. Honours Android 12+ dynamic colour when available so

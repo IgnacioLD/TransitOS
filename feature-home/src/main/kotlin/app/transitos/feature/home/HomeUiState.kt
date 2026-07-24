@@ -1,9 +1,9 @@
-package app.transitos.feature.home
+package com.glossostudio.transitos.feature.home
 
-import app.transitos.core.model.Alert
-import app.transitos.core.model.Arrival
-import app.transitos.core.model.Stop
-import app.transitos.core.result.AppError
+import com.glossostudio.transitos.core.model.Alert
+import com.glossostudio.transitos.core.model.Arrival
+import com.glossostudio.transitos.core.model.Stop
+import com.glossostudio.transitos.core.result.AppError
 
 sealed interface HomeUiState {
     data object Loading : HomeUiState
@@ -29,4 +29,5 @@ data class SavedRouteInfo(
     val destinationName: String,
     val originStopId: String,
     val destinationStopId: String,
+    val label: String = "",
 )

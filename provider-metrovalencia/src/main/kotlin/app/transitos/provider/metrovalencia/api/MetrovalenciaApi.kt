@@ -1,11 +1,12 @@
-package app.transitos.provider.metrovalencia.api
+package com.glossostudio.transitos.provider.metrovalencia.api
 
-import app.transitos.provider.metrovalencia.MetrovalenciaConfig
-import app.transitos.provider.metrovalencia.dto.FgvArrivalResponseDto
-import app.transitos.provider.metrovalencia.dto.FgvHorariosResponseDto
-import app.transitos.provider.metrovalencia.dto.FgvIncidenciasResponseDto
-import app.transitos.provider.metrovalencia.dto.FgvLineDto
-import app.transitos.provider.metrovalencia.dto.FgvStationDto
+import com.glossostudio.transitos.provider.metrovalencia.MetrovalenciaConfig
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvArrivalResponseDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvHorariosResponseDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvIncidenciasResponseDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvLineDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvPlanificadorResponseDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvStationDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -74,6 +75,35 @@ class MetrovalenciaApi(
             append("&estacion_destino_id=$destinationInternalId")
             append("&fecha=$fecha")
             if (hora != null) append("&hora=$hora")
+        }
+        setBody(body)
+    }.body()
+
+    /**
+     * Plans a journey via FGV's `planificador-online2`.
+     *
+     * Unlike `horarios-online2`, this endpoint returns specific journeys with
+     * exact times per leg, line colors, and transfer info.
+     *
+     * Pass either [horaSalida] or [horaLlegada], not both:
+     *  - Departure search: set horaSalida, leave horaLlegada null.
+     *  - Arrival search: set horaLlegada, leave horaSalida null.
+     */
+    suspend fun planificadorOnline(
+        originInternalId: Long,
+        destinationInternalId: Long,
+        fecha: String,
+        horaSalida: String? = null,
+        horaLlegada: String? = null,
+    ): FgvPlanificadorResponseDto = client.post("${config.fullBaseUrl}planificador-online2") {
+        headerAcceptJson()
+        contentType(ContentType.Application.FormUrlEncoded)
+        val body = buildString {
+            append("estacion_origen_id=$originInternalId")
+            append("&estacion_destino_id=$destinationInternalId")
+            append("&fecha=$fecha")
+            horaSalida?.let { append("&hora_salida=$it") }
+            horaLlegada?.let { append("&hora_llegada=$it") }
         }
         setBody(body)
     }.body()

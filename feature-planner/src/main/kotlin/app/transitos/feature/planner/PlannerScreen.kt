@@ -1,4 +1,4 @@
-package app.transitos.feature.planner
+package com.glossostudio.transitos.feature.planner
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
@@ -49,6 +49,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -74,13 +77,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.transitos.core.design.theme.LocalSpacing
-import app.transitos.core.model.Journey
-import app.transitos.core.model.JourneyLeg
-import app.transitos.core.model.Stop
-import app.transitos.core.ui.R as coreUiR
-import app.transitos.core.ui.SkeletonBlock
-import app.transitos.feature.planner.R
+import com.glossostudio.transitos.core.design.theme.LocalSpacing
+import com.glossostudio.transitos.core.model.Journey
+import com.glossostudio.transitos.core.model.JourneyLeg
+import com.glossostudio.transitos.core.model.Stop
+import com.glossostudio.transitos.core.ui.R as coreUiR
+import com.glossostudio.transitos.core.ui.SkeletonBlock
+import com.glossostudio.transitos.feature.planner.R
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.Instant
@@ -368,33 +371,30 @@ private fun EndpointFields(
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         EndpointCard(
             stopName = origin?.name,
             onClick = onPickOrigin,
             dotColor = MaterialTheme.colorScheme.primary,
         )
-        Box(
-            modifier = Modifier.padding(vertical = 0.dp),
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surface,
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         ) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surface,
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            IconButton(
+                onClick = onSwap,
+                modifier = Modifier.size(32.dp),
             ) {
-                IconButton(
-                    onClick = onSwap,
-                    modifier = Modifier.size(36.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.SwapVert,
-                        contentDescription = stringResource(R.string.planner_swap_cd),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .size(20.dp)
-                            .rotate(swapRotation),
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Outlined.SwapVert,
+                    contentDescription = stringResource(R.string.planner_swap_cd),
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(18.dp)
+                        .rotate(swapRotation),
+                )
             }
         }
         EndpointCard(
@@ -419,7 +419,7 @@ private fun EndpointCard(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = spacing.lg, vertical = spacing.lg),
+            modifier = Modifier.padding(horizontal = spacing.lg, vertical = spacing.md),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(spacing.md),
         ) {
@@ -432,6 +432,7 @@ private fun EndpointCard(
             Text(
                 text = stopName ?: stringResource(R.string.planner_pick_station),
                 style = MaterialTheme.typography.bodyLarge,
+                fontWeight = if (stopName != null) FontWeight.Medium else FontWeight.Normal,
                 color = if (stopName == null) MaterialTheme.colorScheme.outline
                 else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
@@ -456,34 +457,36 @@ private fun TimeOptions(
     val spacing = LocalSpacing.current
     val leaveNow = timeMode == TimeMode.DEPARTURE && travelTime == null
 
-    Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
-        RadioRow(
-            selected = leaveNow,
-            onClick = {
-                onTimeModeSelected(TimeMode.DEPARTURE)
-                onTravelTimeSelected(null)
-            },
-            label = stringResource(R.string.planner_leave_now),
-        )
-        RadioRow(
-            selected = !leaveNow,
-            onClick = {
-                onTimeModeSelected(TimeMode.ARRIVAL)
-                if (travelTime == null) {
-                    val now = java.time.LocalTime.now()
-                    val h = now.hour.toString().padStart(2, '0')
-                    val m = now.minute.toString().padStart(2, '0')
-                    onTravelTimeSelected("$h:$m")
-                }
-            },
-            label = stringResource(R.string.planner_arrive_by),
-        )
+    Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            SegmentedButton(
+                selected = leaveNow,
+                onClick = {
+                    onTimeModeSelected(TimeMode.DEPARTURE)
+                    onTravelTimeSelected(null)
+                },
+                shape = SegmentedButtonDefaults.itemShape(0, 2),
+                label = { Text(stringResource(R.string.planner_leave_now), maxLines = 1) },
+            )
+            SegmentedButton(
+                selected = !leaveNow,
+                onClick = {
+                    onTimeModeSelected(TimeMode.ARRIVAL)
+                    if (travelTime == null) {
+                        val now = java.time.LocalTime.now()
+                        val h = now.hour.toString().padStart(2, '0')
+                        val m = now.minute.toString().padStart(2, '0')
+                        onTravelTimeSelected("$h:$m")
+                    }
+                },
+                shape = SegmentedButtonDefaults.itemShape(1, 2),
+                label = { Text(stringResource(R.string.planner_arrive_by), maxLines = 1) },
+            )
+        }
 
         AnimatedVisibility(visible = !leaveNow) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = spacing.xl, top = spacing.xs),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(spacing.sm),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -509,30 +512,6 @@ private fun TimeOptions(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun RadioRow(
-    selected: Boolean,
-    onClick: () -> Unit,
-    label: String,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = LocalSpacing.current.xs),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(LocalSpacing.current.sm),
-    ) {
-        RadioButton(selected = selected, onClick = onClick)
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            color = if (selected) MaterialTheme.colorScheme.onSurface
-            else MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 
@@ -622,14 +601,14 @@ private fun ResultBottomSheet(
                         enter = fadeIn() + slideInVertically(),
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
-                            SheetHeader(journey = journey)
-                            SheetTimeline(journey = journey)
-                            SheetStats(journey = journey)
-                            SaveRouteButton(
+                            SheetHeaderRow(
+                                journey = journey,
                                 isSaved = state.isSaved,
                                 onSave = onSaveRoute,
                                 onRemove = onRemoveRoute,
                             )
+                            SheetTimeline(journey = journey)
+                            SheetStats(journey = journey)
                         }
                     }
                 }
@@ -675,22 +654,53 @@ private fun SheetSkeleton() {
 }
 
 @Composable
-private fun SheetHeader(journey: Journey) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(
-            text = "${journey.durationMinutes} min",
-            style = MaterialTheme.typography.displaySmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Text(
-            text = if (journey.hasTransfers)
-                stringResource(R.string.planner_transfers_count, journey.legs.size)
-            else
-                stringResource(R.string.planner_no_transfers),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+private fun SheetHeaderRow(
+    journey: Journey,
+    isSaved: Boolean,
+    onSave: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    val spacing = LocalSpacing.current
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top,
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+            Text(
+                text = "${journey.durationMinutes} min",
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(spacing.lg)) {
+                journey.departureTime?.let { dep ->
+                    Text(
+                        text = "Sale $dep",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+                journey.arrivalTime?.let { arr ->
+                    Text(
+                        text = "Llega $arr",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            }
+        }
+        IconButton(onClick = if (isSaved) onRemove else onSave) {
+            Icon(
+                imageVector = if (isSaved) Icons.Outlined.Star else Icons.Outlined.StarBorder,
+                contentDescription = if (isSaved) stringResource(R.string.planner_route_saved)
+                else stringResource(R.string.planner_save_route),
+                tint = if (isSaved) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -699,41 +709,48 @@ private fun SheetTimeline(journey: Journey) {
     val spacing = LocalSpacing.current
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(0.dp),
+        verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
         journey.legs.forEachIndexed { i, leg ->
             if (i == 0) {
-                TimelineStation(
+                TimelineStationRow(
+                    time = leg.departureTime,
                     name = leg.originName,
-                    color = MaterialTheme.colorScheme.primary,
+                    dotColor = MaterialTheme.colorScheme.primary,
                 )
+            } else {
+                val prevLeg = journey.legs[i - 1]
+                TimelineStationRow(
+                    time = prevLeg.arrivalTime,
+                    name = leg.originName,
+                    dotColor = MaterialTheme.colorScheme.outline,
+                )
+                leg.waitMinutes?.let { wait ->
+                    TimelineWaitRow(minutes = wait)
+                }
             }
 
-            TimelineArrow()
-
-            TimelineLineInfo(
+            TimelineLegInfo(
+                time = if (i > 0) leg.departureTime else null,
                 lines = leg.lineNames,
+                lineColors = leg.lineColors,
                 headsigns = leg.headsigns,
-                departure = leg.departures.firstOrNull(),
-            )
-
-            TimelineArrow()
-
-            TimelineStation(
-                name = leg.destinationName,
-                color = if (i == journey.legs.lastIndex)
-                    MaterialTheme.colorScheme.tertiary
-                else
-                    MaterialTheme.colorScheme.outline,
             )
         }
+        val lastLeg = journey.legs.last()
+        TimelineStationRow(
+            time = lastLeg.arrivalTime,
+            name = lastLeg.destinationName,
+            dotColor = MaterialTheme.colorScheme.tertiary,
+        )
     }
 }
 
 @Composable
-private fun TimelineStation(
+private fun TimelineStationRow(
+    time: String?,
     name: String,
-    color: Color,
+    dotColor: Color,
 ) {
     val spacing = LocalSpacing.current
     Row(
@@ -741,123 +758,120 @@ private fun TimelineStation(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
+        Text(
+            text = time ?: "",
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.width(50.dp),
+        )
         Box(
             modifier = Modifier
                 .size(12.dp)
                 .clip(CircleShape)
-                .background(color),
+                .background(dotColor),
         )
         Text(
             text = name,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f),
         )
     }
 }
 
 @Composable
-private fun TimelineArrow() {
-    Box(
-        modifier = Modifier.padding(start = 2.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .padding(start = 2.dp, top = 2.dp, bottom = 2.dp)
-                .size(width = 2.dp, height = 14.dp)
-                .background(MaterialTheme.colorScheme.outlineVariant),
-        )
-    }
-}
-
-@Composable
-private fun TimelineLineInfo(
+private fun TimelineLegInfo(
+    time: String?,
     lines: List<String>,
+    lineColors: List<Long>,
     headsigns: List<String>,
-    departure: String?,
 ) {
     val spacing = LocalSpacing.current
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = spacing.md + 4.dp),
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
-        lines.forEach { lineName ->
+        Text(
+            text = time ?: "",
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.width(50.dp),
+        )
+        Spacer(Modifier.width(12.dp + spacing.md))
+        lines.forEachIndexed { index, lineName ->
+            val bgColor = lineColors.getOrNull(index)?.let { Color(it) }
             Surface(
                 shape = MaterialTheme.shapes.small,
-                color = MaterialTheme.colorScheme.primaryContainer,
+                color = bgColor ?: MaterialTheme.colorScheme.primaryContainer,
             ) {
                 Text(
                     text = lineName,
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                    color = if (bgColor != null) Color.White
+                    else MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                 )
             }
         }
         if (headsigns.isNotEmpty()) {
+            Text(
+                text = "→",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.outline,
+            )
             Text(
                 text = headsigns.joinToString(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Spacer(Modifier.weight(1f))
-        if (departure != null) {
-            Text(
-                text = departure,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        }
+    }
+}
+
+@Composable
+private fun TimelineWaitRow(minutes: Int) {
+    val spacing = LocalSpacing.current
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+    ) {
+        Spacer(Modifier.width(50.dp + 12.dp + spacing.md))
+        Icon(
+            imageVector = Icons.Outlined.Schedule,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.tertiary,
+            modifier = Modifier.size(14.dp),
+        )
+        Text(
+            text = stringResource(R.string.planner_wait_minutes, minutes),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.tertiary,
+        )
     }
 }
 
 @Composable
 private fun SheetStats(journey: Journey) {
     val stats = buildList {
-        if (journey.distanceMeters > 0) {
-            add("${"%.1f".format(journey.distanceMeters / 1000.0)} km")
-        }
         journey.fareZone?.let { add(stringResource(R.string.planner_fare_zone, it)) }
-        val carbonKg = journey.carbonKg
-        if (carbonKg != null && carbonKg > 0.0) {
-            add("${"%.1f".format(carbonKg)} kg CO₂")
-        }
+        add(
+            if (journey.hasTransfers)
+                stringResource(R.string.planner_transfers_count, journey.legs.size - 1)
+            else
+                stringResource(R.string.planner_no_transfers),
+        )
     }
-    if (stats.isEmpty()) return
     Text(
         text = stats.joinToString("  ·  "),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-}
-
-@Composable
-private fun SaveRouteButton(
-    isSaved: Boolean,
-    onSave: () -> Unit,
-    onRemove: () -> Unit,
-) {
-    TextButton(
-        onClick = if (isSaved) onRemove else onSave,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Icon(
-            imageVector = if (isSaved) Icons.Outlined.Star else Icons.Outlined.StarBorder,
-            contentDescription = null,
-            modifier = Modifier.size(18.dp),
-        )
-        Spacer(Modifier.width(LocalSpacing.current.sm))
-        Text(
-            if (isSaved) stringResource(R.string.planner_route_saved)
-            else stringResource(R.string.planner_save_route),
-        )
-    }
 }
 
 @Composable

@@ -1,4 +1,4 @@
-package app.transitos.core.ui
+package com.glossostudio.transitos.core.ui
 
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
-import app.transitos.core.design.theme.Alpha
+import com.glossostudio.transitos.core.design.theme.Alpha
 
 /**
  * Content-shaped shimmer placeholder. Used by the skeleton loading state to

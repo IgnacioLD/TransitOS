@@ -1,7 +1,7 @@
-package app.transitos.feature.planner
+package com.glossostudio.transitos.feature.planner
 
-import app.transitos.core.model.Journey
-import app.transitos.core.model.Stop
+import com.glossostudio.transitos.core.model.Journey
+import com.glossostudio.transitos.core.model.Stop
 import kotlinx.datetime.LocalDate
 
 enum class TimeMode { DEPARTURE, ARRIVAL }

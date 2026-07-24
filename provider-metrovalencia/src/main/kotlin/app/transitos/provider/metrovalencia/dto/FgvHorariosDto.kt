@@ -1,4 +1,4 @@
-package app.transitos.provider.metrovalencia.dto
+package com.glossostudio.transitos.provider.metrovalencia.dto
 
 import kotlinx.serialization.Serializable
 

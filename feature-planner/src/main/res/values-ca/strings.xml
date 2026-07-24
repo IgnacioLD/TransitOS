@@ -28,7 +28,7 @@
     <string name="planner_route_saved">Ruta guardada en Preferits</string>
     <string name="planner_save_route">Guardar ruta en Preferits</string>
     <string name="planner_legs_unit">trams</string>
-    <string name="planner_transfers_count">%1$d trams</string>
+    <string name="planner_transfers_count">%1$d transbords</string>
     <string name="planner_no_transfers">Sense transbords</string>
     <string name="planner_departures_count">%1$d eixides</string>
     <string name="planner_direction">Direcció: %1$s</string>
@@ -45,7 +45,8 @@
     <string name="date_today">Hui</string>
     <string name="date_tomorrow">Demà</string>
     <string name="planner_leave_now">Eixir ara</string>
-    <string name="planner_arrive_by">Arribar abans de les…</string>
+    <string name="planner_arrive_by">Arribar abans</string>
     <string name="planner_search_route">Buscar ruta</string>
     <string name="planner_quick_picks">Suggeriments</string>
+    <string name="planner_wait_minutes">Espera %1$d min</string>
 </resources>

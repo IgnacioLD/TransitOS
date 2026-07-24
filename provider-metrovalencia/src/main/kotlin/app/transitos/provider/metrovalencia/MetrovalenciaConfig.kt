@@ -1,4 +1,4 @@
-package app.transitos.provider.metrovalencia
+package com.glossostudio.transitos.provider.metrovalencia
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 

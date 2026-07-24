@@ -1,4 +1,4 @@
-package app.transitos.core.ui
+package com.glossostudio.transitos.core.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,13 +13,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import app.transitos.core.design.theme.LocalSpacing
+import com.glossostudio.transitos.core.design.theme.LocalSpacing
 
 /**
  * Skeleton loading for the Home screen: a column of card-shaped shimmer
  * placeholders. Reads as "something is coming", not "the app is broken".
  *
- * Use during the initial state (before the first emission of [app.transitos.feature.home.HomeUiState.Ready]).
+ * Use during the initial state (before the first emission of [com.glossostudio.transitos.feature.home.HomeUiState.Ready]).
  */
 @Composable
 fun FavoritesSkeleton(

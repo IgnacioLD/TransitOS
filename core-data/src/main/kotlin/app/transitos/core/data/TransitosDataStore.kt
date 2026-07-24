@@ -1,4 +1,4 @@
-package app.transitos.core.data
+package com.glossostudio.transitos.core.data
 
 import android.content.Context
 import androidx.datastore.preferences.preferencesDataStore

@@ -1,21 +1,21 @@
-package app.transitos.provider.metrovalencia
+package com.glossostudio.transitos.provider.metrovalencia
 
-import app.transitos.core.model.Alert
-import app.transitos.core.model.Arrival
-import app.transitos.core.model.Journey
-import app.transitos.core.model.Line
-import app.transitos.core.model.Stop
-import app.transitos.core.provider.ProviderSettingsRepository
-import app.transitos.core.repository.TransitRepository
-import app.transitos.provider.metrovalencia.api.MetrovalenciaApi
-import app.transitos.provider.metrovalencia.mapper.LineDisplayInfo
-import app.transitos.provider.metrovalencia.mapper.formatAsFgvFecha
-import app.transitos.provider.metrovalencia.mapper.parseArgbHexOrNull
-import app.transitos.provider.metrovalencia.mapper.toAlert
-import app.transitos.provider.metrovalencia.mapper.toArrivals
-import app.transitos.provider.metrovalencia.mapper.toJourney
-import app.transitos.provider.metrovalencia.mapper.toLine
-import app.transitos.provider.metrovalencia.mapper.toStop
+import com.glossostudio.transitos.core.model.Alert
+import com.glossostudio.transitos.core.model.Arrival
+import com.glossostudio.transitos.core.model.Journey
+import com.glossostudio.transitos.core.model.Line
+import com.glossostudio.transitos.core.model.Stop
+import com.glossostudio.transitos.core.provider.ProviderSettingsRepository
+import com.glossostudio.transitos.core.repository.TransitRepository
+import com.glossostudio.transitos.provider.metrovalencia.api.MetrovalenciaApi
+import com.glossostudio.transitos.provider.metrovalencia.mapper.LineDisplayInfo
+import com.glossostudio.transitos.provider.metrovalencia.mapper.formatAsFgvFecha
+import com.glossostudio.transitos.provider.metrovalencia.mapper.parseArgbHexOrNull
+import com.glossostudio.transitos.provider.metrovalencia.mapper.toAlert
+import com.glossostudio.transitos.provider.metrovalencia.mapper.toArrivals
+import com.glossostudio.transitos.provider.metrovalencia.mapper.toJourney
+import com.glossostudio.transitos.provider.metrovalencia.mapper.toLine
+import com.glossostudio.transitos.provider.metrovalencia.mapper.toStop
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -50,7 +50,7 @@ import kotlin.math.min
  *    downstream polling cascades.
  *
  * Network errors are swallowed into empty emissions at this layer; the richer
- * [app.transitos.core.result.AppError] mapping is a future refinement.
+ * [com.glossostudio.transitos.core.result.AppError] mapping is a future refinement.
  *
  * If FGV ever objects to the undocumented endpoint, this file is the only
  * thing that needs replacing — see `RESEARCH.md` (Option 3).
@@ -146,20 +146,36 @@ class MetrovalenciaRepository(
         originStopId: String,
         destinationStopId: String,
         date: LocalDate,
-        arriveBy: String?,
+        hora: String?,
+        isDeparture: Boolean,
+        minTransferMinutes: Int,
     ): List<Journey> {
         if (backend.value == MetrovalenciaBackend.NAP) return emptyList()
         return runCatching {
             val originInternal = resolveInternalStationId(originStopId) ?: return emptyList()
             val destinationInternal = resolveInternalStationId(destinationStopId) ?: return emptyList()
-            val response = api.planJourney(
-                originInternalId = originInternal,
-                destinationInternalId = destinationInternal,
-                fecha = date.formatAsFgvFecha(),
-                hora = arriveBy,
-            )
+            val effectiveHora = hora ?: java.time.LocalTime.now().let {
+                "%02d:%02d".format(it.hour, it.minute)
+            }
+            val response = if (isDeparture) {
+                api.planificadorOnline(
+                    originInternalId = originInternal,
+                    destinationInternalId = destinationInternal,
+                    fecha = date.formatAsFgvFecha(),
+                    horaSalida = effectiveHora,
+                    horaLlegada = null,
+                )
+            } else {
+                api.planificadorOnline(
+                    originInternalId = originInternal,
+                    destinationInternalId = destinationInternal,
+                    fecha = date.formatAsFgvFecha(),
+                    horaSalida = null,
+                    horaLlegada = effectiveHora,
+                )
+            }
             if (response.status != 200) emptyList()
-            else response.resultado.mapNotNull { it.toJourney(date) }
+            else response.resultado.mapNotNull { it.toJourney(date, minTransferMinutes) }
         }.getOrDefault(emptyList())
     }
 

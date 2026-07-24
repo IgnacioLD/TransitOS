@@ -1,6 +1,6 @@
-package app.transitos.feature.settings.di
+package com.glossostudio.transitos.feature.settings.di
 
-import app.transitos.feature.settings.SettingsViewModel
+import com.glossostudio.transitos.feature.settings.SettingsViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 

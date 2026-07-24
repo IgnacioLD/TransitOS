@@ -1,4 +1,4 @@
-package app.transitos
+package com.glossostudio.transitos
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -6,9 +6,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.transitos.core.design.theme.TransitOSTheme
-import app.transitos.core.repository.ThemeMode
-import app.transitos.core.repository.ThemePreference
+import com.glossostudio.transitos.core.design.theme.TransitOSTheme
+import com.glossostudio.transitos.core.repository.ThemeMode
+import com.glossostudio.transitos.core.repository.ThemePreference
 import org.koin.android.ext.android.inject
 import org.koin.androidx.compose.KoinAndroidContext
 

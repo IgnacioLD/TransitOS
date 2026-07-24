@@ -1,4 +1,4 @@
-package app.transitos.navigation
+package com.glossostudio.transitos.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.AltRoute
@@ -6,7 +6,7 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.ui.graphics.vector.ImageVector
-import app.transitos.R
+import com.glossostudio.transitos.R
 
 /**
  * Top-level destinations shown in the bottom navigation bar. Adding a tab means

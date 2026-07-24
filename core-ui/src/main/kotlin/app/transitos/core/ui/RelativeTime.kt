@@ -1,4 +1,4 @@
-package app.transitos.core.ui
+package com.glossostudio.transitos.core.ui
 
 /**
  * Renders an [epochMs] as a relative-time bucket: just-now, minutes or hours,

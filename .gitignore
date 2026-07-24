@@ -25,6 +25,7 @@ Thumbs.db
 # Keystore (never commit signing material)
 *.jks
 *.keystore
+keystore.properties
 
 # Logs
 *.log

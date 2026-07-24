@@ -1,6 +1,6 @@
-package app.transitos.feature.search.di
+package com.glossostudio.transitos.feature.search.di
 
-import app.transitos.feature.search.SearchViewModel
+import com.glossostudio.transitos.feature.search.SearchViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 

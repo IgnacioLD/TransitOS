@@ -1,4 +1,4 @@
-package app.transitos.feature.settings
+package com.glossostudio.transitos.feature.settings
 
 import android.content.Intent
 import android.net.Uri
@@ -21,6 +21,7 @@ import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.SettingsBrightness
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -29,6 +30,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -43,9 +45,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.transitos.core.design.theme.LocalSpacing
-import app.transitos.core.repository.ThemeMode
-import app.transitos.core.ui.SectionHeader
+import com.glossostudio.transitos.core.design.theme.LocalSpacing
+import com.glossostudio.transitos.core.repository.ThemeMode
+import com.glossostudio.transitos.core.ui.SectionHeader
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -55,6 +57,7 @@ fun SettingsRoute(
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+    val transferBuffer by viewModel.transferBufferMinutes.collectAsStateWithLifecycle()
     SettingsScreen(
         onBack = onBack,
         currentLanguage = viewModel.currentLanguage,
@@ -66,6 +69,8 @@ fun SettingsRoute(
         },
         currentTheme = themeMode,
         onThemeChange = viewModel::setThemeMode,
+        transferBufferMinutes = transferBuffer,
+        onTransferBufferChange = viewModel::setTransferBufferMinutes,
         modifier = modifier,
     )
 }
@@ -78,6 +83,8 @@ internal fun SettingsScreen(
     onLanguageChange: (String) -> Unit,
     currentTheme: ThemeMode,
     onThemeChange: (ThemeMode) -> Unit,
+    transferBufferMinutes: Int,
+    onTransferBufferChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -88,7 +95,7 @@ internal fun SettingsScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = stringResource(app.transitos.core.ui.R.string.cd_back),
+                            contentDescription = stringResource(com.glossostudio.transitos.core.ui.R.string.cd_back),
                         )
                     }
                 },
@@ -118,6 +125,14 @@ internal fun SettingsScreen(
             ThemeSection(
                 currentTheme = currentTheme,
                 onThemeChange = onThemeChange,
+                modifier = Modifier.padding(horizontal = spacing.screenGutter),
+            )
+
+            Spacer(modifier = Modifier.height(spacing.lg))
+
+            TransferBufferSection(
+                minutes = transferBufferMinutes,
+                onChange = onTransferBufferChange,
                 modifier = Modifier.padding(horizontal = spacing.screenGutter),
             )
 
@@ -159,17 +174,17 @@ private fun LanguageSection(
         Spacer(modifier = Modifier.height(spacing.xs))
 
         LanguageOption(
-            label = stringResource(app.transitos.core.ui.R.string.language_spanish),
+            label = stringResource(com.glossostudio.transitos.core.ui.R.string.language_spanish),
             selected = currentLanguage == "es",
             onClick = { onLanguageChange("es") },
         )
         LanguageOption(
-            label = stringResource(app.transitos.core.ui.R.string.language_valencian),
+            label = stringResource(com.glossostudio.transitos.core.ui.R.string.language_valencian),
             selected = currentLanguage == "ca",
             onClick = { onLanguageChange("ca") },
         )
         LanguageOption(
-            label = stringResource(app.transitos.core.ui.R.string.language_english),
+            label = stringResource(com.glossostudio.transitos.core.ui.R.string.language_english),
             selected = currentLanguage == "en",
             onClick = { onLanguageChange("en") },
         )
@@ -293,6 +308,56 @@ private fun ThemeOption(
 }
 
 @Composable
+private fun TransferBufferSection(
+    minutes: Int,
+    onChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val spacing = LocalSpacing.current
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Schedule,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = stringResource(R.string.settings_transfer_buffer),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+
+        Spacer(modifier = Modifier.height(spacing.xs))
+
+        Text(
+            text = stringResource(R.string.settings_transfer_buffer_desc),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        Spacer(modifier = Modifier.height(spacing.sm))
+
+        Slider(
+            value = minutes.toFloat(),
+            onValueChange = { onChange(it.toInt()) },
+            valueRange = 0f..15f,
+            steps = 14,
+        )
+
+        Text(
+            text = stringResource(R.string.settings_transfer_buffer_value, minutes),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.primary,
+        )
+    }
+}
+
+@Composable
 private fun AboutSection(modifier: Modifier = Modifier) {
     val spacing = LocalSpacing.current
     val context = LocalContext.current
@@ -308,7 +373,7 @@ private fun AboutSection(modifier: Modifier = Modifier) {
             fontWeight = FontWeight.SemiBold,
         )
         Text(
-            text = stringResource(R.string.about_version, "1.0.0"),
+            text = stringResource(R.string.about_version, "1.0.2"),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -337,6 +402,14 @@ private fun AboutSection(modifier: Modifier = Modifier) {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/IgnacioLD/TransitOS"))
                 context.startActivity(intent)
             },
+        )
+
+        Spacer(modifier = Modifier.height(spacing.lg))
+
+        Text(
+            text = stringResource(R.string.about_disclaimer),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

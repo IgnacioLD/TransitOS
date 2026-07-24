@@ -1,4 +1,4 @@
-package app.transitos.core.result
+package com.glossostudio.transitos.core.result
 
 /**
  * Typed failure surface for the whole app. Network layers map their exceptions

@@ -1,9 +1,9 @@
-package app.transitos.core.data
+package com.glossostudio.transitos.core.data
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringSetPreferencesKey
-import app.transitos.core.repository.FavoritesRepository
+import com.glossostudio.transitos.core.repository.FavoritesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map

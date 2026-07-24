@@ -1,14 +1,14 @@
-package app.transitos.provider.metrovalencia.di
+package com.glossostudio.transitos.provider.metrovalencia.di
 
-import app.transitos.core.provider.ProviderInfo
-import app.transitos.core.provider.ProviderRegistry
-import app.transitos.core.provider.ProviderSettingsRepository
-import app.transitos.core.repository.LanguagePreference
-import app.transitos.core.repository.TransitRepository
-import app.transitos.provider.metrovalencia.MetrovalenciaBackend
-import app.transitos.provider.metrovalencia.MetrovalenciaConfig
-import app.transitos.provider.metrovalencia.MetrovalenciaRepository
-import app.transitos.provider.metrovalencia.api.MetrovalenciaApi
+import com.glossostudio.transitos.core.provider.ProviderInfo
+import com.glossostudio.transitos.core.provider.ProviderRegistry
+import com.glossostudio.transitos.core.provider.ProviderSettingsRepository
+import com.glossostudio.transitos.core.repository.LanguagePreference
+import com.glossostudio.transitos.core.repository.TransitRepository
+import com.glossostudio.transitos.provider.metrovalencia.MetrovalenciaBackend
+import com.glossostudio.transitos.provider.metrovalencia.MetrovalenciaConfig
+import com.glossostudio.transitos.provider.metrovalencia.MetrovalenciaRepository
+import com.glossostudio.transitos.provider.metrovalencia.api.MetrovalenciaApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

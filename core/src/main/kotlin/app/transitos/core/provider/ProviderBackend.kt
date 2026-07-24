@@ -1,4 +1,4 @@
-package app.transitos.core.provider
+package com.glossostudio.transitos.core.provider
 
 public interface ProviderBackend {
     public val id: String

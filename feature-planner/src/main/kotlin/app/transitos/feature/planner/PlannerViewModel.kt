@@ -1,15 +1,17 @@
-package app.transitos.feature.planner
+package com.glossostudio.transitos.feature.planner
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.transitos.core.model.SavedRoute
-import app.transitos.core.model.Stop
-import app.transitos.core.repository.RouteFavoritesRepository
-import app.transitos.core.repository.TransitRepository
+import com.glossostudio.transitos.core.model.SavedRoute
+import com.glossostudio.transitos.core.model.Stop
+import com.glossostudio.transitos.core.repository.RouteFavoritesRepository
+import com.glossostudio.transitos.core.repository.TransitRepository
+import com.glossostudio.transitos.core.repository.TransferBufferPreference
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -22,6 +24,7 @@ import kotlinx.datetime.todayIn
 class PlannerViewModel(
     private val repository: TransitRepository,
     private val routeFavorites: RouteFavoritesRepository,
+    private val transferBufferPreference: TransferBufferPreference,
 ) : ViewModel() {
 
     private val timeZone: TimeZone = TimeZone.currentSystemDefault()
@@ -61,12 +64,21 @@ class PlannerViewModel(
     }
 
     fun prefillRoute(originId: String, destinationId: String) {
-        val stops = stops.value
-        val origin = stops.find { it.id == originId }
-        val destination = stops.find { it.id == destinationId }
-        if (origin != null && destination != null) {
-            _state.update { it.copy(origin = origin, destination = destination) }
-            search()
+        viewModelScope.launch {
+            val stopsList = stops.first { it.isNotEmpty() }
+            val origin = stopsList.find { it.id == originId }
+            val destination = stopsList.find { it.id == destinationId }
+            if (origin != null && destination != null) {
+                _state.update {
+                    it.copy(
+                        origin = origin,
+                        destination = destination,
+                        timeMode = TimeMode.DEPARTURE,
+                        travelTime = null,
+                    )
+                }
+                search()
+            }
         }
     }
 
@@ -86,7 +98,14 @@ class PlannerViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isPlanning = true, errorMessage = null, hasSearched = true) }
             val result = runCatching {
-                repository.planJourney(origin.id, destination.id, current.date, current.travelTime)
+                repository.planJourney(
+                    originStopId = origin.id,
+                    destinationStopId = destination.id,
+                    date = current.date,
+                    hora = current.travelTime,
+                    isDeparture = current.timeMode == TimeMode.DEPARTURE,
+                    minTransferMinutes = transferBufferPreference.current(),
+                )
             }
             _state.update { s ->
                 val journeys = result.getOrDefault(emptyList())

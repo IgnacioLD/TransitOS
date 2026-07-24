@@ -1,4 +1,4 @@
-package app.transitos.core.ui
+package com.glossostudio.transitos.core.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -29,9 +29,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import app.transitos.core.design.theme.LocalSpacing
-import app.transitos.core.model.Arrival
-import app.transitos.core.model.Stop
+import com.glossostudio.transitos.core.design.theme.LocalSpacing
+import com.glossostudio.transitos.core.model.Arrival
+import com.glossostudio.transitos.core.model.Stop
 
 /**
  * Card grouping a favorited [Stop] with its upcoming [arrivals]. The stop name

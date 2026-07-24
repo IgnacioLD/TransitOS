@@ -28,7 +28,7 @@
     <string name="planner_route_saved">Route saved to Favorites</string>
     <string name="planner_save_route">Save route to Favorites</string>
     <string name="planner_legs_unit">legs</string>
-    <string name="planner_transfers_count">%1$d legs</string>
+    <string name="planner_transfers_count">%1$d transfers</string>
     <string name="planner_no_transfers">Direct</string>
     <string name="planner_departures_count">%1$d departures</string>
     <string name="planner_direction">Direction: %1$s</string>
@@ -45,7 +45,8 @@
     <string name="date_today">Today</string>
     <string name="date_tomorrow">Tomorrow</string>
     <string name="planner_leave_now">Leave now</string>
-    <string name="planner_arrive_by">Arrive before…</string>
+    <string name="planner_arrive_by">Arrive by</string>
     <string name="planner_search_route">Search route</string>
     <string name="planner_quick_picks">Suggestions</string>
+    <string name="planner_wait_minutes">Wait %1$d min</string>
 </resources>

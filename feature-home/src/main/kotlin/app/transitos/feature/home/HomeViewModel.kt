@@ -1,11 +1,11 @@
-package app.transitos.feature.home
+package com.glossostudio.transitos.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.transitos.core.repository.FavoritesRepository
-import app.transitos.core.repository.RouteFavoritesRepository
-import app.transitos.core.repository.TransitRepository
-import app.transitos.core.result.AppError
+import com.glossostudio.transitos.core.repository.FavoritesRepository
+import com.glossostudio.transitos.core.repository.RouteFavoritesRepository
+import com.glossostudio.transitos.core.repository.TransitRepository
+import com.glossostudio.transitos.core.result.AppError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModel(
@@ -43,6 +44,7 @@ class HomeViewModel(
                         destinationName = dest.name,
                         originStopId = sr.originStopId,
                         destinationStopId = sr.destinationStopId,
+                        label = sr.label,
                     )
                 } else null
             }
@@ -75,6 +77,12 @@ class HomeViewModel(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = HomeUiState.Loading,
         )
+
+    fun renameRoute(routeId: String, label: String) {
+        viewModelScope.launch {
+            routeFavorites.renameRoute(routeId, label)
+        }
+    }
 }
 
 private data class Four<T1, T2, T3, T4>(

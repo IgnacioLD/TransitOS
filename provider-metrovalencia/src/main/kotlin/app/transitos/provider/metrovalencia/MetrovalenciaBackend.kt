@@ -1,6 +1,6 @@
-package app.transitos.provider.metrovalencia
+package com.glossostudio.transitos.provider.metrovalencia
 
-import app.transitos.core.provider.ProviderBackend
+import com.glossostudio.transitos.core.provider.ProviderBackend
 
 enum class MetrovalenciaBackend(
     override val id: String,

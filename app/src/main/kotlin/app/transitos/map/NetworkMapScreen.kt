@@ -1,4 +1,4 @@
-package app.transitos.map
+package com.glossostudio.transitos.map
 
 import android.app.DownloadManager
 import android.content.ContentValues
@@ -46,8 +46,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import app.transitos.R
-import app.transitos.core.ui.R as coreUiR
+import com.glossostudio.transitos.R
+import com.glossostudio.transitos.core.ui.R as coreUiR
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File

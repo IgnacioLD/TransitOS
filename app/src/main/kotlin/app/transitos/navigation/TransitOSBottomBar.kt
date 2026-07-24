@@ -1,4 +1,4 @@
-package app.transitos.navigation
+package com.glossostudio.transitos.navigation
 
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem

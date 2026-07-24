@@ -1,4 +1,4 @@
-package app.transitos.core.model
+package com.glossostudio.transitos.core.model
 
 import kotlinx.serialization.Serializable
 
