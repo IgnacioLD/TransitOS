@@ -46,6 +46,7 @@ import androidx.compose.material.icons.outlined.LocationOff
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.MyLocation
+import androidx.compose.material.icons.outlined.NearMe
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -856,6 +857,27 @@ fun OSMNetworkMapRoute(
     var selectedStation by remember { mutableStateOf<StationInfo?>(null) }
     var showLocation by remember { mutableStateOf(false) }
     var locationOverlay by remember { mutableStateOf<MyLocationNewOverlay?>(null) }
+    var userLocation by remember { mutableStateOf<GeoPoint?>(null) }
+
+    val nearestStation = remember(userLocation) {
+        userLocation?.let { loc ->
+            var best: Pair<String, Float>? = null
+            val results = FloatArray(1)
+            stationPoints.forEach { (name, pos) ->
+                android.location.Location.distanceBetween(
+                    loc.latitude, loc.longitude,
+                    pos.latitude, pos.longitude,
+                    results,
+                )
+                if (best == null || results[0] < best!!.second) {
+                    best = name to results[0]
+                }
+            }
+            best?.let { (name, dist) ->
+                Triple(name, dist.toDouble(), stationPoints[name]!!)
+            }
+        }
+    }
 
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
@@ -879,6 +901,15 @@ fun OSMNetworkMapRoute(
         rebuildOverlays(mapView, focusedLine, alertedLineNames) { info ->
             selectedStation = info
             mapView?.controller?.animateTo(info.position)
+        }
+    }
+
+    LaunchedEffect(showLocation) {
+        while (showLocation) {
+            locationOverlay?.lastFix?.let { fix ->
+                userLocation = GeoPoint(fix.latitude, fix.longitude)
+            }
+            kotlinx.coroutines.delay(2000)
         }
     }
 
@@ -1000,31 +1031,80 @@ fun OSMNetworkMapRoute(
             }
         },
     ) { padding ->
-        AndroidView(
-            factory = { ctx ->
-                MapView(ctx).apply {
-                    setTileSource(TileSourceFactory.MAPNIK)
-                    setMultiTouchControls(true)
-                    setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
-                    controller.setZoom(11.5)
-                    controller.setCenter(GeoPoint(39.47, -0.38))
-
-                    overlays.add(ScaleBarOverlay(this).apply {
-                        setAlignBottom(true)
-                        setAlignRight(true)
-                    })
-
-                    val locOverlay = MyLocationNewOverlay(GpsMyLocationProvider(ctx), this)
-                    overlays.add(locOverlay)
-                    locationOverlay = locOverlay
-
-                    mapView = this
-                }
-            },
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-        )
+        ) {
+            AndroidView(
+                factory = { ctx ->
+                    MapView(ctx).apply {
+                        setTileSource(TileSourceFactory.MAPNIK)
+                        setMultiTouchControls(true)
+                        setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
+                        controller.setZoom(11.5)
+                        controller.setCenter(GeoPoint(39.47, -0.38))
+
+                        overlays.add(ScaleBarOverlay(this).apply {
+                            setAlignBottom(true)
+                            setAlignRight(true)
+                        })
+
+                        val locOverlay = MyLocationNewOverlay(GpsMyLocationProvider(ctx), this)
+                        overlays.add(locOverlay)
+                        locationOverlay = locOverlay
+
+                        mapView = this
+                    }
+                },
+                modifier = Modifier.fillMaxSize(),
+            )
+
+            nearestStation?.let { (name, distance, pos) ->
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 8.dp)
+                        .clickable {
+                            val lines = stationLines[name] ?: emptyList()
+                            selectedStation = StationInfo(
+                                name = name,
+                                lines = lines,
+                                position = pos,
+                            )
+                            mapView?.controller?.animateTo(pos)
+                        },
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 3.dp,
+                    shadowElevation = 4.dp,
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Icon(
+                            Icons.Outlined.NearMe,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                        Text(
+                            text = name,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            text = if (distance < 1000) "${distance.toInt()} m"
+                            else "${"%.1f".format(distance / 1000)} km",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
