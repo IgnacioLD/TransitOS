@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="planner_title">Planificar viatge</string>
+    <string name="planner_view_network_map">Veure pla de la xarxa</string>
+    <string name="planner_error_title">No s\'ha pogut planificar</string>
+    <string name="planner_no_route_title">Sense ruta trobada</string>
+    <string name="planner_no_route_subtitle">No hi ha trens entre estes estacions en la data seleccionada.</string>
+    <string name="planner_origin">Origen</string>
+    <string name="planner_destination">Destí</string>
+    <string name="planner_from">Des de</string>
+    <string name="planner_to">Fins a</string>
+    <string name="planner_swap_cd">Intercanviar origen i destí</string>
+    <string name="planner_pick_station">Tria estació</string>
+    <string name="planner_pick_with_title">Tria %1$s</string>
+    <string name="planner_search_station">Buscar estació</string>
+    <string name="planner_pick_date">Tria data</string>
+    <string name="planner_arrival">Arribada</string>
+    <string name="planner_arrival_hint">Polsa per a establir hora d\'arribada</string>
+    <string name="planner_arrival_time_title">Hora d\'arribada</string>
+    <string name="planner_clear_arrival_cd">Traure hora d\'arribada</string>
+    <string name="planner_select_cd">Seleccionar</string>
+    <string name="planner_hint">Tria origen i destí per a veure horaris, primer i últim tren.</string>
+    <string name="planner_first_departure">Primer</string>
+    <string name="planner_last_departure">Últim</string>
+    <string name="planner_departures">Eixides</string>
+    <string name="planner_full_schedule">Horari complet</string>
+    <string name="planner_route_saved">Ruta guardada en Preferits</string>
+    <string name="planner_save_route">Guardar ruta en Preferits</string>
+    <string name="planner_legs_unit">trams</string>
+    <string name="planner_departures_count">%1$d eixides</string>
+    <string name="planner_direction">Direcció: %1$s</string>
+    <string name="planner_distance">Distància</string>
+    <string name="planner_fare">Tarifa</string>
+    <string name="planner_fare_zone">Zona %1$s</string>
+    <string name="planner_co2">CO₂</string>
+    <string name="date_today">Hui</string>
+    <string name="date_tomorrow">Demà</string>
+</resources>

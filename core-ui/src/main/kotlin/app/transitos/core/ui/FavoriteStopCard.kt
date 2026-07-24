@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -85,8 +86,14 @@ fun FavoriteStopCard(
             }
 
             if (lastUpdatedMs > 0L) {
+                val relative = relativeTime(lastUpdatedMs)
+                val relativeText = when (relative) {
+                    is RelativeTime.JustNow -> stringResource(R.string.time_just_now)
+                    is RelativeTime.Minutes -> stringResource(R.string.time_minutes_ago, relative.value)
+                    is RelativeTime.Hours -> stringResource(R.string.time_hours_ago, relative.value)
+                }
                 Text(
-                    text = "Actualizado ${relativeTime(lastUpdatedMs)}",
+                    text = stringResource(R.string.card_updated_prefix, relativeText),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
@@ -136,13 +143,13 @@ private fun NoArrivalsHint() {
         )
         Column {
             Text(
-                text = "Próximo tren sin confirmar",
+                text = stringResource(R.string.arrival_unconfirmed_title),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = "Usa el Planificador para ver horarios programados",
+                text = stringResource(R.string.arrival_unconfirmed_subtitle),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -162,7 +169,8 @@ private fun ArrivalRow(
     } else {
         Color.Transparent
     }
-    val a11y = buildA11yLabel(arrival, isNext)
+    val a11y = ArrivalA11yLabel(arrival, isNext)
+    val noLine = stringResource(R.string.arrival_no_line)
 
     Row(
         modifier = modifier
@@ -174,7 +182,7 @@ private fun ArrivalRow(
         horizontalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
         LineBadge(
-            label = arrival.lineShortName ?: "—",
+            label = arrival.lineShortName ?: noLine,
             colorArgb = arrival.lineColor,
             contentDescription = null,
         )
@@ -195,7 +203,11 @@ private fun ArrivalRow(
             ) {
                 if (arrival.isRealTime) RealtimeDot()
                 Text(
-                    text = if (arrival.isRealTime) "En vivo" else "Horario",
+                    text = if (arrival.isRealTime) {
+                        stringResource(R.string.arrival_live)
+                    } else {
+                        stringResource(R.string.arrival_scheduled)
+                    },
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -209,7 +221,15 @@ private fun ArrivalRow(
 @Composable
 private fun ArrivalMinutes(arrival: Arrival, emphasized: Boolean) {
     val minutes = arrival.minutesAway
-    val value = if (minutes != null && minutes <= 0) "Próximo" else minutes?.toString() ?: "—"
+    val isBoarding = minutes != null && minutes <= 0
+    val boarding = stringResource(R.string.arrival_boarding)
+    val noLine = stringResource(R.string.arrival_no_line)
+    val unitMin = stringResource(R.string.unit_minutes)
+    val value = when {
+        isBoarding -> boarding
+        minutes != null -> minutes.toString()
+        else -> noLine
+    }
     Row(
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -220,9 +240,9 @@ private fun ArrivalMinutes(arrival: Arrival, emphasized: Boolean) {
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface,
         )
-        if (value != "Próximo") {
+        if (!isBoarding) {
             Text(
-                text = "min",
+                text = unitMin,
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 4.dp),
@@ -231,11 +251,18 @@ private fun ArrivalMinutes(arrival: Arrival, emphasized: Boolean) {
     }
 }
 
-private fun buildA11yLabel(arrival: Arrival, isNext: Boolean): String {
-    val head = if (isNext) "Próximo " else ""
-    val line = arrival.lineShortName?.let { "línea $it" } ?: ""
-    val eta = arrival.minutesAway?.let { "${it} minutos" } ?: "hora no disponible"
-    return "$head${line} hacia ${arrival.destination}, $eta".trim().replace("  ", " ")
+@Composable
+private fun ArrivalA11yLabel(arrival: Arrival, isNext: Boolean): String {
+    val boarding = stringResource(R.string.arrival_boarding)
+    val linePrefix = stringResource(R.string.a11y_line_prefix, arrival.lineShortName ?: "")
+    val etaMinutes = stringResource(R.string.a11y_eta_minutes, arrival.minutesAway ?: 0)
+    val etaUnavailable = stringResource(R.string.a11y_eta_unavailable)
+    val towards = stringResource(R.string.a11y_towards, arrival.destination)
+
+    val head = if (isNext) "$boarding " else ""
+    val line = if (arrival.lineShortName != null) linePrefix else ""
+    val eta = if (arrival.minutesAway != null) etaMinutes else etaUnavailable
+    return "$head$line $towards, $eta".trim().replace("  ", " ")
 }
 
 private const val MAX_ARRIVALS_PER_CARD = 5

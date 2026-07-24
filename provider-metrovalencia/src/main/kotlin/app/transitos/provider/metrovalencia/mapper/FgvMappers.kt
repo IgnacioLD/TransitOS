@@ -101,16 +101,24 @@ public data class LineDisplayInfo(
  * returns — *not* `linea_id_FGV`). Without that distinction the lookup misses
  * every time and titles fall back to raw database ids.
  */
-internal fun FgvIncidenciaDto.toAlert(lineByInternalId: Map<Long, LineDisplayInfo>): Alert {
+internal fun FgvIncidenciaDto.toAlert(
+    lineByInternalId: Map<Long, LineDisplayInfo>,
+    translations: List<app.transitos.provider.metrovalencia.dto.FgvIncidenciaTranslationDto>,
+    locale: String,
+): Alert {
     val info = lineByInternalId[lineaId]
+    val translation = translations.firstOrNull {
+        it.incidenciaId == id && it.locale?.equals(locale, ignoreCase = true) == true
+    } ?: translations.firstOrNull { it.incidenciaId == id }
     return Alert(
         id = "$ALERT_ID_PREFIX$id",
         operatorId = MetrovalenciaConfig.OPERATOR_ID,
         lineIds = setOf(info?.canonicalId ?: (LINE_ID_PREFIX + lineaId)),
         stopIds = emptySet(),
         severity = Alert.Severity.WARNING,
-        title = "Línea ${info?.shortName ?: lineaId} con incidencias",
-        body = null,
+        title = translation?.titulo?.takeIf { it.isNotBlank() }
+            ?: "Línea ${info?.shortName ?: lineaId} con incidencias",
+        body = translation?.descripcion,
         startEpochMs = null,
         endEpochMs = null,
         lineShortName = info?.shortName,

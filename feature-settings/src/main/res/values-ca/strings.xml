@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Ajustos</string>
+    <string name="settings_providers">Proveïdors</string>
+    <string name="settings_data_source">Font de dades</string>
+    <string name="settings_no_providers">No hi ha proveïdors disponibles.</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_theme">Tema</string>
+    <string name="theme_system">Seguir el sistema</string>
+    <string name="theme_light">Clar</string>
+    <string name="theme_dark">Fosc</string>
+    <string name="theme_amoled">Negre AMOLED</string>
+</resources>

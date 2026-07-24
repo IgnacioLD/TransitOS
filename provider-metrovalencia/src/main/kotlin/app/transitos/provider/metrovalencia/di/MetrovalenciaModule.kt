@@ -3,6 +3,7 @@ package app.transitos.provider.metrovalencia.di
 import app.transitos.core.provider.ProviderInfo
 import app.transitos.core.provider.ProviderRegistry
 import app.transitos.core.provider.ProviderSettingsRepository
+import app.transitos.core.repository.LanguagePreference
 import app.transitos.core.repository.TransitRepository
 import app.transitos.provider.metrovalencia.MetrovalenciaBackend
 import app.transitos.provider.metrovalencia.MetrovalenciaConfig
@@ -22,7 +23,10 @@ import org.koin.dsl.module
  * the app stays untouched.
  */
 val metrovalenciaModule = module {
-    single { MetrovalenciaConfig() }
+    single {
+        val langPref = get<LanguagePreference>()
+        MetrovalenciaConfig(languageProvider = { langPref.current })
+    }
     single { MetrovalenciaApi(get(), get()) }
 
     // Register this provider in the global registry so the Settings screen

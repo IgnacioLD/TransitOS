@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_no_alerts">No alerts in Metrovalencia</string>
+    <string name="home_alerts_singular">1 line with alerts</string>
+    <string name="home_alerts_plural">%1$d lines with alerts</string>
+    <string name="home_saved_routes">Saved routes</string>
+    <string name="home_favorites">Favorites</string>
+    <string name="home_no_favorites_title">No favorite stops yet</string>
+    <string name="home_no_favorites_subtitle">Search for a station and star it to see its upcoming arrivals here.</string>
+    <string name="settings_cd">Settings</string>
+</resources>

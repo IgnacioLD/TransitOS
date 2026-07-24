@@ -181,7 +181,10 @@ class MetrovalenciaRepository(
         }.getOrDefault(emptyMap())
 
         return runCatching {
-            api.getIncidencias().incidencias.map { it.toAlert(lineByInternalId) }
+            val response = api.getIncidencias()
+            response.incidencias.map {
+                it.toAlert(lineByInternalId, response.incidenciaTranslations, config.language)
+            }
         }.getOrDefault(emptyList())
     }
 

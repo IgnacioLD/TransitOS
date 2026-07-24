@@ -1,11 +1,24 @@
 package app.transitos.map
 
+import android.Manifest
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color as AndroidColor
 import android.graphics.Paint
 import android.graphics.drawable.BitmapDrawable
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.EaseInOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -20,30 +33,33 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Layers
+import androidx.compose.material.icons.outlined.LocationOff
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Map
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.outlined.MyLocation
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,10 +68,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.transitos.R
+import app.transitos.core.model.Arrival
+import app.transitos.core.ui.R as coreUiR
+import org.koin.androidx.compose.koinViewModel
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -63,10 +87,12 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.ScaleBarOverlay
-
+import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
+import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 private data class StationInfo(
     val name: String,
     val lines: List<String>,
+    val position: GeoPoint,
 )
 
 private data class LineData(
@@ -78,34 +104,67 @@ private data class LineData(
 )
 
 private val metroLines = listOf(
-    LineData("L1", AndroidColor.rgb(227, 6, 19), path = listOf(
-        GeoPoint(39.5900,-0.4760), GeoPoint(39.5860,-0.4740), GeoPoint(39.5800,-0.4700),
-        GeoPoint(39.5700,-0.4650), GeoPoint(39.5600,-0.4620), GeoPoint(39.5530,-0.4590),
-        GeoPoint(39.5450,-0.4560), GeoPoint(39.5360,-0.4530), GeoPoint(39.5280,-0.4500),
-        GeoPoint(39.5200,-0.4470), GeoPoint(39.5120,-0.4460), GeoPoint(39.5050,-0.4450),
-        GeoPoint(39.5032,-0.4447), GeoPoint(39.4980,-0.4430), GeoPoint(39.4930,-0.4390),
-        GeoPoint(39.4880,-0.4300), GeoPoint(39.4840,-0.4200), GeoPoint(39.4800,-0.4100),
-        GeoPoint(39.4770,-0.4030), GeoPoint(39.4761,-0.3981), GeoPoint(39.4740,-0.3940),
-        GeoPoint(39.4720,-0.3894), GeoPoint(39.4680,-0.3840), GeoPoint(39.4664,-0.3813),
-        GeoPoint(39.4645,-0.3804), GeoPoint(39.4630,-0.3795), GeoPoint(39.4600,-0.3795),
-        GeoPoint(39.4580,-0.3805), GeoPoint(39.4545,-0.3825), GeoPoint(39.4500,-0.3845),
-        GeoPoint(39.4480,-0.3870), GeoPoint(39.4440,-0.3900), GeoPoint(39.4420,-0.3930),
-        GeoPoint(39.4370,-0.3970), GeoPoint(39.4330,-0.4000), GeoPoint(39.4300,-0.4070),
-        GeoPoint(39.4275,-0.4165), GeoPoint(39.4240,-0.4200), GeoPoint(39.4220,-0.4230),
-        GeoPoint(39.4190,-0.4280), GeoPoint(39.4160,-0.4330), GeoPoint(39.4130,-0.4400),
-        GeoPoint(39.4100,-0.4480), GeoPoint(39.4070,-0.4560), GeoPoint(39.4040,-0.4630),
-        GeoPoint(39.3980,-0.4670), GeoPoint(39.3900,-0.4700), GeoPoint(39.3800,-0.4740),
-        GeoPoint(39.3750,-0.4780), GeoPoint(39.3680,-0.4850), GeoPoint(39.3610,-0.4940),
-        GeoPoint(39.3530,-0.4980), GeoPoint(39.3450,-0.5020), GeoPoint(39.3380,-0.5050),
-        GeoPoint(39.3305,-0.5080), GeoPoint(39.3200,-0.5095), GeoPoint(39.3100,-0.5110),
-        GeoPoint(39.3000,-0.5125), GeoPoint(39.2900,-0.5140), GeoPoint(39.2800,-0.5140),
-        GeoPoint(39.2700,-0.5140), GeoPoint(39.2600,-0.5145), GeoPoint(39.2500,-0.5150),
-        GeoPoint(39.2400,-0.5150), GeoPoint(39.2300,-0.5150), GeoPoint(39.2200,-0.5150),
-        GeoPoint(39.2100,-0.5150), GeoPoint(39.2000,-0.5150), GeoPoint(39.1900,-0.5150),
-        GeoPoint(39.1800,-0.5150), GeoPoint(39.1700,-0.5150), GeoPoint(39.1600,-0.5150),
-        GeoPoint(39.1500,-0.5150), GeoPoint(39.1400,-0.5150), GeoPoint(39.1300,-0.5150),
-        GeoPoint(39.1200,-0.5150), GeoPoint(39.1100,-0.5150), GeoPoint(39.0950,-0.5152),
-        GeoPoint(39.0785,-0.5153),
+    LineData("L1", AndroidColor.rgb(254, 198, 1), path = listOf(
+        GeoPoint(39.590607,-0.457531),
+        GeoPoint(39.586887,-0.449452),
+        GeoPoint(39.581932,-0.443144),
+        GeoPoint(39.576385,-0.428553),
+        GeoPoint(39.565868,-0.411000),
+        GeoPoint(39.566582,-0.405378),
+        GeoPoint(39.566959,-0.402203),
+        GeoPoint(39.565041,-0.398555),
+        GeoPoint(39.549988,-0.389744),
+        GeoPoint(39.543530,-0.388461),
+        GeoPoint(39.540455,-0.388813),
+        GeoPoint(39.536610,-0.402878),
+        GeoPoint(39.528709,-0.407578),
+        GeoPoint(39.519505,-0.414456),
+        GeoPoint(39.513531,-0.411997),
+        GeoPoint(39.508415,-0.406736),
+        GeoPoint(39.499577,-0.402108),
+        GeoPoint(39.491032,-0.399337),
+        GeoPoint(39.484631,-0.395036),
+        GeoPoint(39.478867,-0.391206),
+        GeoPoint(39.470303,-0.385036),
+        GeoPoint(39.466202,-0.381633),
+        GeoPoint(39.459202,-0.384542),
+        GeoPoint(39.456451,-0.390508),
+        GeoPoint(39.454571,-0.398383),
+        GeoPoint(39.451035,-0.402803),
+        GeoPoint(39.440811,-0.410647),
+        GeoPoint(39.432262,-0.418061),
+        GeoPoint(39.430458,-0.423403),
+        GeoPoint(39.433121,-0.437158),
+        GeoPoint(39.437321,-0.457735),
+        GeoPoint(39.436939,-0.460235),
+        GeoPoint(39.434647,-0.460986),
+        GeoPoint(39.423134,-0.460653),
+        GeoPoint(39.393906,-0.464014),
+        GeoPoint(39.384865,-0.467261),
+        GeoPoint(39.373821,-0.472026),
+        GeoPoint(39.363037,-0.464858),
+        GeoPoint(39.358822,-0.467262),
+        GeoPoint(39.353245,-0.473687),
+        GeoPoint(39.339577,-0.476747),
+        GeoPoint(39.321884,-0.466747),
+        GeoPoint(39.317566,-0.464044),
+        GeoPoint(39.289406,-0.464086),
+        GeoPoint(39.277515,-0.465374),
+        GeoPoint(39.262939,-0.474886),
+        GeoPoint(39.249557,-0.491977),
+        GeoPoint(39.235012,-0.509405),
+        GeoPoint(39.232819,-0.522881),
+        GeoPoint(39.226799,-0.524942),
+        GeoPoint(39.216293,-0.519619),
+        GeoPoint(39.200466,-0.509748),
+        GeoPoint(39.193813,-0.510264),
+        GeoPoint(39.173798,-0.515886),
+        GeoPoint(39.143806,-0.518761),
+        GeoPoint(39.117050,-0.523526),
+        GeoPoint(39.108017,-0.525541),
+        GeoPoint(39.102024,-0.522881),
+        GeoPoint(39.095032,-0.515070),
+        GeoPoint(39.084007,-0.516014),
     ), stations = listOf(
         "Bétera" to 0, "Horta Vella" to 2, "Masies" to 4, "Seminari-CEU" to 6,
         "Moncada-Alfara" to 8, "Massarrojos" to 10, "Rocafort" to 12,
@@ -120,25 +179,93 @@ private val metroLines = listOf(
         "Benimodo" to 62, "L'Alcúdia" to 64, "Montortal" to 66,
         "Massalavés" to 68, "Alberic" to 70, "Castelló" to 72,
     )),
-    LineData("L2", AndroidColor.rgb(0, 92, 171), path = listOf(
-        GeoPoint(39.6240,-0.5950), GeoPoint(39.6150,-0.5900), GeoPoint(39.6050,-0.5870),
-        GeoPoint(39.5940,-0.5840), GeoPoint(39.5850,-0.5790), GeoPoint(39.5800,-0.5700),
-        GeoPoint(39.5720,-0.5620), GeoPoint(39.5650,-0.5550), GeoPoint(39.5570,-0.5480),
-        GeoPoint(39.5500,-0.5400), GeoPoint(39.5420,-0.5330), GeoPoint(39.5350,-0.5250),
-        GeoPoint(39.5280,-0.5130), GeoPoint(39.5200,-0.5000), GeoPoint(39.5150,-0.4800),
-        GeoPoint(39.5100,-0.4600), GeoPoint(39.5070,-0.4520), GeoPoint(39.5032,-0.4447),
-        GeoPoint(39.4980,-0.4430), GeoPoint(39.4930,-0.4390), GeoPoint(39.4880,-0.4300),
-        GeoPoint(39.4840,-0.4200), GeoPoint(39.4800,-0.4100), GeoPoint(39.4770,-0.4030),
-        GeoPoint(39.4761,-0.3981), GeoPoint(39.4740,-0.3940), GeoPoint(39.4720,-0.3894),
-        GeoPoint(39.4680,-0.3840), GeoPoint(39.4664,-0.3813), GeoPoint(39.4645,-0.3804),
-        GeoPoint(39.4630,-0.3795), GeoPoint(39.4600,-0.3795), GeoPoint(39.4580,-0.3805),
-        GeoPoint(39.4545,-0.3825), GeoPoint(39.4500,-0.3845), GeoPoint(39.4480,-0.3870),
-        GeoPoint(39.4440,-0.3900), GeoPoint(39.4420,-0.3930), GeoPoint(39.4370,-0.3970),
-        GeoPoint(39.4330,-0.4000), GeoPoint(39.4300,-0.4070), GeoPoint(39.4275,-0.4165),
-        GeoPoint(39.4240,-0.4200), GeoPoint(39.4220,-0.4230), GeoPoint(39.4190,-0.4280),
-        GeoPoint(39.4160,-0.4330), GeoPoint(39.4130,-0.4400), GeoPoint(39.4100,-0.4480),
-        GeoPoint(39.4070,-0.4560), GeoPoint(39.4040,-0.4630), GeoPoint(39.4000,-0.4660),
-        GeoPoint(39.3980,-0.4690),
+    LineData("L2", AndroidColor.rgb(230, 0, 150), path = listOf(
+        GeoPoint(39.622841,-0.590278),
+        GeoPoint(39.614395,-0.595912),
+        GeoPoint(39.613392,-0.596234),
+        GeoPoint(39.607540,-0.594893),
+        GeoPoint(39.598881,-0.583928),
+        GeoPoint(39.592724,-0.578081),
+        GeoPoint(39.582764,-0.562278),
+        GeoPoint(39.572052,-0.545368),
+        GeoPoint(39.568665,-0.541917),
+        GeoPoint(39.561832,-0.535919),
+        GeoPoint(39.555573,-0.531697),
+        GeoPoint(39.549866,-0.527986),
+        GeoPoint(39.543533,-0.522537),
+        GeoPoint(39.542690,-0.520649),
+        GeoPoint(39.542458,-0.518954),
+        GeoPoint(39.543335,-0.513954),
+        GeoPoint(39.543980,-0.510864),
+        GeoPoint(39.544079,-0.509083),
+        GeoPoint(39.543930,-0.507903),
+        GeoPoint(39.543419,-0.506508),
+        GeoPoint(39.537842,-0.497978),
+        GeoPoint(39.532578,-0.491295),
+        GeoPoint(39.526806,-0.487122),
+        GeoPoint(39.523491,-0.481617),
+        GeoPoint(39.523052,-0.480276),
+        GeoPoint(39.519402,-0.471039),
+        GeoPoint(39.512733,-0.466104),
+        GeoPoint(39.511173,-0.464517),
+        GeoPoint(39.505657,-0.455106),
+        GeoPoint(39.501625,-0.448680),
+        GeoPoint(39.498810,-0.441972),
+        GeoPoint(39.497375,-0.439410),
+        GeoPoint(39.496193,-0.436803),
+        GeoPoint(39.495846,-0.435323),
+        GeoPoint(39.495083,-0.432308),
+        GeoPoint(39.495110,-0.431439),
+        GeoPoint(39.495380,-0.430752),
+        GeoPoint(39.496384,-0.428681),
+        GeoPoint(39.497509,-0.426546),
+        GeoPoint(39.498737,-0.425419),
+        GeoPoint(39.500397,-0.423446),
+        GeoPoint(39.501408,-0.421751),
+        GeoPoint(39.501804,-0.420688),
+        GeoPoint(39.501877,-0.419411),
+        GeoPoint(39.501915,-0.417641),
+        GeoPoint(39.501534,-0.415946),
+        GeoPoint(39.501423,-0.414594),
+        GeoPoint(39.501740,-0.413661),
+        GeoPoint(39.502380,-0.412072),
+        GeoPoint(39.502518,-0.409970),
+        GeoPoint(39.502716,-0.407717),
+        GeoPoint(39.502716,-0.406537),
+        GeoPoint(39.502552,-0.405786),
+        GeoPoint(39.502022,-0.404863),
+        GeoPoint(39.499577,-0.402108),
+        GeoPoint(39.491032,-0.399337),
+        GeoPoint(39.484631,-0.395036),
+        GeoPoint(39.478867,-0.391206),
+        GeoPoint(39.470303,-0.385036),
+        GeoPoint(39.466202,-0.381633),
+        GeoPoint(39.459202,-0.384542),
+        GeoPoint(39.456451,-0.390508),
+        GeoPoint(39.454571,-0.398383),
+        GeoPoint(39.451035,-0.402803),
+        GeoPoint(39.448597,-0.404949),
+        GeoPoint(39.442799,-0.409069),
+        GeoPoint(39.440811,-0.410647),
+        GeoPoint(39.437790,-0.412953),
+        GeoPoint(39.434975,-0.415045),
+        GeoPoint(39.433380,-0.416311),
+        GeoPoint(39.433113,-0.416579),
+        GeoPoint(39.432869,-0.416880),
+        GeoPoint(39.432598,-0.417293),
+        GeoPoint(39.432262,-0.418061),
+        GeoPoint(39.430477,-0.422974),
+        GeoPoint(39.430443,-0.424433),
+        GeoPoint(39.433121,-0.437158),
+        GeoPoint(39.437386,-0.457735),
+        GeoPoint(39.437286,-0.459237),
+        GeoPoint(39.436939,-0.460246),
+        GeoPoint(39.434647,-0.460986),
+        GeoPoint(39.426746,-0.461769),
+        GeoPoint(39.425949,-0.463486),
+        GeoPoint(39.425884,-0.464559),
+        GeoPoint(39.426514,-0.466661),
+        GeoPoint(39.431812,-0.472833),
     ), stations = listOf(
         "Llíria" to 0, "Benaguasil" to 1, "Fondo de Benaguasil" to 3,
         "La Pobla de Vallbona" to 4, "Gallipont-Torre del Virrei" to 6,
@@ -153,24 +280,69 @@ private val metroLines = listOf(
         "Picanya" to 42, "Torrent" to 43, "Col·legi El Vedat" to 45,
         "Cantereria" to 46, "Realón" to 48, "Torrent Avinguda" to 51,
     )),
-    LineData("L3", AndroidColor.rgb(0, 166, 81), path = listOf(
-        GeoPoint(39.5920,-0.3350), GeoPoint(39.5850,-0.3360), GeoPoint(39.5800,-0.3370),
-        GeoPoint(39.5730,-0.3380), GeoPoint(39.5670,-0.3390), GeoPoint(39.5610,-0.3400),
-        GeoPoint(39.5550,-0.3410), GeoPoint(39.5490,-0.3420), GeoPoint(39.5430,-0.3430),
-        GeoPoint(39.5360,-0.3440), GeoPoint(39.5300,-0.3465), GeoPoint(39.5240,-0.3490),
-        GeoPoint(39.5180,-0.3525), GeoPoint(39.5120,-0.3560), GeoPoint(39.5090,-0.3600),
-        GeoPoint(39.5060,-0.3640), GeoPoint(39.5030,-0.3650), GeoPoint(39.5000,-0.3660),
-        GeoPoint(39.4960,-0.3680), GeoPoint(39.4920,-0.3690), GeoPoint(39.4880,-0.3700),
-        GeoPoint(39.4840,-0.3690), GeoPoint(39.4800,-0.3680), GeoPoint(39.4760,-0.3670),
-        GeoPoint(39.4740,-0.3660), GeoPoint(39.4710,-0.3670), GeoPoint(39.4695,-0.3685),
-        GeoPoint(39.4682,-0.3705), GeoPoint(39.4685,-0.3735), GeoPoint(39.4690,-0.3767),
-        GeoPoint(39.4680,-0.3780), GeoPoint(39.4670,-0.3790), GeoPoint(39.4664,-0.3813),
-        GeoPoint(39.4650,-0.3850), GeoPoint(39.4640,-0.3890), GeoPoint(39.4660,-0.3950),
-        GeoPoint(39.4680,-0.4000), GeoPoint(39.4700,-0.4060), GeoPoint(39.4720,-0.4110),
-        GeoPoint(39.4735,-0.4180), GeoPoint(39.4750,-0.4250), GeoPoint(39.4765,-0.4340),
-        GeoPoint(39.4780,-0.4430), GeoPoint(39.4800,-0.4470), GeoPoint(39.4820,-0.4500),
-        GeoPoint(39.4840,-0.4530), GeoPoint(39.4860,-0.4570), GeoPoint(39.4880,-0.4620),
-        GeoPoint(39.4885,-0.4670), GeoPoint(39.4890,-0.4730),
+    LineData("L3", AndroidColor.rgb(221, 5, 44), path = listOf(
+        GeoPoint(39.588524,-0.331058),
+        GeoPoint(39.579418,-0.330436),
+        GeoPoint(39.576675,-0.330148),
+        GeoPoint(39.575264,-0.330105),
+        GeoPoint(39.570560,-0.333033),
+        GeoPoint(39.565701,-0.335984),
+        GeoPoint(39.561577,-0.340856),
+        GeoPoint(39.560471,-0.342110),
+        GeoPoint(39.559246,-0.343226),
+        GeoPoint(39.546909,-0.347228),
+        GeoPoint(39.545265,-0.348289),
+        GeoPoint(39.543633,-0.349250),
+        GeoPoint(39.537224,-0.353869),
+        GeoPoint(39.535656,-0.354652),
+        GeoPoint(39.534267,-0.354824),
+        GeoPoint(39.533249,-0.354717),
+        GeoPoint(39.532875,-0.354438),
+        GeoPoint(39.528030,-0.351819),
+        GeoPoint(39.524700,-0.349932),
+        GeoPoint(39.523739,-0.349803),
+        GeoPoint(39.522812,-0.349932),
+        GeoPoint(39.516621,-0.353150),
+        GeoPoint(39.514568,-0.354095),
+        GeoPoint(39.512257,-0.354267),
+        GeoPoint(39.509785,-0.353950),
+        GeoPoint(39.505199,-0.353622),
+        GeoPoint(39.500763,-0.352328),
+        GeoPoint(39.499340,-0.352163),
+        GeoPoint(39.498974,-0.352120),
+        GeoPoint(39.497948,-0.352464),
+        GeoPoint(39.496822,-0.353365),
+        GeoPoint(39.496181,-0.354196),
+        GeoPoint(39.495663,-0.355222),
+        GeoPoint(39.494774,-0.356914),
+        GeoPoint(39.493740,-0.358171),
+        GeoPoint(39.492432,-0.358794),
+        GeoPoint(39.484852,-0.362333),
+        GeoPoint(39.483841,-0.363064),
+        GeoPoint(39.481091,-0.359716),
+        GeoPoint(39.480392,-0.360661),
+        GeoPoint(39.478004,-0.361906),
+        GeoPoint(39.473900,-0.363922),
+        GeoPoint(39.473156,-0.365317),
+        GeoPoint(39.471813,-0.368729),
+        GeoPoint(39.470146,-0.370928),
+        GeoPoint(39.466976,-0.374951),
+        GeoPoint(39.467186,-0.377375),
+        GeoPoint(39.468071,-0.380144),
+        GeoPoint(39.468933,-0.381904),
+        GeoPoint(39.470158,-0.383534),
+        GeoPoint(39.470303,-0.385036),
+        GeoPoint(39.468105,-0.395293),
+        GeoPoint(39.468220,-0.397575),
+        GeoPoint(39.470657,-0.407631),
+        GeoPoint(39.473824,-0.418306),
+        GeoPoint(39.476009,-0.424369),
+        GeoPoint(39.477619,-0.433183),
+        GeoPoint(39.481087,-0.441881),
+        GeoPoint(39.484833,-0.450568),
+        GeoPoint(39.489590,-0.459065),
+        GeoPoint(39.492649,-0.467236),
+        GeoPoint(39.492367,-0.474919),
     ), stations = listOf(
         "Rafelbunyol" to 0, "La Pobla de Farnals" to 1, "Massamagrell" to 3,
         "Museros" to 5, "Albalat dels Sorells" to 7, "Foios" to 9,
@@ -185,17 +357,36 @@ private val metroLines = listOf(
         "Salt de l'Aigua" to 45, "Manises" to 47,
         "Roses" to 48, "Aeroport" to 49,
     )),
-    LineData("L4", AndroidColor.rgb(255, 209, 0), path = listOf(
-        GeoPoint(39.5080,-0.3400), GeoPoint(39.5060,-0.3420), GeoPoint(39.5030,-0.3510),
-        GeoPoint(39.5000,-0.3440), GeoPoint(39.4950,-0.3470), GeoPoint(39.4910,-0.3500),
-        GeoPoint(39.4870,-0.3550), GeoPoint(39.4830,-0.3580), GeoPoint(39.4800,-0.3620),
-        GeoPoint(39.4775,-0.3670), GeoPoint(39.4750,-0.3710), GeoPoint(39.4725,-0.3715),
-        GeoPoint(39.4680,-0.3660), GeoPoint(39.4660,-0.3640), GeoPoint(39.4640,-0.3620),
-        GeoPoint(39.4632,-0.3595), GeoPoint(39.4625,-0.3570), GeoPoint(39.4622,-0.3555),
-        GeoPoint(39.4620,-0.3540), GeoPoint(39.4620,-0.3530), GeoPoint(39.4620,-0.3520),
-        GeoPoint(39.4615,-0.3510), GeoPoint(39.4612,-0.3505), GeoPoint(39.4610,-0.3500),
-        GeoPoint(39.4610,-0.3496), GeoPoint(39.4610,-0.3492), GeoPoint(39.4610,-0.3488),
-        GeoPoint(39.4610,-0.3485),
+    LineData("L4", AndroidColor.rgb(1, 74, 153), path = listOf(
+        GeoPoint(39.469307,-0.328153),
+        GeoPoint(39.472855,-0.327583),
+        GeoPoint(39.475204,-0.329375),
+        GeoPoint(39.476593,-0.334203),
+        GeoPoint(39.478138,-0.339622),
+        GeoPoint(39.479660,-0.344825),
+        GeoPoint(39.481316,-0.350500),
+        GeoPoint(39.483372,-0.357947),
+        GeoPoint(39.484852,-0.362333),
+        GeoPoint(39.486271,-0.367764),
+        GeoPoint(39.481781,-0.373181),
+        GeoPoint(39.486500,-0.374972),
+        GeoPoint(39.485966,-0.381707),
+        GeoPoint(39.487972,-0.383837),
+        GeoPoint(39.489563,-0.387258),
+        GeoPoint(39.490028,-0.390928),
+        GeoPoint(39.492290,-0.394511),
+        GeoPoint(39.494434,-0.396817),
+        GeoPoint(39.497181,-0.400142),
+        GeoPoint(39.499577,-0.402108),
+        GeoPoint(39.504032,-0.412478),
+        GeoPoint(39.505291,-0.416324),
+        GeoPoint(39.507221,-0.417458),
+        GeoPoint(39.508560,-0.419884),
+        GeoPoint(39.512203,-0.424749),
+        GeoPoint(39.515141,-0.422622),
+        GeoPoint(39.519772,-0.425636),
+        GeoPoint(39.521572,-0.431707),
+        GeoPoint(39.524960,-0.435825),
     ), stations = listOf(
         "Mas del Rosari" to 0, "Parc Científic" to 1, "La Coma" to 2,
         "Tomás y Valiente" to 3, "Lloma Llarga-Terramelar" to 4,
@@ -208,16 +399,33 @@ private val metroLines = listOf(
         "La Cadena" to 22, "Garbí" to 23, "Beteró" to 24,
         "Doctor Lluch" to 26,
     ), tram = true),
-    LineData("L5", AndroidColor.rgb(0, 63, 127), path = listOf(
-        GeoPoint(39.4567,-0.3350), GeoPoint(39.4600,-0.3380), GeoPoint(39.4620,-0.3440),
-        GeoPoint(39.4650,-0.3490), GeoPoint(39.4680,-0.3550), GeoPoint(39.4710,-0.3670),
-        GeoPoint(39.4682,-0.3705), GeoPoint(39.4690,-0.3767), GeoPoint(39.4670,-0.3790),
-        GeoPoint(39.4664,-0.3813), GeoPoint(39.4650,-0.3850), GeoPoint(39.4640,-0.3890),
-        GeoPoint(39.4660,-0.3950), GeoPoint(39.4680,-0.4000), GeoPoint(39.4700,-0.4060),
-        GeoPoint(39.4720,-0.4110), GeoPoint(39.4735,-0.4180), GeoPoint(39.4750,-0.4250),
-        GeoPoint(39.4765,-0.4340), GeoPoint(39.4780,-0.4430), GeoPoint(39.4800,-0.4470),
-        GeoPoint(39.4820,-0.4500), GeoPoint(39.4840,-0.4530), GeoPoint(39.4860,-0.4570),
-        GeoPoint(39.4880,-0.4620), GeoPoint(39.4885,-0.4670), GeoPoint(39.4890,-0.4730),
+    LineData("L5", AndroidColor.rgb(0, 143, 113), path = listOf(
+        GeoPoint(39.492367,-0.474919),
+        GeoPoint(39.492649,-0.467236),
+        GeoPoint(39.489590,-0.459065),
+        GeoPoint(39.484833,-0.450568),
+        GeoPoint(39.481087,-0.441881),
+        GeoPoint(39.477619,-0.433183),
+        GeoPoint(39.476009,-0.424369),
+        GeoPoint(39.473824,-0.418306),
+        GeoPoint(39.470657,-0.407631),
+        GeoPoint(39.468220,-0.397575),
+        GeoPoint(39.468063,-0.395443),
+        GeoPoint(39.470112,-0.385895),
+        GeoPoint(39.470303,-0.385036),
+        GeoPoint(39.470165,-0.383599),
+        GeoPoint(39.468941,-0.381871),
+        GeoPoint(39.468147,-0.380316),
+        GeoPoint(39.467186,-0.377375),
+        GeoPoint(39.467026,-0.375166),
+        GeoPoint(39.467102,-0.374844),
+        GeoPoint(39.470146,-0.370928),
+        GeoPoint(39.471981,-0.368600),
+        GeoPoint(39.473156,-0.365317),
+        GeoPoint(39.472626,-0.358117),
+        GeoPoint(39.470333,-0.350394),
+        GeoPoint(39.466427,-0.342969),
+        GeoPoint(39.464939,-0.338237),
     ), stations = listOf(
         "Marítim" to 0, "Amistat-Casa de Salud" to 1, "Ayora" to 2,
         "Alameda" to 3, "Colón" to 4, "Xàtiva" to 5,
@@ -227,13 +435,87 @@ private val metroLines = listOf(
         "Salt de l'Aigua" to 13, "Manises" to 14, "Roses" to 15,
         "Aeroport" to 16,
     )),
-    LineData("L6", AndroidColor.rgb(123, 45, 142), path = listOf(
-        GeoPoint(39.4910,-0.3900), GeoPoint(39.4870,-0.3880), GeoPoint(39.4830,-0.3850),
-        GeoPoint(39.4790,-0.3800), GeoPoint(39.4750,-0.3750), GeoPoint(39.4725,-0.3715),
-        GeoPoint(39.4680,-0.3660), GeoPoint(39.4640,-0.3620), GeoPoint(39.4625,-0.3570),
-        GeoPoint(39.4620,-0.3540), GeoPoint(39.4620,-0.3520), GeoPoint(39.4610,-0.3500),
-        GeoPoint(39.4600,-0.3480), GeoPoint(39.4590,-0.3450), GeoPoint(39.4580,-0.3420),
-        GeoPoint(39.4570,-0.3380), GeoPoint(39.4567,-0.3350),
+    LineData("L6", AndroidColor.rgb(136, 132, 191), path = listOf(
+        GeoPoint(39.495953,-0.372537),
+        GeoPoint(39.496418,-0.372234),
+        GeoPoint(39.497391,-0.371861),
+        GeoPoint(39.497856,-0.371652),
+        GeoPoint(39.497967,-0.371550),
+        GeoPoint(39.498028,-0.371454),
+        GeoPoint(39.498043,-0.371298),
+        GeoPoint(39.497707,-0.370005),
+        GeoPoint(39.497219,-0.368495),
+        GeoPoint(39.497066,-0.367908),
+        GeoPoint(39.496769,-0.366926),
+        GeoPoint(39.496544,-0.365818),
+        GeoPoint(39.496418,-0.365320),
+        GeoPoint(39.496159,-0.364432),
+        GeoPoint(39.496109,-0.364298),
+        GeoPoint(39.496044,-0.364228),
+        GeoPoint(39.495987,-0.364196),
+        GeoPoint(39.495926,-0.364188),
+        GeoPoint(39.495838,-0.364217),
+        GeoPoint(39.495468,-0.364652),
+        GeoPoint(39.494919,-0.365542),
+        GeoPoint(39.494507,-0.365859),
+        GeoPoint(39.493401,-0.367237),
+        GeoPoint(39.493149,-0.367664),
+        GeoPoint(39.492970,-0.367782),
+        GeoPoint(39.492817,-0.367951),
+        GeoPoint(39.492725,-0.367983),
+        GeoPoint(39.492657,-0.367986),
+        GeoPoint(39.492542,-0.367913),
+        GeoPoint(39.492378,-0.367683),
+        GeoPoint(39.492111,-0.367326),
+        GeoPoint(39.491745,-0.366816),
+        GeoPoint(39.490547,-0.365236),
+        GeoPoint(39.490173,-0.364893),
+        GeoPoint(39.489300,-0.366033),
+        GeoPoint(39.488358,-0.367854),
+        GeoPoint(39.487858,-0.368640),
+        GeoPoint(39.487259,-0.369386),
+        GeoPoint(39.487125,-0.369523),
+        GeoPoint(39.487003,-0.369547),
+        GeoPoint(39.486820,-0.369429),
+        GeoPoint(39.486488,-0.368246),
+        GeoPoint(39.486271,-0.367764),
+        GeoPoint(39.484852,-0.362333),
+        GeoPoint(39.483803,-0.358933),
+        GeoPoint(39.483372,-0.357947),
+        GeoPoint(39.482727,-0.355301),
+        GeoPoint(39.481731,-0.352319),
+        GeoPoint(39.481125,-0.351691),
+        GeoPoint(39.481316,-0.350500),
+        GeoPoint(39.479660,-0.344825),
+        GeoPoint(39.478138,-0.339622),
+        GeoPoint(39.476593,-0.334203),
+        GeoPoint(39.475204,-0.329375),
+        GeoPoint(39.474655,-0.327353),
+        GeoPoint(39.474541,-0.325867),
+        GeoPoint(39.474266,-0.325615),
+        GeoPoint(39.473690,-0.325728),
+        GeoPoint(39.468929,-0.325728),
+        GeoPoint(39.468018,-0.325679),
+        GeoPoint(39.467625,-0.325593),
+        GeoPoint(39.467453,-0.325792),
+        GeoPoint(39.466522,-0.327932),
+        GeoPoint(39.467068,-0.327476),
+        GeoPoint(39.466019,-0.328056),
+        GeoPoint(39.464619,-0.327927),
+        GeoPoint(39.463593,-0.328088),
+        GeoPoint(39.463512,-0.329002),
+        GeoPoint(39.463516,-0.329316),
+        GeoPoint(39.463100,-0.329472),
+        GeoPoint(39.463009,-0.330244),
+        GeoPoint(39.462921,-0.330451),
+        GeoPoint(39.462955,-0.331406),
+        GeoPoint(39.463245,-0.333973),
+        GeoPoint(39.463390,-0.334828),
+        GeoPoint(39.463535,-0.335571),
+        GeoPoint(39.463615,-0.336172),
+        GeoPoint(39.463661,-0.336376),
+        GeoPoint(39.464142,-0.336413),
+        GeoPoint(39.464939,-0.338237),
     ), stations = listOf(
         "Tossal del Rei" to 0, "Estadi Ciutat de València" to 1,
         "Sant Miquel dels Reis" to 2, "Alfauir" to 3,
@@ -243,18 +525,70 @@ private val metroLines = listOf(
         "La Cadena" to 11, "Beteró" to 12, "Cabanyal" to 13,
         "Grau-La Marina" to 14, "Marítim" to 15,
     ), tram = true),
-    LineData("L7", AndroidColor.rgb(243, 146, 0), path = listOf(
-        GeoPoint(39.4567,-0.3350), GeoPoint(39.4600,-0.3380), GeoPoint(39.4620,-0.3440),
-        GeoPoint(39.4650,-0.3490), GeoPoint(39.4680,-0.3550), GeoPoint(39.4710,-0.3670),
-        GeoPoint(39.4682,-0.3705), GeoPoint(39.4690,-0.3767), GeoPoint(39.4670,-0.3790),
-        GeoPoint(39.4664,-0.3813), GeoPoint(39.4645,-0.3804), GeoPoint(39.4630,-0.3795),
-        GeoPoint(39.4600,-0.3795), GeoPoint(39.4580,-0.3805), GeoPoint(39.4545,-0.3825),
-        GeoPoint(39.4500,-0.3845), GeoPoint(39.4480,-0.3870), GeoPoint(39.4440,-0.3900),
-        GeoPoint(39.4420,-0.3930), GeoPoint(39.4370,-0.3970), GeoPoint(39.4330,-0.4000),
-        GeoPoint(39.4300,-0.4070), GeoPoint(39.4275,-0.4165), GeoPoint(39.4240,-0.4200),
-        GeoPoint(39.4220,-0.4230), GeoPoint(39.4190,-0.4280), GeoPoint(39.4160,-0.4330),
-        GeoPoint(39.4130,-0.4400), GeoPoint(39.4100,-0.4480), GeoPoint(39.4070,-0.4560),
-        GeoPoint(39.4040,-0.4630), GeoPoint(39.4000,-0.4660), GeoPoint(39.3980,-0.4690),
+    LineData("L7", AndroidColor.rgb(242, 141, 1), path = listOf(
+        GeoPoint(39.464939,-0.338237),
+        GeoPoint(39.466427,-0.342969),
+        GeoPoint(39.470333,-0.350394),
+        GeoPoint(39.472626,-0.358117),
+        GeoPoint(39.473156,-0.365317),
+        GeoPoint(39.471848,-0.368707),
+        GeoPoint(39.470146,-0.370928),
+        GeoPoint(39.467094,-0.374823),
+        GeoPoint(39.467010,-0.375166),
+        GeoPoint(39.467094,-0.375853),
+        GeoPoint(39.466988,-0.376732),
+        GeoPoint(39.466820,-0.377269),
+        GeoPoint(39.466557,-0.377805),
+        GeoPoint(39.466106,-0.378234),
+        GeoPoint(39.463978,-0.379422),
+        GeoPoint(39.461800,-0.380058),
+        GeoPoint(39.461071,-0.380745),
+        GeoPoint(39.460575,-0.381560),
+        GeoPoint(39.460079,-0.382676),
+        GeoPoint(39.459202,-0.384542),
+        GeoPoint(39.458553,-0.385959),
+        GeoPoint(39.457577,-0.386882),
+        GeoPoint(39.456863,-0.387504),
+        GeoPoint(39.456631,-0.388019),
+        GeoPoint(39.456516,-0.388727),
+        GeoPoint(39.456451,-0.390508),
+        GeoPoint(39.456234,-0.394628),
+        GeoPoint(39.456112,-0.395658),
+        GeoPoint(39.455681,-0.396591),
+        GeoPoint(39.455597,-0.396903),
+        GeoPoint(39.454571,-0.398383),
+        GeoPoint(39.451035,-0.402803),
+        GeoPoint(39.440811,-0.410647),
+        GeoPoint(39.436886,-0.413688),
+        GeoPoint(39.435207,-0.414943),
+        GeoPoint(39.434574,-0.415415),
+        GeoPoint(39.433422,-0.416316),
+        GeoPoint(39.433010,-0.416719),
+        GeoPoint(39.432644,-0.417207),
+        GeoPoint(39.432262,-0.418061),
+        GeoPoint(39.430527,-0.423338),
+        GeoPoint(39.430641,-0.425227),
+        GeoPoint(39.433121,-0.437158),
+        GeoPoint(39.437366,-0.457633),
+        GeoPoint(39.437405,-0.458121),
+        GeoPoint(39.437386,-0.458636),
+        GeoPoint(39.437347,-0.459082),
+        GeoPoint(39.437168,-0.459672),
+        GeoPoint(39.436924,-0.460128),
+        GeoPoint(39.436424,-0.460605),
+        GeoPoint(39.435539,-0.460873),
+        GeoPoint(39.434647,-0.460986),
+        GeoPoint(39.433029,-0.460895),
+        GeoPoint(39.429539,-0.460964),
+        GeoPoint(39.427162,-0.461200),
+        GeoPoint(39.426655,-0.461555),
+        GeoPoint(39.426140,-0.462327),
+        GeoPoint(39.425793,-0.463260),
+        GeoPoint(39.425793,-0.464269),
+        GeoPoint(39.426010,-0.465642),
+        GeoPoint(39.426846,-0.466919),
+        GeoPoint(39.429333,-0.469902),
+        GeoPoint(39.431812,-0.472833),
     ), stations = listOf(
         "Marítim" to 0, "Amistat-Casa de Salud" to 1, "Ayora" to 2,
         "Alameda" to 3, "Aragó" to 4, "Bailén" to 5,
@@ -263,27 +597,52 @@ private val metroLines = listOf(
         "Paiporta" to 14, "València Sud" to 15,
         "Torrent" to 17, "Picanya" to 18, "Torrent Avinguda" to 20,
     )),
-    LineData("L8", AndroidColor.rgb(229, 0, 127), path = listOf(
-        GeoPoint(39.4567,-0.3350), GeoPoint(39.4570,-0.3320), GeoPoint(39.4570,-0.3280),
-        GeoPoint(39.4570,-0.3260),
+    LineData("L8", AndroidColor.rgb(130, 206, 230), path = listOf(
+        GeoPoint(39.464939,-0.338237),
+        GeoPoint(39.463245,-0.333973),
+        GeoPoint(39.463100,-0.329472),
+        GeoPoint(39.463253,-0.325851),
     ), stations = listOf(
         "Marítim" to 0, "Neptú" to 3,
     ), tram = true),
-    LineData("L9", AndroidColor.rgb(0, 150, 136), path = listOf(
-        GeoPoint(39.5440,-0.5600), GeoPoint(39.5400,-0.5550), GeoPoint(39.5350,-0.5500),
-        GeoPoint(39.5300,-0.5450), GeoPoint(39.5250,-0.5400), GeoPoint(39.5230,-0.5360),
-        GeoPoint(39.5210,-0.5310), GeoPoint(39.5180,-0.5200), GeoPoint(39.5150,-0.5100),
-        GeoPoint(39.5120,-0.5000), GeoPoint(39.5100,-0.4900), GeoPoint(39.5080,-0.4800),
-        GeoPoint(39.5060,-0.4700), GeoPoint(39.5030,-0.4630), GeoPoint(39.5000,-0.4580),
-        GeoPoint(39.4950,-0.4530), GeoPoint(39.4900,-0.4480), GeoPoint(39.4840,-0.4460),
-        GeoPoint(39.4780,-0.4430), GeoPoint(39.4750,-0.4250), GeoPoint(39.4720,-0.4110),
-        GeoPoint(39.4700,-0.4060), GeoPoint(39.4675,-0.3970), GeoPoint(39.4660,-0.3950),
-        GeoPoint(39.4640,-0.3890), GeoPoint(39.4650,-0.3850), GeoPoint(39.4664,-0.3813),
-        GeoPoint(39.4670,-0.3790), GeoPoint(39.4690,-0.3767), GeoPoint(39.4682,-0.3705),
-        GeoPoint(39.4695,-0.3685), GeoPoint(39.4710,-0.3670), GeoPoint(39.4740,-0.3660),
-        GeoPoint(39.4760,-0.3670), GeoPoint(39.4800,-0.3680), GeoPoint(39.4840,-0.3690),
-        GeoPoint(39.4880,-0.3700), GeoPoint(39.4920,-0.3690), GeoPoint(39.4960,-0.3680),
-        GeoPoint(39.5000,-0.3660), GeoPoint(39.5030,-0.3650), GeoPoint(39.5060,-0.3640),
+    LineData("L9", AndroidColor.rgb(184, 128, 79), path = listOf(
+        GeoPoint(39.543335,-0.559444),
+        GeoPoint(39.538055,-0.546667),
+        GeoPoint(39.517223,-0.515833),
+        GeoPoint(39.498890,-0.484444),
+        GeoPoint(39.492649,-0.467236),
+        GeoPoint(39.489590,-0.459065),
+        GeoPoint(39.484833,-0.450568),
+        GeoPoint(39.481087,-0.441881),
+        GeoPoint(39.477619,-0.433183),
+        GeoPoint(39.476009,-0.424369),
+        GeoPoint(39.473824,-0.418306),
+        GeoPoint(39.470657,-0.407631),
+        GeoPoint(39.468220,-0.397575),
+        GeoPoint(39.467995,-0.395293),
+        GeoPoint(39.470303,-0.385036),
+        GeoPoint(39.470058,-0.383534),
+        GeoPoint(39.467987,-0.380133),
+        GeoPoint(39.467186,-0.377375),
+        GeoPoint(39.466869,-0.374941),
+        GeoPoint(39.470146,-0.370928),
+        GeoPoint(39.471706,-0.368729),
+        GeoPoint(39.473156,-0.365317),
+        GeoPoint(39.473793,-0.363922),
+        GeoPoint(39.478004,-0.361906),
+        GeoPoint(39.480286,-0.360661),
+        GeoPoint(39.480984,-0.359706),
+        GeoPoint(39.483788,-0.363064),
+        GeoPoint(39.484852,-0.362333),
+        GeoPoint(39.492432,-0.358794),
+        GeoPoint(39.493713,-0.358169),
+        GeoPoint(39.494804,-0.356911),
+        GeoPoint(39.495663,-0.355222),
+        GeoPoint(39.496235,-0.354202),
+        GeoPoint(39.496773,-0.353365),
+        GeoPoint(39.497753,-0.352592),
+        GeoPoint(39.499031,-0.352120),
+        GeoPoint(39.500763,-0.352328),
     ), stations = listOf(
         "Riba-roja de Túria" to 0, "La Presa" to 1, "Masia de Traver" to 2,
         "La Cova" to 3, "Benissanó" to 5, "Font del Barranc" to 7,
@@ -295,11 +654,15 @@ private val metroLines = listOf(
         "Benimaclet" to 27, "Machado" to 28,
         "Alboraia Palmaret" to 29, "Alboraia Peris Aragó" to 30,
     )),
-    LineData("L10", AndroidColor.rgb(0, 180, 216), path = listOf(
-        GeoPoint(39.4590,-0.3760), GeoPoint(39.4600,-0.3720), GeoPoint(39.4605,-0.3650),
-        GeoPoint(39.4610,-0.3580), GeoPoint(39.4610,-0.3540), GeoPoint(39.4590,-0.3500),
-        GeoPoint(39.4570,-0.3450), GeoPoint(39.4550,-0.3400), GeoPoint(39.4520,-0.3340),
-        GeoPoint(39.4490,-0.3280),
+    LineData("L10", AndroidColor.rgb(183, 221, 121), path = listOf(
+        GeoPoint(39.464722,-0.377477),
+        GeoPoint(39.463913,-0.369531),
+        GeoPoint(39.459373,-0.365110),
+        GeoPoint(39.452446,-0.360125),
+        GeoPoint(39.452591,-0.353216),
+        GeoPoint(39.452038,-0.347342),
+        GeoPoint(39.450150,-0.338408),
+        GeoPoint(39.449890,-0.334674),
     ), stations = listOf(
         "Alacant" to 0, "Russafa" to 1, "Amado Granell-Montolivet" to 2,
         "Moreres" to 3, "Quatre Carreres" to 4,
@@ -307,7 +670,6 @@ private val metroLines = listOf(
         "Natzaret" to 7,
     ), tram = true),
 )
-
 private val stationPositions = mapOf(
     "Aeroport" to GeoPoint(39.492190, -0.474374),
     "Alacant" to GeoPoint(39.464898, -0.377451),
@@ -474,6 +836,7 @@ private val stationPoints: Map<String, GeoPoint> by lazy {
 fun OSMNetworkMapRoute(
     onBack: () -> Unit,
     onOpenPdf: () -> Unit,
+    viewModel: MapViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
 
@@ -484,26 +847,77 @@ fun OSMNetworkMapRoute(
         }
     }
 
+    val stops by viewModel.stops.collectAsStateWithLifecycle()
+    val alerts by viewModel.alerts.collectAsStateWithLifecycle()
+    val alertedLineNames = remember(alerts) { viewModel.alertedLineNames }
+
     var mapView by remember { mutableStateOf<MapView?>(null) }
-    val visibleLines = remember { mutableStateListOf(*metroLines.map { it.name }.toTypedArray()) }
+    var focusedLine by remember { mutableStateOf<String?>(null) }
     var selectedStation by remember { mutableStateOf<StationInfo?>(null) }
-    var showLegend by remember { mutableStateOf(true) }
+    var showLocation by remember { mutableStateOf(false) }
+    var locationOverlay by remember { mutableStateOf<MyLocationNewOverlay?>(null) }
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { result ->
+        val granted = result[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+            result[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (granted) {
+            showLocation = true
+            mapView?.let { map ->
+                locationOverlay?.let { overlay ->
+                    overlay.enableMyLocation()
+                    overlay.lastFix?.let { fix ->
+                        map.controller.animateTo(GeoPoint(fix.latitude, fix.longitude))
+                    }
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(mapView, focusedLine) {
+        rebuildOverlays(mapView, focusedLine, alertedLineNames) { info ->
+            selectedStation = info
+            mapView?.controller?.animateTo(info.position)
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mapa Metrovalencia") },
+                title = { Text(stringResource(R.string.map_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(coreUiR.string.cd_back))
                     }
                 },
                 actions = {
-                    IconButton(onClick = { showLegend = !showLegend }) {
-                        Icon(Icons.Outlined.Layers, contentDescription = "Leyenda")
+                    IconButton(onClick = {
+                        if (showLocation) {
+                            locationOverlay?.let { overlay ->
+                                overlay.lastFix?.let { fix ->
+                                    mapView?.controller?.animateTo(GeoPoint(fix))
+                                }
+                            }
+                        } else {
+                            locationPermissionLauncher.launch(
+                                arrayOf(
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                                ),
+                            )
+                        }
+                    }) {
+                        Icon(
+                            imageVector = if (showLocation) Icons.Outlined.MyLocation
+                            else Icons.Outlined.LocationOff,
+                            contentDescription = null,
+                            tint = if (showLocation) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                     IconButton(onClick = onOpenPdf) {
-                        Icon(Icons.Outlined.Map, contentDescription = "Plano PDF")
+                        Icon(Icons.Outlined.Map, contentDescription = stringResource(R.string.map_pdf_cd))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -514,83 +928,71 @@ fun OSMNetworkMapRoute(
         bottomBar = {
             Column {
                 selectedStation?.let { info ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Outlined.Info, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
-                                    Spacer(Modifier.width(8.dp))
-                                    Text(info.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                                }
-                                Spacer(Modifier.height(6.dp))
-                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    info.lines.forEach { lineName ->
-                                        val line = metroLines.find { it.name == lineName }
-                                        if (line != null) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(RoundedCornerShape(4.dp))
-                                                    .background(Color(line.color))
-                                                    .padding(horizontal = 8.dp, vertical = 2.dp),
-                                            ) {
-                                                Text(lineName, style = MaterialTheme.typography.labelSmall, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            IconButton(onClick = { selectedStation = null }) {
-                                Icon(Icons.Outlined.Close, contentDescription = "Cerrar")
-                            }
-                        }
-                    }
+                    val stop = remember(info) { viewModel.stopByName(info.name) }
+                    StationArrivalsPanel(
+                        stationInfo = info,
+                        stopId = stop?.id,
+                        viewModel = viewModel,
+                        onClose = { selectedStation = null },
+                    )
                 }
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface)
-                        .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 8.dp, vertical = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.surface,
                 ) {
-                    metroLines.forEach { line ->
-                        val selected = line.name in visibleLines
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(if (selected) Color(line.color).copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant)
-                                .clickable {
-                                    if (selected) {
-                                        visibleLines.remove(line.name)
-                                        removeLineOverlays(mapView, line.color)
-                                    } else {
-                                        visibleLines.add(line.name)
-                                        addLineOverlay(mapView, line)
-                                    }
-                                    mapView?.invalidate()
-                                }
-                                .padding(horizontal = 10.dp, vertical = 6.dp),
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState())
+                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        metroLines.forEach { line ->
+                            val isFocused = focusedLine == line.name
+                            val isDimmed = focusedLine != null && !isFocused
+                            val hasAlert = line.name.removePrefix("L") in
+                                alertedLineNames.map { it.removePrefix("L") }
+
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isFocused) Color(line.color) else Color.Transparent)
+                                    .clickable { focusedLine = if (isFocused) null else line.name }
+                                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(12.dp)
+                                        .size(8.dp)
                                         .clip(CircleShape)
-                                        .background(if (selected) Color(line.color) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)),
+                                        .background(
+                                            if (isDimmed) Color(line.color).copy(alpha = 0.3f)
+                                            else Color(line.color)
+                                        ),
                                 )
-                                Spacer(Modifier.width(4.dp))
-                                Text(line.name, style = MaterialTheme.typography.labelMedium, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal, color = if (selected) Color(line.color) else MaterialTheme.colorScheme.onSurfaceVariant)
+                                Spacer(Modifier.width(5.dp))
+                                Text(
+                                    line.name,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = if (isFocused) FontWeight.Bold else FontWeight.Medium,
+                                    color = when {
+                                        isFocused -> Color.White
+                                        isDimmed -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                                        else -> MaterialTheme.colorScheme.onSurface
+                                    },
+                                )
+                                if (hasAlert) {
+                                    Spacer(Modifier.width(4.dp))
+                                    Icon(
+                                        Icons.Outlined.Warning,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(14.dp),
+                                        tint = if (isFocused) Color.White
+                                        else if (isDimmed) MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
+                                        else MaterialTheme.colorScheme.error,
+                                    )
+                                }
                             }
                         }
                     }
@@ -598,120 +1000,291 @@ fun OSMNetworkMapRoute(
             }
         },
     ) { padding ->
-        Box(
+        AndroidView(
+            factory = { ctx ->
+                MapView(ctx).apply {
+                    setTileSource(TileSourceFactory.MAPNIK)
+                    setMultiTouchControls(true)
+                    setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
+                    controller.setZoom(11.5)
+                    controller.setCenter(GeoPoint(39.47, -0.38))
+
+                    overlays.add(ScaleBarOverlay(this).apply {
+                        setAlignBottom(true)
+                        setAlignRight(true)
+                    })
+
+                    val locOverlay = MyLocationNewOverlay(GpsMyLocationProvider(ctx), this)
+                    overlays.add(locOverlay)
+                    locationOverlay = locOverlay
+
+                    mapView = this
+                }
+            },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
+        )
+    }
+}
+
+@Composable
+private fun StationArrivalsPanel(
+    stationInfo: StationInfo,
+    stopId: String?,
+    viewModel: MapViewModel,
+    onClose: () -> Unit,
+) {
+    val arrivalsLoaded by remember(stopId) {
+        if (stopId != null) {
+            kotlinx.coroutines.flow.flow {
+                emit(false)
+                viewModel.observeArrivals(stopId).collect { emit(true) }
+            }
+        } else {
+            kotlinx.coroutines.flow.flowOf(true)
+        }
+    }.collectAsStateWithLifecycle(initialValue = false)
+
+    val arrivals by remember(stopId) {
+        if (stopId != null) viewModel.observeArrivals(stopId)
+        else kotlinx.coroutines.flow.flowOf(emptyList())
+    }.collectAsStateWithLifecycle(initialValue = emptyList())
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 3.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
-            AndroidView(
-                factory = { ctx ->
-                    MapView(ctx).apply {
-                        setTileSource(TileSourceFactory.MAPNIK)
-                        setMultiTouchControls(true)
-                        setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
-                        controller.setZoom(11.5)
-                        controller.setCenter(GeoPoint(39.47, -0.38))
-
-                        overlays.add(ScaleBarOverlay(this).apply {
-                            setAlignBottom(true)
-                            setAlignRight(true)
-                        })
-
-                        val res = ctx.resources
-                        val density = ctx.resources.displayMetrics.density
-
-                        metroLines.forEach { line ->
-                            addLineOverlay(this, line)
-                            line.stations.forEach { (name, _) ->
-                                val point = stationPoints[name] ?: return@forEach
-                                val linesForStation = stationLines[name] ?: emptyList()
-                                val primaryColor = linesForStation.firstOrNull()
-                                    ?.let { ln -> metroLines.find { it.name == ln }?.color }
-                                    ?: line.color
-                                val lineColors = linesForStation.mapNotNull { ln ->
-                                    metroLines.find { it.name == ln }?.color
-                                }
-                                val lineNumbers = linesForStation.map { it.removePrefix("L") }
-                                overlays.add(Marker(this).apply {
-                                    position = point
-                                    title = name
-                                    snippet = linesForStation.joinToString(",")
-                                    icon = createLineCircleMarker(res, primaryColor, density, lineNumbers, lineColors)
-                                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                                    setOnMarkerClickListener { m, _ ->
-                                        selectedStation = StationInfo(
-                                            name = m.title ?: "",
-                                            lines = linesForStation,
-                                        )
-                                        m.showInfoWindow()
-                                        true
-                                    }
-                                })
-                            }
-                        }
-
-                        mapView = this
-                    }
-                },
-                modifier = Modifier.fillMaxSize(),
-            )
-
-            if (showLegend) {
-                Card(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                        .width(150.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                ) {
-                    Column(modifier = Modifier.padding(10.dp)) {
-                        Text("Líneas", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 6.dp))
-                        metroLines.forEach { line ->
-                            val active = line.name in visibleLines
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 2.dp)) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(10.dp)
-                                        .clip(CircleShape)
-                                        .background(if (active) Color(line.color) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)),
-                                )
-                                Spacer(Modifier.width(6.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        stationInfo.name,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        stationInfo.lines.forEach { lineName ->
+                            val line = metroLines.find { it.name == lineName }
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(Color(line?.color ?: AndroidColor.GRAY))
+                                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                            ) {
                                 Text(
-                                    text = line.name + if (line.tram) " T" else "",
+                                    lineName.removePrefix("L"),
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = if (active) FontWeight.Medium else FontWeight.Normal,
-                                    color = if (active) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
                                 )
                             }
                         }
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                        Text("Toca una estación", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
+                }
+                IconButton(onClick = onClose) {
+                    Icon(Icons.Outlined.Close, contentDescription = stringResource(coreUiR.string.cd_close))
+                }
+            }
+
+            if (stopId == null) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    stringResource(coreUiR.string.arrival_unconfirmed_title),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else if (!arrivalsLoaded) {
+                Spacer(Modifier.height(8.dp))
+                repeat(3) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        SkeletonBox(modifier = Modifier.size(24.dp), cornerRadius = 4.dp)
+                        SkeletonBox(modifier = Modifier.weight(1f).height(14.dp), cornerRadius = 4.dp)
+                        SkeletonBox(modifier = Modifier.width(40.dp).height(14.dp), cornerRadius = 4.dp)
+                    }
+                }
+            } else if (arrivals.isEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Icon(
+                        Icons.Outlined.Schedule,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        stringResource(coreUiR.string.arrival_unconfirmed_title),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            } else {
+                Spacer(Modifier.height(8.dp))
+                arrivals.take(4).forEach { arrival ->
+                    ArrivalRowCompact(arrival)
                 }
             }
         }
     }
 }
 
-private fun addLineOverlay(map: MapView?, line: LineData) {
-    val m = map ?: return
-    val stationPath = line.stations.mapNotNull { (name, _) -> stationPoints[name] }
-    if (stationPath.size < 2) return
-    m.overlays.add(Polyline().apply {
-        outlinePaint.apply {
-            color = line.color
-            strokeWidth = if (line.tram) 5f else 7f
-            isAntiAlias = true
-            alpha = 200
-        }
-        setPoints(stationPath)
-    })
+@Composable
+private fun SkeletonBox(modifier: Modifier, cornerRadius: Dp = 4.dp) {
+    val transition = rememberInfiniteTransition(label = "skeleton")
+    val alpha by transition.animateFloat(
+        initialValue = 0.25f,
+        targetValue = 0.55f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(900, easing = EaseInOut),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "shimmer",
+    )
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(cornerRadius))
+            .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha)),
+    )
 }
 
-private fun removeLineOverlays(map: MapView?, color: Int) {
-    map?.overlays?.removeAll { it is Polyline && it.outlinePaint.color == color }
+@Composable
+private fun ArrivalRowCompact(arrival: Arrival) {
+    val lineColor = arrival.lineColor?.let { Color(it) } ?: MaterialTheme.colorScheme.outline
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(lineColor),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                arrival.lineShortName ?: "",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+        Text(
+            arrival.destination,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+            text = if ((arrival.minutesAway ?: 1) <= 0) stringResource(coreUiR.string.arrival_boarding)
+                   else "${arrival.minutesAway} ${stringResource(coreUiR.string.unit_minutes)}",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = if ((arrival.minutesAway ?: 99) <= 0) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+private fun rebuildOverlays(
+    map: MapView?,
+    focusedLine: String?,
+    alertedLineNames: Set<String>,
+    onStationTap: (StationInfo) -> Unit,
+) {
+    val m = map ?: return
+    val isAnyFocused = focusedLine != null
+
+    m.overlays.retainAll { it is ScaleBarOverlay || it is MyLocationNewOverlay }
+
+    val res = m.context.resources
+    val density = res.displayMetrics.density
+
+    metroLines.forEach { line ->
+        val isFocused = focusedLine == line.name
+        val lineAlpha = when {
+            !isAnyFocused -> 220
+            isFocused -> 255
+            else -> 50
+        }
+        val strokeWidth = when {
+            isFocused -> 10f
+            line.tram -> 5f
+            else -> 7f
+        }
+
+        if (line.path.size >= 2) {
+            m.overlays.add(Polyline().apply {
+                outlinePaint.apply {
+                    color = line.color
+                    this.strokeWidth = strokeWidth
+                    isAntiAlias = true
+                    alpha = lineAlpha
+                }
+                setPoints(line.path)
+            })
+        }
+
+        line.stations.forEach { (name, _) ->
+            val point = stationPoints[name] ?: return@forEach
+            val linesForStation = stationLines[name] ?: emptyList()
+            val stationOnFocused = isAnyFocused && focusedLine in linesForStation
+            val markerAlpha = when {
+                !isAnyFocused -> 1f
+                stationOnFocused -> 1f
+                else -> 0.2f
+            }
+
+            val primaryColor = linesForStation.firstOrNull()
+                ?.let { ln -> metroLines.find { it.name == ln }?.color }
+                ?: line.color
+            val lineColors = linesForStation.mapNotNull { ln ->
+                metroLines.find { it.name == ln }?.color
+            }
+            val lineNumbers = linesForStation.map { it.removePrefix("L") }
+
+            m.overlays.add(Marker(m).apply {
+                position = point
+                title = name
+                snippet = linesForStation.joinToString(", ")
+                icon = createLineCircleMarker(res, primaryColor, density, lineNumbers, lineColors).apply {
+                    alpha = (markerAlpha * 255).toInt()
+                }
+                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                setOnMarkerClickListener { marker, _ ->
+                    onStationTap(StationInfo(
+                        name = marker.title ?: "",
+                        lines = linesForStation,
+                        position = marker.position,
+                    ))
+                    true
+                }
+            })
+        }
+    }
+
+    m.invalidate()
 }
 
 private fun createLineCircleMarker(res: Resources, color: Int, density: Float, lineNumbers: List<String>, lineColors: List<Int>): BitmapDrawable {

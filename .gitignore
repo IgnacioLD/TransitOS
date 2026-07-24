@@ -36,3 +36,4 @@ Thumbs.db
 hon.json
 plan.json
 cookies.txt
+qemu_adb_*.core

@@ -1,22 +1,29 @@
 package app.transitos
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.transitos.core.design.theme.TransitOSTheme
+import app.transitos.core.repository.ThemeMode
+import app.transitos.core.repository.ThemePreference
+import org.koin.android.ext.android.inject
 import org.koin.androidx.compose.KoinAndroidContext
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
+
+    private val themePreference: ThemePreference by inject()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
-            TransitOSTheme {
-                // Binds the application's Koin instance to this Compose tree so
-                // `koinViewModel()` / `koinInject()` resolve explicitly rather
-                // than silently through GlobalContext (which logs a warning on
-                // every access and breaks testability).
+            val themeMode by themePreference.flow.collectAsStateWithLifecycle(
+                initialValue = themePreference.current(),
+            )
+            TransitOSTheme(themeMode = themeMode) {
                 KoinAndroidContext {
                     TransitOSApp()
                 }
