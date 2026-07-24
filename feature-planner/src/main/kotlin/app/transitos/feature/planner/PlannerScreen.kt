@@ -44,6 +44,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -103,6 +106,7 @@ fun PlannerRoute(
         onRemoveRoute = viewModel::removeCurrentRoute,
         onSelectJourney = viewModel::selectJourney,
         onSetArriveBy = viewModel::setArriveBy,
+        onSetTimeMode = viewModel::setTimeMode,
         onOpenMap = onOpenMap,
         modifier = modifier,
     )
@@ -136,6 +140,7 @@ internal fun PlannerScreen(
     onRemoveRoute: () -> Unit = {},
     onSelectJourney: (Int) -> Unit = {},
     onSetArriveBy: (String?) -> Unit = {},
+    onSetTimeMode: (TimeMode) -> Unit = {},
     onOpenMap: () -> Unit = {},
 ) {
     val spacing = LocalSpacing.current
@@ -189,8 +194,10 @@ internal fun PlannerScreen(
 
             item {
                 TravelTimeRow(
-                    arriveBy = state.arriveBy,
-                    onSetArriveBy = onSetArriveBy,
+                    timeMode = state.timeMode,
+                    travelTime = state.travelTime,
+                    onSetTimeMode = onSetTimeMode,
+                    onSetTravelTime = onSetArriveBy,
                 )
             }
 
@@ -406,47 +413,70 @@ private fun DateChipRow(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TravelTimeRow(
-    arriveBy: String?,
-    onSetArriveBy: (String?) -> Unit,
+    timeMode: TimeMode,
+    travelTime: String?,
+    onSetTimeMode: (TimeMode) -> Unit,
+    onSetTravelTime: (String?) -> Unit,
 ) {
     val spacing = LocalSpacing.current
-    var showTimePicker by remember { mutableStateOf(false) }
+    var showTimePicker by rememberSaveable { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        FilterChip(
-            selected = arriveBy == null,
-            onClick = { onSetArriveBy(null) },
-            label = { Text(stringResource(R.string.time_now)) },
-        )
-        FilterChip(
-            selected = arriveBy != null,
-            onClick = { showTimePicker = true },
-            leadingIcon = { Icon(Icons.Outlined.Schedule, contentDescription = null, modifier = Modifier.size(18.dp)) },
-            label = {
-                Text(
-                    if (arriveBy != null) arriveBy
-                    else stringResource(R.string.time_choose),
-                )
-            },
-        )
-        if (arriveBy != null) {
-            IconButton(onClick = { onSetArriveBy(null) }) {
-                Icon(
-                    Icons.Outlined.Close,
-                    contentDescription = stringResource(R.string.planner_clear_arrival_cd),
-                    modifier = Modifier.size(18.dp),
-                )
+    Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            SegmentedButton(
+                selected = timeMode == TimeMode.DEPARTURE,
+                onClick = { onSetTimeMode(TimeMode.DEPARTURE) },
+                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+            ) {
+                Text(stringResource(R.string.time_departure))
+            }
+            SegmentedButton(
+                selected = timeMode == TimeMode.ARRIVAL,
+                onClick = { onSetTimeMode(TimeMode.ARRIVAL) },
+                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+            ) {
+                Text(stringResource(R.string.time_arrival))
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            FilterChip(
+                selected = travelTime == null,
+                onClick = { onSetTravelTime(null) },
+                label = { Text(stringResource(R.string.time_now)) },
+            )
+            FilterChip(
+                selected = travelTime != null,
+                onClick = { showTimePicker = true },
+                leadingIcon = { Icon(Icons.Outlined.Schedule, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                label = {
+                    Text(
+                        if (travelTime != null) travelTime
+                        else stringResource(R.string.time_choose),
+                    )
+                },
+            )
+            if (travelTime != null) {
+                IconButton(onClick = { onSetTravelTime(null) }) {
+                    Icon(
+                        Icons.Outlined.Close,
+                        contentDescription = stringResource(R.string.planner_clear_arrival_cd),
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
             }
         }
     }
 
     if (showTimePicker) {
-        val initialHour = arriveBy?.substringBefore(":")?.toIntOrNull() ?: java.time.LocalTime.now().hour
-        val initialMinute = arriveBy?.substringAfter(":")?.toIntOrNull() ?: java.time.LocalTime.now().minute
+        val initialHour = travelTime?.substringBefore(":")?.toIntOrNull()
+            ?: java.time.LocalTime.now().hour
+        val initialMinute = travelTime?.substringAfter(":")?.toIntOrNull()
+            ?: java.time.LocalTime.now().minute
         val timePickerState = rememberTimePickerState(
             initialHour = initialHour,
             initialMinute = initialMinute,
@@ -454,7 +484,14 @@ private fun TravelTimeRow(
         )
         AlertDialog(
             onDismissRequest = { showTimePicker = false },
-            title = { Text(stringResource(R.string.planner_arrival_time_title)) },
+            title = {
+                Text(
+                    if (timeMode == TimeMode.ARRIVAL)
+                        stringResource(R.string.planner_arrival_time_title)
+                    else
+                        stringResource(R.string.planner_departure_time_title),
+                )
+            },
             text = {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -467,7 +504,7 @@ private fun TravelTimeRow(
                 TextButton(onClick = {
                     val h = timePickerState.hour.toString().padStart(2, '0')
                     val m = timePickerState.minute.toString().padStart(2, '0')
-                    onSetArriveBy("$h:$m")
+                    onSetTravelTime("$h:$m")
                     showTimePicker = false
                 }) { Text(stringResource(coreUiR.string.action_accept)) }
             },

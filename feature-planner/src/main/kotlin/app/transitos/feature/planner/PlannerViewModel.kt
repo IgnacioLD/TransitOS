@@ -52,7 +52,12 @@ class PlannerViewModel(
     }
 
     fun setArriveBy(time: String?) {
-        _state.update { it.copy(arriveBy = time) }
+        _state.update { it.copy(travelTime = time) }
+        planIfReady()
+    }
+
+    fun setTimeMode(mode: TimeMode) {
+        _state.update { it.copy(timeMode = mode) }
         planIfReady()
     }
 
@@ -109,7 +114,7 @@ class PlannerViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isPlanning = true, errorMessage = null) }
             val result = runCatching {
-                repository.planJourney(origin.id, destination.id, current.date, current.arriveBy)
+                repository.planJourney(origin.id, destination.id, current.date, current.travelTime)
             }
             _state.update { s ->
                 val journeys = result.getOrDefault(emptyList())

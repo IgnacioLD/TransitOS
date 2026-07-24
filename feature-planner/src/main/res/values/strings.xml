@@ -17,7 +17,8 @@
     <string name="planner_arrival">Llegada</string>
     <string name="planner_arrival_hint">Pulsar para establecer hora de llegada</string>
     <string name="planner_arrival_time_title">Hora de llegada</string>
-    <string name="planner_clear_arrival_cd">Quitar hora de llegada</string>
+    <string name="planner_departure_time_title">Hora de salida</string>
+    <string name="planner_clear_arrival_cd">Quitar hora</string>
     <string name="planner_select_cd">Seleccionar</string>
     <string name="planner_hint">Elige origen y destino para ver horarios, primer y último tren.</string>
     <string name="planner_first_departure">Primero</string>
@@ -33,6 +34,8 @@
     <string name="planner_first_train">Primero: %1$s</string>
     <string name="time_now">Ahora</string>
     <string name="time_choose">Elegir hora</string>
+    <string name="time_departure">Salida</string>
+    <string name="time_arrival">Llegada</string>
     <string name="planner_distance">Distancia</string>
     <string name="planner_fare">Tarifa</string>
     <string name="planner_fare_zone">Zona %1$s</string>

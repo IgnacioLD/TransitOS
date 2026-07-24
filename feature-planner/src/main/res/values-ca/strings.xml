@@ -17,7 +17,8 @@
     <string name="planner_arrival">Arribada</string>
     <string name="planner_arrival_hint">Polsa per a establir hora d\'arribada</string>
     <string name="planner_arrival_time_title">Hora d\'arribada</string>
-    <string name="planner_clear_arrival_cd">Traure hora d\'arribada</string>
+    <string name="planner_departure_time_title">Hora d\'eixida</string>
+    <string name="planner_clear_arrival_cd">Traure hora</string>
     <string name="planner_select_cd">Seleccionar</string>
     <string name="planner_hint">Tria origen i destí per a veure horaris, primer i últim tren.</string>
     <string name="planner_first_departure">Primer</string>
@@ -33,6 +34,8 @@
     <string name="planner_first_train">Primer: %1$s</string>
     <string name="time_now">Ara</string>
     <string name="time_choose">Tria hora</string>
+    <string name="time_departure">Eixida</string>
+    <string name="time_arrival">Arribada</string>
     <string name="planner_distance">Distància</string>
     <string name="planner_fare">Tarifa</string>
     <string name="planner_fare_zone">Zona %1$s</string>
