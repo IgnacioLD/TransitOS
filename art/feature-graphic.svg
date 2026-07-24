@@ -1,93 +1,113 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 500" width="1024" height="500">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#00A896"/>
-      <stop offset="50%" stop-color="#007A6E"/>
-      <stop offset="100%" stop-color="#005A50"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00897B"/>
+      <stop offset="100%" stop-color="#004D40"/>
     </linearGradient>
-    <linearGradient id="bg2" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#00C4A7"/>
-      <stop offset="100%" stop-color="#00A896"/>
+    <linearGradient id="iconShine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00695C"/>
+      <stop offset="100%" stop-color="#004D40"/>
     </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+      <feOffset dx="0" dy="6" result="offsetblur"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
   </defs>
 
-  <!-- Bright teal background -->
+  <!-- Background -->
   <rect width="1024" height="500" fill="url(#bg)"/>
 
-  <!-- Colorful Metrovalencia line stripes across the bottom -->
-  <rect x="0" y="450" width="205" height="50" fill="#FEC601"/>
-  <rect x="205" y="450" width="205" height="50" fill="#E60096"/>
-  <rect x="410" y="450" width="205" height="50" fill="#DD052C"/>
-  <rect x="615" y="450" width="205" height="50" fill="#014A99"/>
-  <rect x="820" y="450" width="204" height="50" fill="#008F71"/>
-
-  <!-- Accent shapes -->
-  <ellipse cx="900" cy="80" rx="300" ry="200" fill="#FFFFFF" opacity="0.05"/>
-  <ellipse cx="100" cy="400" rx="250" ry="180" fill="#000000" opacity="0.08"/>
-  <circle cx="920" cy="60" r="150" fill="#00FFD1" opacity="0.08"/>
-
-  <!-- Route line decorations -->
-  <g stroke="#FFFFFF" stroke-opacity="0.15" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-    <polyline points="60,80 160,80 160,180 300,180 300,280"/>
-    <circle cx="60" cy="80" r="6" fill="#FFFFFF" fill-opacity="0.3"/>
-    <circle cx="300" cy="280" r="6" fill="#FFFFFF" fill-opacity="0.3"/>
-    <polyline points="400,300 500,300 500,200 650,200 650,100"/>
-    <circle cx="400" cy="300" r="6" fill="#FFFFFF" fill-opacity="0.3"/>
-    <circle cx="650" cy="100" r="6" fill="#FFFFFF" fill-opacity="0.3"/>
+  <!-- Diagonal accent stripes (Metrovalencia line colors) -->
+  <g opacity="0.12">
+    <polygon points="0,0 120,0 0,120" fill="#FEC601"/>
+    <polygon points="120,0 240,0 0,240 0,120" fill="#E60096"/>
+    <polygon points="240,0 360,0 0,360 0,240" fill="#DD052C"/>
+    <polygon points="900,500 1024,500 1024,380" fill="#014A99"/>
+    <polygon points="780,500 900,500 1024,380 1024,260" fill="#008F71"/>
   </g>
 
-  <!-- Icon -->
-  <g transform="translate(72, 72)">
-    <rect width="160" height="160" rx="38" fill="#005A50"/>
+  <!-- Route line decorations -->
+  <g stroke="#FFFFFF" stroke-opacity="0.1" stroke-width="2.5" fill="none" stroke-linecap="round">
+    <path d="M 400,420 Q 500,420 500,350 Q 500,280 600,280 Q 700,280 700,200 Q 700,120 800,120"/>
+    <circle cx="400" cy="420" r="5" fill="#FFFFFF" fill-opacity="0.15"/>
+    <circle cx="500" cy="350" r="5" fill="#FFFFFF" fill-opacity="0.15"/>
+    <circle cx="600" cy="280" r="5" fill="#FFFFFF" fill-opacity="0.15"/>
+    <circle cx="700" cy="200" r="5" fill="#FFFFFF" fill-opacity="0.15"/>
+    <circle cx="800" cy="120" r="5" fill="#FFFFFF" fill-opacity="0.15"/>
+  </g>
+
+  <!-- Glow behind icon -->
+  <circle cx="156" cy="250" r="120" fill="#00E5C7" opacity="0.1"/>
+
+  <!-- ===== LEFT: Icon + Brand ===== -->
+
+  <!-- App icon -->
+  <g transform="translate(76, 170)" filter="url(#shadow)">
+    <rect width="160" height="160" rx="38" fill="url(#iconShine)"/>
+    <!-- Train body -->
     <path d="M28,44 Q28,34 38,34 L122,34 Q132,34 132,44 L132,102 Q132,108 126,108 L34,108 Q28,108 28,102 Z" fill="#FFFFFF"/>
+    <!-- Windshield -->
     <path d="M34,46 L126,46 L126,72 Q126,78 120,78 L40,78 Q34,78 34,72 Z" fill="#1B4332"/>
+    <!-- Pillars -->
     <rect x="56" y="46" width="8" height="32" fill="#FFFFFF"/>
     <rect x="96" y="46" width="8" height="32" fill="#FFFFFF"/>
+    <!-- Headlights -->
     <circle cx="42" cy="92" r="8" fill="#FFD700"/>
     <circle cx="118" cy="92" r="8" fill="#FFD700"/>
+    <!-- Bumper -->
     <path d="M34,108 L126,108 L126,112 Q126,118 120,118 L40,118 Q34,118 34,112 Z" fill="#FFFFFF"/>
   </g>
 
   <!-- Title -->
-  <text x="256" y="130" font-family="Inter, sans-serif" font-size="68" font-weight="800" fill="#FFFFFF" letter-spacing="-0.02em">TransitOS</text>
+  <text x="76" y="395" font-family="Inter, sans-serif" font-size="56" font-weight="800" fill="#FFFFFF" letter-spacing="-0.02em">TransitOS</text>
 
   <!-- Tagline -->
-  <text x="256" y="175" font-family="Inter, sans-serif" font-size="24" font-weight="600" fill="#FFFFFF" fill-opacity="0.85">Real-time public transport · Open source</text>
+  <text x="76" y="432" font-family="Inter, sans-serif" font-size="20" font-weight="500" fill="#FFFFFF" fill-opacity="0.7">Real-time public transport planner</text>
 
-  <!-- Feature bullets -->
-  <g transform="translate(256, 210)" font-family="Inter, sans-serif" font-size="15" font-weight="600">
-    <circle cx="6" cy="-3" r="4" fill="#FFD700"/>
-    <text x="18" y="0" fill="#FFFFFF" fill-opacity="0.85">Real line colors for all Metrovalencia lines</text>
+  <!-- ===== RIGHT: Feature highlights ===== -->
 
-    <circle cx="6" cy="27" r="4" fill="#FFD700"/>
-    <text x="18" y="30" fill="#FFFFFF" fill-opacity="0.85">Trip planner with configurable transfer buffer</text>
-
-    <circle cx="6" cy="57" r="4" fill="#FFD700"/>
-    <text x="18" y="60" fill="#FFFFFF" fill-opacity="0.85">Save favorite routes · Live alerts · Network map</text>
-
-    <circle cx="6" cy="87" r="4" fill="#FFD700"/>
-    <text x="18" y="90" fill="#FFFFFF" fill-opacity="0.85">Dark mode with AMOLED black · Multi-language</text>
+  <!-- Feature 1 -->
+  <g transform="translate(400, 80)">
+    <rect x="0" y="0" width="548" height="76" rx="16" fill="#FFFFFF" fill-opacity="0.08"/>
+    <circle cx="38" cy="38" r="18" fill="#FEC601"/>
+    <text x="38" y="44" font-family="Inter, sans-serif" font-size="18" font-weight="800" fill="#004D40" text-anchor="middle">L1</text>
+    <text x="72" y="32" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Real line colors</text>
+    <text x="72" y="56" font-family="Inter, sans-serif" font-size="16" font-weight="400" fill="#FFFFFF" fill-opacity="0.6">All 10 Metrovalencia lines with their official FGV colors</text>
   </g>
 
-  <!-- Bottom badge row -->
-  <g transform="translate(256, 340)">
-    <rect x="0" y="0" width="130" height="36" rx="18" fill="#FFFFFF" fill-opacity="0.15"/>
-    <text x="65" y="24" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle">NO TRACKING</text>
-
-    <rect x="142" y="0" width="80" height="36" rx="18" fill="#FFFFFF" fill-opacity="0.15"/>
-    <text x="182" y="24" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle">NO ADS</text>
-
-    <rect x="234" y="0" width="130" height="36" rx="18" fill="#FFFFFF" fill-opacity="0.15"/>
-    <text x="299" y="24" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle">OPEN SOURCE</text>
+  <!-- Feature 2 -->
+  <g transform="translate(400, 172)">
+    <rect x="0" y="0" width="548" height="76" rx="16" fill="#FFFFFF" fill-opacity="0.08"/>
+    <circle cx="38" cy="38" r="18" fill="#E60096"/>
+    <text x="38" y="44" font-family="Inter, sans-serif" font-size="18" font-weight="800" fill="#FFFFFF" text-anchor="middle">L2</text>
+    <text x="72" y="32" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Privacy-first</text>
+    <text x="72" y="56" font-family="Inter, sans-serif" font-size="16" font-weight="400" fill="#FFFFFF" fill-opacity="0.6">No analytics, no tracking, no ads. Your data stays on your device</text>
   </g>
 
-  <!-- Google Play badge -->
-  <g transform="translate(820, 20)">
-    <rect x="0" y="0" width="170" height="56" rx="12" fill="#000000" fill-opacity="0.5"/>
-    <text x="85" y="22" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#FFFFFF" fill-opacity="0.7" text-anchor="middle">GET IT ON</text>
-    <text x="85" y="43" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF" text-anchor="middle">Google Play</text>
+  <!-- Feature 3 -->
+  <g transform="translate(400, 264)">
+    <rect x="0" y="0" width="548" height="76" rx="16" fill="#FFFFFF" fill-opacity="0.08"/>
+    <circle cx="38" cy="38" r="18" fill="#014A99"/>
+    <text x="38" y="44" font-family="Inter, sans-serif" font-size="18" font-weight="800" fill="#FFFFFF" text-anchor="middle">L4</text>
+    <text x="72" y="32" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Dark mode &amp; AMOLED</text>
+    <text x="72" y="56" font-family="Inter, sans-serif" font-size="16" font-weight="400" fill="#FFFFFF" fill-opacity="0.6">Pure black AMOLED, transfer buffer, multi-language support</text>
   </g>
 
-  <!-- Bottom text overlay on stripe -->
-  <text x="512" y="432" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#FFFFFF" fill-opacity="0.8" text-anchor="middle">Free and open source software · AGPL-3.0 · github.com/IgnacioLD/TransitOS</text>
+  <!-- Feature 4 -->
+  <g transform="translate(400, 356)">
+    <rect x="0" y="0" width="548" height="76" rx="16" fill="#FFFFFF" fill-opacity="0.08"/>
+    <circle cx="38" cy="38" r="18" fill="#008F71"/>
+    <text x="38" y="44" font-family="Inter, sans-serif" font-size="18" font-weight="800" fill="#FFFFFF" text-anchor="middle">L5</text>
+    <text x="72" y="32" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Open source · AGPL-3.0</text>
+    <text x="72" y="56" font-family="Inter, sans-serif" font-size="16" font-weight="400" fill="#FFFFFF" fill-opacity="0.6">Free forever. Audit it, fork it, contribute on GitHub</text>
+  </g>
+
+  <!-- Google Play badge - top right -->
+  <g transform="translate(830, 20)">
+    <rect x="0" y="0" width="170" height="48" rx="10" fill="#000000" fill-opacity="0.4"/>
+    <text x="85" y="19" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="#FFFFFF" fill-opacity="0.6" text-anchor="middle">GET IT ON</text>
+    <text x="85" y="38" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF" text-anchor="middle">Google Play</text>
+  </g>
 </svg>
