@@ -72,36 +72,36 @@
   <g transform="translate(400, 80)">
     <rect x="0" y="0" width="548" height="76" rx="16" fill="#FFFFFF" fill-opacity="0.08"/>
     <circle cx="38" cy="38" r="18" fill="#FEC601"/>
-    <text x="38" y="44" font-family="Inter, sans-serif" font-size="18" font-weight="800" fill="#004D40" text-anchor="middle">L1</text>
-    <text x="72" y="32" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Real line colors</text>
-    <text x="72" y="56" font-family="Inter, sans-serif" font-size="16" font-weight="400" fill="#FFFFFF" fill-opacity="0.6">All 10 Metrovalencia lines with their official FGV colors</text>
+    <text x="38" y="43" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#004D40" text-anchor="middle">01</text>
+    <text x="72" y="32" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Real-time Planner</text>
+    <text x="72" y="56" font-family="Inter, sans-serif" font-size="15" font-weight="400" fill="#FFFFFF" fill-opacity="0.6">Departure and arrival-based trip planning with exact times and station details</text>
   </g>
 
   <!-- Feature 2 -->
   <g transform="translate(400, 172)">
     <rect x="0" y="0" width="548" height="76" rx="16" fill="#FFFFFF" fill-opacity="0.08"/>
     <circle cx="38" cy="38" r="18" fill="#E60096"/>
-    <text x="38" y="44" font-family="Inter, sans-serif" font-size="18" font-weight="800" fill="#FFFFFF" text-anchor="middle">L2</text>
+    <text x="38" y="43" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#FFFFFF" text-anchor="middle">02</text>
     <text x="72" y="32" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Privacy-first</text>
-    <text x="72" y="56" font-family="Inter, sans-serif" font-size="16" font-weight="400" fill="#FFFFFF" fill-opacity="0.6">No analytics, no tracking, no ads. Your data stays on your device</text>
+    <text x="72" y="56" font-family="Inter, sans-serif" font-size="15" font-weight="400" fill="#FFFFFF" fill-opacity="0.6">No analytics, no tracking, no ads. Location data stays on your device</text>
   </g>
 
   <!-- Feature 3 -->
   <g transform="translate(400, 264)">
     <rect x="0" y="0" width="548" height="76" rx="16" fill="#FFFFFF" fill-opacity="0.08"/>
-    <circle cx="38" cy="38" r="18" fill="#014A99"/>
-    <text x="38" y="44" font-family="Inter, sans-serif" font-size="18" font-weight="800" fill="#FFFFFF" text-anchor="middle">L4</text>
-    <text x="72" y="32" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Dark mode &amp; AMOLED</text>
-    <text x="72" y="56" font-family="Inter, sans-serif" font-size="16" font-weight="400" fill="#FFFFFF" fill-opacity="0.6">Pure black AMOLED, transfer buffer, multi-language support</text>
+    <circle cx="38" cy="38" r="18" fill="#DD052C"/>
+    <text x="38" y="43" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#FFFFFF" text-anchor="middle">03</text>
+    <text x="72" y="32" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Favorites &amp; Labels</text>
+    <text x="72" y="56" font-family="Inter, sans-serif" font-size="15" font-weight="400" fill="#FFFFFF" fill-opacity="0.6">Save frequent routes with custom labels. Quick access to your daily commute</text>
   </g>
 
   <!-- Feature 4 -->
   <g transform="translate(400, 356)">
     <rect x="0" y="0" width="548" height="76" rx="16" fill="#FFFFFF" fill-opacity="0.08"/>
-    <circle cx="38" cy="38" r="18" fill="#008F71"/>
-    <text x="38" y="44" font-family="Inter, sans-serif" font-size="18" font-weight="800" fill="#FFFFFF" text-anchor="middle">L5</text>
-    <text x="72" y="32" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Open source · AGPL-3.0</text>
-    <text x="72" y="56" font-family="Inter, sans-serif" font-size="16" font-weight="400" fill="#FFFFFF" fill-opacity="0.6">Free forever. Audit it, fork it, contribute on GitHub</text>
+    <circle cx="38" cy="38" r="18" fill="#014A99"/>
+    <text x="38" y="43" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#FFFFFF" text-anchor="middle">04</text>
+    <text x="72" y="32" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Transfer Buffer</text>
+    <text x="72" y="56" font-family="Inter, sans-serif" font-size="15" font-weight="400" fill="#FFFFFF" fill-opacity="0.6">Set your minimum transfer time (0-15 min). Perfect for cautious travelers</text>
   </g>
 
   <!-- Google Play badge - top right -->
