@@ -6,27 +6,15 @@
     </linearGradient>
   </defs>
 
-  <!-- Background -->
   <rect width="512" height="512" rx="128" fill="url(#bg)"/>
 
-  <!-- Train body -->
-  <path d="M96,136 Q96,104 128,104 L384,104 Q416,104 416,136 L416,288 Q416,304 400,304 L112,304 Q96,304 96,288 Z" fill="#FFFFFF"/>
-
-  <!-- Windshield -->
-  <path d="M120,136 L392,136 L392,192 Q392,208 376,208 L136,208 Q120,208 120,192 Z" fill="#1B4332"/>
-
-  <!-- Window pillar left -->
-  <rect x="176" y="136" width="12" height="72" fill="#FFFFFF"/>
-
-  <!-- Window pillar right -->
-  <rect x="324" y="136" width="12" height="72" fill="#FFFFFF"/>
-
-  <!-- Headlight left -->
-  <circle cx="136" cy="248" r="20" fill="#FFD700"/>
-
-  <!-- Headlight right -->
-  <circle cx="376" cy="248" r="20" fill="#FFD700"/>
-
-  <!-- Bumper -->
-  <path d="M112,304 L400,304 L400,318 Q400,334 384,334 L128,334 Q112,334 112,318 Z" fill="#FFFFFF"/>
+  <!-- Canvas center is 256,256. Train: 128w x 196h. Center at 256,260 -->
+  <g transform="translate(0,8)">
+    <path d="M192,152 Q192,120 224,120 L288,120 Q320,120 320,152 L320,316 Q320,332 304,332 L208,332 Q192,332 192,316 Z" fill="#FFFFFF"/>
+    <path d="M216,152 L296,152 L296,214 Q296,230 280,230 L232,230 Q216,230 216,214 Z" fill="#1B4332"/>
+    <rect x="248" y="152" width="16" height="78" fill="#FFFFFF"/>
+    <circle cx="224" cy="270" r="22" fill="#FFD700"/>
+    <circle cx="288" cy="270" r="22" fill="#FFD700"/>
+    <path d="M208,332 L304,332 L304,346 Q304,362 288,362 L224,362 Q208,362 208,346 Z" fill="#FFFFFF"/>
+  </g>
 </svg>
