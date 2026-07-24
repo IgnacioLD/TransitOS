@@ -900,7 +900,14 @@ fun OSMNetworkMapRoute(
     LaunchedEffect(mapView, focusedLine) {
         rebuildOverlays(mapView, focusedLine, alertedLineNames) { info ->
             selectedStation = info
-            mapView?.controller?.animateTo(info.position)
+            mapView?.let { map ->
+                if (map.zoomLevelDouble < 15) {
+                    map.controller.setZoom(15.5)
+                    map.controller.animateTo(info.position)
+                } else {
+                    map.controller.animateTo(info.position)
+                }
+            }
         }
     }
 
@@ -958,14 +965,20 @@ fun OSMNetworkMapRoute(
         },
         bottomBar = {
             Column {
-                selectedStation?.let { info ->
-                    val stop = remember(info) { viewModel.stopByName(info.name) }
-                    StationArrivalsPanel(
-                        stationInfo = info,
-                        stopId = stop?.id,
-                        viewModel = viewModel,
-                        onClose = { selectedStation = null },
-                    )
+                AnimatedVisibility(
+                    visible = selectedStation != null,
+                    enter = slideInVertically { it } + androidx.compose.animation.fadeIn(),
+                    exit = slideOutVertically { it } + androidx.compose.animation.fadeOut(),
+                ) {
+                    selectedStation?.let { info ->
+                        val stop = remember(info) { viewModel.stopByName(info.name) }
+                        StationArrivalsPanel(
+                            stationInfo = info,
+                            stopId = stop?.id,
+                            viewModel = viewModel,
+                            onClose = { selectedStation = null },
+                        )
+                    }
                 }
 
                 Surface(
@@ -1072,7 +1085,14 @@ fun OSMNetworkMapRoute(
                                 lines = lines,
                                 position = pos,
                             )
-                            mapView?.controller?.animateTo(pos)
+                            mapView?.let { map ->
+                                if (map.zoomLevelDouble < 15) {
+                                    map.controller.setZoom(15.5)
+                                    map.controller.animateTo(pos)
+                                } else {
+                                    map.controller.animateTo(pos)
+                                }
+                            }
                         },
                     shape = RoundedCornerShape(20.dp),
                     color = MaterialTheme.colorScheme.surface,
