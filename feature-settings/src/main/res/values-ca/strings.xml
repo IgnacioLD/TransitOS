@@ -10,4 +10,9 @@
     <string name="theme_light">Clar</string>
     <string name="theme_dark">Fosc</string>
     <string name="theme_amoled">Negre AMOLED</string>
+    <string name="about_title">Quant a</string>
+    <string name="about_version">Versió %1$s</string>
+    <string name="about_privacy">Privacitat</string>
+    <string name="about_privacy_desc">TransitOS no recull dades personals.</string>
+    <string name="about_source">Codi font</string>
 </resources>

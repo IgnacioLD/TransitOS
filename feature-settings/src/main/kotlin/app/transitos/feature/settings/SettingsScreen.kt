@@ -1,5 +1,7 @@
 package app.transitos.feature.settings
 
+import android.content.Intent
+import android.net.Uri
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,19 +14,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.DarkMode
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LightMode
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.SettingsBrightness
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -32,12 +33,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.transitos.core.design.theme.LocalSpacing
-import app.transitos.core.provider.ProviderInfo
 import app.transitos.core.repository.ThemeMode
 import app.transitos.core.ui.SectionHeader
 import org.koin.androidx.compose.koinViewModel
@@ -47,11 +49,8 @@ fun SettingsRoute(
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     SettingsScreen(
-        state = state,
-        onBackendChange = viewModel::setBackend,
         currentLanguage = viewModel.currentLanguage,
         onLanguageChange = { lang ->
             viewModel.setLanguage(lang)
@@ -68,8 +67,6 @@ fun SettingsRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SettingsScreen(
-    state: SettingsUiState,
-    onBackendChange: (providerId: String, backendId: String) -> Unit,
     currentLanguage: String,
     onLanguageChange: (String) -> Unit,
     currentTheme: ThemeMode,
@@ -111,24 +108,9 @@ internal fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(spacing.lg))
 
-            SectionHeader(stringResource(R.string.settings_providers))
-
-            if (state.providers.isEmpty()) {
-                EmptyProviders(modifier = Modifier.padding(horizontal = spacing.screenGutter))
-            } else {
-                state.providers.forEach { provider ->
-                    ProviderSection(
-                        provider = provider,
-                        selectedBackendId = state.backends[provider.id]?.id,
-                        onBackendChange = { backendId -> onBackendChange(provider.id, backendId) },
-                        modifier = Modifier.padding(
-                            start = spacing.screenGutter,
-                            end = spacing.screenGutter,
-                            bottom = spacing.md,
-                        ),
-                    )
-                }
-            }
+            AboutSection(
+                modifier = Modifier.padding(horizontal = spacing.screenGutter),
+            )
 
             Spacer(modifier = Modifier.height(spacing.xxl))
         }
@@ -292,62 +274,91 @@ private fun ThemeOption(
 }
 
 @Composable
-private fun ProviderSection(
-    provider: ProviderInfo,
-    selectedBackendId: String?,
-    onBackendChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun AboutSection(modifier: Modifier = Modifier) {
+    val spacing = LocalSpacing.current
+    val context = LocalContext.current
+
     Column(modifier = modifier.fillMaxWidth()) {
+        SectionHeader(stringResource(R.string.about_title))
+
+        Spacer(modifier = Modifier.height(spacing.xs))
+
         Text(
-            text = provider.name,
+            text = "TransitOS",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
         )
-
-        Spacer(modifier = Modifier.height(LocalSpacing.current.xs))
-
         Text(
-            text = stringResource(R.string.settings_data_source),
-            style = MaterialTheme.typography.bodyMedium,
+            text = stringResource(R.string.about_version, "1.0.0"),
+            style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        Spacer(modifier = Modifier.height(LocalSpacing.current.xs))
+        Spacer(modifier = Modifier.height(spacing.md))
+        HorizontalDivider()
+        Spacer(modifier = Modifier.height(spacing.md))
 
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            provider.backends.forEachIndexed { index, backend ->
-                SegmentedButton(
-                    selected = backend.id == selectedBackendId,
-                    onClick = { onBackendChange(backend.id) },
-                    shape = SegmentedButtonDefaults.itemShape(
-                        index = index,
-                        count = provider.backends.size,
-                    ),
-                ) {
-                    Text(backend.displayName)
-                }
-            }
-        }
+        AboutRow(
+            icon = Icons.Outlined.Lock,
+            title = stringResource(R.string.about_privacy),
+            subtitle = stringResource(R.string.about_privacy_desc),
+            onClick = {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nade/TransitOS/blob/main/PRIVACY.md"))
+                context.startActivity(intent)
+            },
+        )
+
+        Spacer(modifier = Modifier.height(spacing.md))
+
+        AboutRow(
+            icon = Icons.Outlined.Code,
+            title = stringResource(R.string.about_source),
+            subtitle = "AGPL-3.0",
+            onClick = {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nade/TransitOS"))
+                context.startActivity(intent)
+            },
+        )
     }
 }
 
 @Composable
-private fun EmptyProviders(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(LocalSpacing.current.sm),
+private fun AboutRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+) {
+    androidx.compose.material3.Surface(
+        onClick = onClick,
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        Icon(
-            imageVector = Icons.Outlined.Info,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = stringResource(R.string.settings_no_providers),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = LocalSpacing.current.md),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(LocalSpacing.current.md),
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
 }
