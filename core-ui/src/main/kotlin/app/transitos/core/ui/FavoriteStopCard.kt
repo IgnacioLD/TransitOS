@@ -209,7 +209,7 @@ private fun ArrivalRow(
 @Composable
 private fun ArrivalMinutes(arrival: Arrival, emphasized: Boolean) {
     val minutes = arrival.minutesAway
-    val value = if (minutes != null && minutes <= 0) "·" else minutes?.toString() ?: "—"
+    val value = if (minutes != null && minutes <= 0) "Próximo" else minutes?.toString() ?: "—"
     Row(
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -220,12 +220,14 @@ private fun ArrivalMinutes(arrival: Arrival, emphasized: Boolean) {
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface,
         )
-        Text(
-            text = "min",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 4.dp),
-        )
+        if (value != "Próximo") {
+            Text(
+                text = "min",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 4.dp),
+            )
+        }
     }
 }
 
