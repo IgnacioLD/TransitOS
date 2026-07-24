@@ -1,11 +1,15 @@
 package app.transitos.map
 
 import android.app.DownloadManager
+import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Bitmap.Config
 import android.graphics.pdf.PdfRenderer
+import android.os.Build
+import android.os.Environment
 import android.os.ParcelFileDescriptor
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -219,16 +223,27 @@ private fun savePdfToDownloads(context: Context): Boolean {
                 cacheFile.outputStream().use { output -> input.copyTo(output) }
             }
         }
-        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        dm.addCompletedDownload(
-            "Plano Metrovalencia",
-            "Plano de red Metrovalencia",
-            true,
-            "application/pdf",
-            cacheFile.absolutePath,
-            cacheFile.length(),
-            true,
-        )
+        val fileName = "Plano-Metrovalencia.pdf"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val resolver = context.contentResolver
+            val values = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+            }
+            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                ?: return false
+            resolver.openOutputStream(uri)?.use { output ->
+                cacheFile.inputStream().use { input -> input.copyTo(output) }
+            } ?: return false
+        } else {
+            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            downloadsDir.mkdirs()
+            val destFile = File(downloadsDir, fileName)
+            cacheFile.inputStream().use { input ->
+                destFile.outputStream().use { output -> input.copyTo(output) }
+            }
+        }
         true
     } catch (e: Exception) {
         false
