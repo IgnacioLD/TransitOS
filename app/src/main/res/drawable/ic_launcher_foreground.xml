@@ -5,39 +5,39 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Canvas center is 54,54. Train: 28dp wide x 42dp tall, centered. -->
-    <group android:translateY="2">
+    <!-- Train body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M26,36 Q26,28 34,28 L74,28 Q82,28 82,36 L82,68 Q82,72 78,72 L30,72 Q26,72 26,68 Z" />
 
-        <!-- Train body: centered at 54, center of body at 54,56 -->
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M40,28 Q40,20 47,20 L61,20 Q68,20 68,28 L68,68 Q68,72 64,72 L44,72 Q40,72 40,68 Z" />
+    <!-- Windshield -->
+    <path
+        android:fillColor="#1B4332"
+        android:pathData="M32,36 L76,36 L76,48 Q76,52 72,52 L36,52 Q32,52 32,48 Z" />
 
-        <!-- Windshield -->
-        <path
-            android:fillColor="#1B4332"
-            android:pathData="M45,28 L63,28 L63,42 Q63,45 59,45 L49,45 Q45,45 45,42 Z" />
+    <!-- Window pillar left -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M44,36 L47,36 L47,52 L44,52 Z" />
 
-        <!-- Center pillar -->
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M52,28 L56,28 L56,46 L52,46 Z" />
+    <!-- Window pillar right -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M61,36 L64,36 L64,52 L61,52 Z" />
 
-        <!-- Left headlight -->
-        <path
-            android:fillColor="#FFD700"
-            android:pathData="M46,58 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
+    <!-- Headlight left -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M34,60 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
 
-        <!-- Right headlight -->
-        <path
-            android:fillColor="#FFD700"
-            android:pathData="M62,58 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
+    <!-- Headlight right -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M74,60 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
 
-        <!-- Bumper -->
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M44,72 L64,72 L64,75 Q64,78 60,78 L48,78 Q44,78 44,75 Z" />
-
-    </group>
+    <!-- Bumper -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,72 L78,72 L78,76 Q78,80 74,80 L34,80 Q30,80 30,76 Z" />
 
 </vector>
