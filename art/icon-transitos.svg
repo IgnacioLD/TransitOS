@@ -7,12 +7,20 @@
   </defs>
   <rect width="512" height="512" rx="128" fill="url(#bg)"/>
 
-  <!-- Train: 340w x 224h, centered at 256,256 -->
-  <path d="M86,144 Q86,112 118,112 L394,112 Q426,112 426,144 L426,325 Q426,341 410,341 L102,341 Q86,341 86,325 Z" fill="#FFFFFF"/>
-  <path d="M110,144 L402,144 L402,217 Q402,233 386,233 L126,233 Q110,233 110,217 Z" fill="#1B4332"/>
-  <rect x="180" y="144" width="12" height="89" fill="#FFFFFF"/>
-  <rect x="320" y="144" width="12" height="89" fill="#FFFFFF"/>
-  <circle cx="126" cy="285" r="22" fill="#FFD700"/>
-  <circle cx="386" cy="285" r="22" fill="#FFD700"/>
-  <path d="M102,341 L410,341 L410,359 Q410,375 394,375 L118,375 Q102,375 102,359 Z" fill="#FFFFFF"/>
+  <!-- Train body -->
+  <path d="M86,144 Q86,112 118,112 L394,112 Q426,112 426,144 L426,325 Q426,341 410,341 L102,341 Q86,341 86,325 Z" fill="#FFFFFF" stroke="#0D3737" stroke-width="5"/>
+
+  <!-- Windshield -->
+  <path d="M112,146 L400,146 L400,216 Q400,232 384,232 L128,232 Q112,232 112,216 Z" fill="#1B4332"/>
+
+  <!-- Window pillars -->
+  <rect x="182" y="146" width="12" height="86" fill="#FFFFFF" stroke="#0D3737" stroke-width="3"/>
+  <rect x="318" y="146" width="12" height="86" fill="#FFFFFF" stroke="#0D3737" stroke-width="3"/>
+
+  <!-- Headlights -->
+  <circle cx="128" cy="286" r="20" fill="#FFD700" stroke="#B8960F" stroke-width="3"/>
+  <circle cx="384" cy="286" r="20" fill="#FFD700" stroke="#B8960F" stroke-width="3"/>
+
+  <!-- Bumper -->
+  <path d="M102,341 L410,341 L410,358 Q410,374 394,374 L118,374 Q102,374 102,358 Z" fill="#FFFFFF" stroke="#0D3737" stroke-width="5"/>
 </svg>
