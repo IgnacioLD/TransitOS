@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 500" width="1024" height="500">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#006A6A"/>
+      <stop offset="50%" stop-color="#005555"/>
+      <stop offset="100%" stop-color="#004040"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="500" fill="url(#bg)"/>
+
+  <!-- Subtle transit route lines in background -->
+  <line x1="0" y1="160" x2="400" y2="160" stroke="#ffffff" stroke-opacity="0.06" stroke-width="2"/>
+  <line x1="200" y1="160" x2="200" y2="0" stroke="#ffffff" stroke-opacity="0.06" stroke-width="2"/>
+  <circle cx="200" cy="160" r="8" fill="#ffffff" fill-opacity="0.08"/>
+  <line x1="400" y1="160" x2="700" y2="160" stroke="#ffffff" stroke-opacity="0.06" stroke-width="2"/>
+  <line x1="500" y1="160" x2="500" y2="500" stroke="#ffffff" stroke-opacity="0.06" stroke-width="2"/>
+  <circle cx="500" cy="160" r="8" fill="#ffffff" fill-opacity="0.08"/>
+  <line x1="700" y1="160" x2="700" y2="400" stroke="#ffffff" stroke-opacity="0.06" stroke-width="2"/>
+  <circle cx="700" cy="400" r="8" fill="#ffffff" fill-opacity="0.08"/>
+  <line x1="700" y1="400" x2="1024" y2="400" stroke="#ffffff" stroke-opacity="0.06" stroke-width="2"/>
+
+  <!-- Icon -->
+  <g transform="translate(60, 60)">
+    <rect width="200" height="200" rx="48" fill="#004D4D"/>
+    <path d="M38,58 Q38,44 50,44 L150,44 Q162,44 162,58 L162,126 Q162,132 156,132 L44,132 Q38,132 38,126 Z" fill="#FFFFFF" stroke="#0D3737" stroke-width="2"/>
+    <path d="M46,60 L154,60 L154,88 Q154,94 148,94 L52,94 Q46,94 46,88 Z" fill="#1B4332"/>
+    <rect x="72" y="60" width="8" height="34" fill="#FFFFFF" stroke="#0D3737" stroke-width="1.5"/>
+    <rect x="120" y="60" width="8" height="34" fill="#FFFFFF" stroke="#0D3737" stroke-width="1.5"/>
+    <circle cx="54" cy="116" r="8" fill="#FFD700" stroke="#B8960F" stroke-width="1.5"/>
+    <circle cx="146" cy="116" r="8" fill="#FFD700" stroke="#B8960F" stroke-width="1.5"/>
+    <path d="M44,132 L156,132 L156,138 Q156,144 148,144 L52,144 Q44,144 44,138 Z" fill="#FFFFFF" stroke="#0D3737" stroke-width="2"/>
+  </g>
+
+  <!-- Text -->
+  <text x="290" y="140" font-family="Inter, sans-serif" font-size="72" font-weight="800" fill="#FFFFFF" letter-spacing="-0.02em">TransitOS</text>
+  <text x="290" y="190" font-family="Inter, sans-serif" font-size="24" font-weight="500" fill="#FFFFFF" fill-opacity="0.7">Real-time public transport planner</text>
+
+  <!-- Tag -->
+  <rect x="290" y="220" width="200" height="30" rx="15" fill="#FFFFFF" fill-opacity="0.1"/>
+  <text x="390" y="240" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#FFFFFF" fill-opacity="0.9" text-anchor="middle">Currently in Metrovalencia</text>
+
+  <!-- Bottom line -->
+  <text x="290" y="320" font-family="Inter, sans-serif" font-size="16" font-weight="400" fill="#FFFFFF" fill-opacity="0.5">Free · Open source · No tracking · No ads</text>
+
+  <!-- Play Store badge -->
+  <rect x="290" y="350" width="170" height="52" rx="10" fill="#000000"/>
+  <text x="375" y="382" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#FFFFFF" text-anchor="middle">GET IT ON</text>
+  <text x="375" y="397" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle">Google Play</text>
+</svg>

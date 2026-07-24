@@ -5,51 +5,32 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Train body -->
     <path
         android:fillColor="#FFFFFF"
-        android:strokeColor="#0D3737"
-        android:strokeWidth="1.2"
         android:pathData="M26,36 Q26,28 34,28 L74,28 Q82,28 82,36 L82,68 Q82,72 78,72 L30,72 Q26,72 26,68 Z" />
 
-    <!-- Windshield -->
     <path
         android:fillColor="#1B4332"
         android:pathData="M32,36 L76,36 L76,48 Q76,52 72,52 L36,52 Q32,52 32,48 Z" />
 
-    <!-- Window pillar left -->
     <path
         android:fillColor="#FFFFFF"
-        android:strokeColor="#0D3737"
-        android:strokeWidth="0.8"
         android:pathData="M44,36 L47,36 L47,52 L44,52 Z" />
 
-    <!-- Window pillar right -->
     <path
         android:fillColor="#FFFFFF"
-        android:strokeColor="#0D3737"
-        android:strokeWidth="0.8"
         android:pathData="M61,36 L64,36 L64,52 L61,52 Z" />
 
-    <!-- Headlight left -->
     <path
         android:fillColor="#FFD700"
-        android:strokeColor="#B8960F"
-        android:strokeWidth="0.8"
         android:pathData="M34,60 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
 
-    <!-- Headlight right -->
     <path
         android:fillColor="#FFD700"
-        android:strokeColor="#B8960F"
-        android:strokeWidth="0.8"
         android:pathData="M74,60 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
 
-    <!-- Bumper -->
     <path
         android:fillColor="#FFFFFF"
-        android:strokeColor="#0D3737"
-        android:strokeWidth="1.2"
         android:pathData="M30,72 L78,72 L78,76 Q78,80 74,80 L34,80 Q30,80 30,76 Z" />
 
 </vector>

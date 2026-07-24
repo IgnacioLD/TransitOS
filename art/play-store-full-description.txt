@@ -1,0 +1,20 @@
+TransitOS is a real-time trip planner for public transport, designed to be clean, fast, and private. Currently covering Metrovalencia (FGV) — Valencia's metro and train network — with more operators coming.
+
+Built from the ground up as an open-source alternative: no analytics, no telemetry, no advertising. Your location data stays on your device and is never shared.
+
+Features:
+
+• Real-time trip planning — departure and arrival modes with exact times, line colors, and station details
+• Real line colors — official FGV color scheme for all 10 Metrovalencia lines
+• Favorites with custom labels — save frequent routes and rename them for quick access
+• Configurable transfer buffer — set your minimum transfer time (0–15 minutes)
+• Network map — browse the full Metrovalencia PDF map within the app
+• Live service alerts — know about disruptions before you leave
+• Dark mode — easy on the eyes at night
+• Multi-language — English, Spanish, and Catalan
+
+Privacy:
+
+TransitOS does not collect, store, or share any personal data. No analytics SDKs, no crash reporters, no advertising IDs. The app makes HTTPS requests directly to FGV's public API from your device — no intermediate servers.
+
+Open source under AGPL-3.0. Source code available at github.com/IgnacioLD/TransitOS.
