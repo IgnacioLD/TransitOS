@@ -28,7 +28,7 @@ class DataStoreRouteFavoritesRepository(
                 val current = prefs[ROUTES_KEY]?.let { json ->
                     runCatching { Json.decodeFromString<List<SavedRoute>>(json) }.getOrDefault(emptyList())
                 } ?: emptyList()
-                val updated = current + route
+                val updated = current.filter { it.id != route.id } + route
                 prefs[ROUTES_KEY] = Json.encodeToString(updated)
             }
         }
