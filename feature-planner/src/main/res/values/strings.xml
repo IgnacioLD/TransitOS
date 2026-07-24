@@ -28,6 +28,7 @@
     <string name="planner_route_saved">Ruta guardada en Favoritos</string>
     <string name="planner_save_route">Guardar ruta en Favoritos</string>
     <string name="planner_legs_unit">tramos</string>
+    <string name="planner_transfers_count">%1$d tramos</string>
     <string name="planner_departures_count">%1$d salidas</string>
     <string name="planner_direction">Dirección: %1$s</string>
     <string name="planner_transfer_at">Transbordo en %1$s</string>

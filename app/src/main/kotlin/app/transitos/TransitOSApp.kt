@@ -72,9 +72,7 @@ private fun TransitOSNavHost(
             SearchRoute()
         }
         composable(TopLevelDestination.PLANNER.route) {
-            PlannerRoute(
-                onOpenMap = { navController.navigate("map") },
-            )
+            PlannerRoute()
         }
         composable("planner/{originId}/{destId}") { backStackEntry ->
             val originId = backStackEntry.arguments?.getString("originId") ?: return@composable
@@ -82,7 +80,6 @@ private fun TransitOSNavHost(
             PrefilledPlannerRoute(
                 originStopId = originId,
                 destinationStopId = destId,
-                onOpenMap = { navController.navigate("map") },
             )
         }
         composable(TopLevelDestination.MAP.route) {

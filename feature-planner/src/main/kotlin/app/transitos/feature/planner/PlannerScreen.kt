@@ -21,11 +21,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.Map
-import androidx.compose.material.icons.outlined.RadioButtonChecked
-import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Star
@@ -39,7 +37,6 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -52,7 +49,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTimePickerState
@@ -75,7 +71,6 @@ import app.transitos.core.design.theme.LocalSpacing
 import app.transitos.core.model.Journey
 import app.transitos.core.model.JourneyLeg
 import app.transitos.core.model.Stop
-import app.transitos.core.ui.EmptyState
 import app.transitos.core.ui.R as coreUiR
 import app.transitos.core.ui.SkeletonBlock
 import app.transitos.feature.planner.R
@@ -94,7 +89,6 @@ import org.koin.androidx.compose.koinViewModel
 fun PlannerRoute(
     modifier: Modifier = Modifier,
     viewModel: PlannerViewModel = koinViewModel(),
-    onOpenMap: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val stops by viewModel.stops.collectAsStateWithLifecycle()
@@ -111,7 +105,6 @@ fun PlannerRoute(
         onSaveRoute = viewModel::saveCurrentRoute,
         onRemoveRoute = viewModel::removeCurrentRoute,
         onSelectJourney = viewModel::selectJourney,
-        onOpenMap = onOpenMap,
         modifier = modifier,
     )
 }
@@ -122,12 +115,11 @@ fun PrefilledPlannerRoute(
     destinationStopId: String,
     modifier: Modifier = Modifier,
     viewModel: PlannerViewModel = koinViewModel(),
-    onOpenMap: () -> Unit = {},
 ) {
     LaunchedEffect(originStopId, destinationStopId) {
         viewModel.prefillRoute(originStopId, destinationStopId)
     }
-    PlannerRoute(modifier = modifier, viewModel = viewModel, onOpenMap = onOpenMap)
+    PlannerRoute(modifier = modifier, viewModel = viewModel)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -146,7 +138,6 @@ internal fun PlannerScreen(
     onSaveRoute: () -> Unit = {},
     onRemoveRoute: () -> Unit = {},
     onSelectJourney: (Int) -> Unit = {},
-    onOpenMap: () -> Unit = {},
 ) {
     val spacing = LocalSpacing.current
     var picking by rememberSaveable { mutableStateOf<PickingTarget?>(null) }
@@ -157,19 +148,7 @@ internal fun PlannerScreen(
     val today = remember { Clock.System.todayIn(timeZone) }
     val tomorrow = remember { today.plus(DatePeriod(days = 1)) }
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.planner_title)) },
-                actions = {
-                    IconButton(onClick = onOpenMap) {
-                        Icon(Icons.Outlined.Map, contentDescription = stringResource(R.string.planner_view_network_map))
-                    }
-                },
-            )
-        },
-    ) { padding ->
+    Scaffold(modifier = modifier.fillMaxSize()) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -177,40 +156,55 @@ internal fun PlannerScreen(
             contentPadding = PaddingValues(
                 start = spacing.screenGutter,
                 end = spacing.screenGutter,
+                top = spacing.xl,
                 bottom = spacing.xxl,
             ),
-            verticalArrangement = Arrangement.spacedBy(spacing.md),
+            verticalArrangement = Arrangement.spacedBy(spacing.xl),
         ) {
-            item { SearchBarEndpoints(
-                origin = state.origin,
-                destination = state.destination,
-                onPickOrigin = { picking = PickingTarget.ORIGIN },
-                onPickDestination = { picking = PickingTarget.DESTINATION },
-                onSwap = onSwap,
-            ) }
+            item {
+                Text(
+                    text = stringResource(R.string.planner_title),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
 
-            item { TimeOptionsSection(
-                timeMode = state.timeMode,
-                date = state.date,
-                today = today,
-                tomorrow = tomorrow,
-                travelTime = state.travelTime,
-                onTimeModeSelected = onTimeModeSelected,
-                onDateSelected = onDateSelected,
-                onTravelTimeSelected = onTravelTimeSelected,
-                onShowDatePicker = { showDatePicker = true },
-                onShowTimePicker = { showTimePicker = true },
-            ) }
+            item {
+                EndpointFields(
+                    origin = state.origin,
+                    destination = state.destination,
+                    onPickOrigin = { picking = PickingTarget.ORIGIN },
+                    onPickDestination = { picking = PickingTarget.DESTINATION },
+                    onSwap = onSwap,
+                )
+            }
+
+            item {
+                TimeOptions(
+                    timeMode = state.timeMode,
+                    date = state.date,
+                    today = today,
+                    tomorrow = tomorrow,
+                    travelTime = state.travelTime,
+                    onTimeModeSelected = onTimeModeSelected,
+                    onDateSelected = onDateSelected,
+                    onTravelTimeSelected = onTravelTimeSelected,
+                    onShowDatePicker = { showDatePicker = true },
+                    onShowTimePicker = { showTimePicker = true },
+                )
+            }
 
             if (state.canPlan) {
                 item {
                     Button(
                         onClick = onSearch,
                         modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(vertical = spacing.md),
                     ) {
-                        Icon(Icons.Outlined.Search, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(spacing.sm))
-                        Text(stringResource(R.string.planner_search_route))
+                        Text(
+                            stringResource(R.string.planner_search_route),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
                     }
                 }
             }
@@ -238,22 +232,8 @@ internal fun PlannerScreen(
                     }
                 }
 
-                !state.canPlan -> item { QuickPicksSection(stops = stops, onPick = onOriginSelected) }
-
-                state.errorMessage != null -> item {
-                    EmptyState(
-                        icon = Icons.Outlined.Search,
-                        title = stringResource(R.string.planner_error_title),
-                        subtitle = state.errorMessage,
-                    )
-                }
-
-                state.hasSearched -> item {
-                    EmptyState(
-                        icon = Icons.Outlined.Search,
-                        title = stringResource(R.string.planner_no_route_title),
-                        subtitle = stringResource(R.string.planner_no_route_subtitle),
-                    )
+                !state.canPlan -> item {
+                    QuickPicks(stops = stops, onPick = onOriginSelected)
                 }
             }
         }
@@ -349,7 +329,7 @@ internal fun PlannerScreen(
 private enum class PickingTarget { ORIGIN, DESTINATION }
 
 @Composable
-private fun SearchBarEndpoints(
+private fun EndpointFields(
     origin: Stop?,
     destination: Stop?,
     onPickOrigin: () -> Unit,
@@ -358,44 +338,28 @@ private fun SearchBarEndpoints(
 ) {
     val spacing = LocalSpacing.current
     Box {
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(spacing.sm),
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(0.dp),
-            ) {
-                SearchEndpointRow(
-                    icon = "●",
-                    iconColor = MaterialTheme.colorScheme.primary,
-                    text = origin?.name ?: stringResource(R.string.planner_pick_station),
-                    isPlaceholder = origin == null,
-                    onClick = onPickOrigin,
-                )
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    modifier = Modifier.padding(start = spacing.lg + 20.dp),
-                )
-                SearchEndpointRow(
-                    icon = "●",
-                    iconColor = MaterialTheme.colorScheme.tertiary,
-                    text = destination?.name ?: stringResource(R.string.planner_pick_station),
-                    isPlaceholder = destination == null,
-                    onClick = onPickDestination,
-                )
-            }
+            EndpointField(
+                label = stringResource(R.string.planner_origin),
+                stopName = origin?.name,
+                onClick = onPickOrigin,
+            )
+            EndpointField(
+                label = stringResource(R.string.planner_destination),
+                stopName = destination?.name,
+                onClick = onPickDestination,
+            )
         }
         Surface(
             shape = CircleShape,
             color = MaterialTheme.colorScheme.surface,
-            shadowElevation = 2.dp,
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             modifier = Modifier.align(Alignment.CenterEnd).padding(end = spacing.sm),
         ) {
-            IconButton(
-                onClick = onSwap,
-                modifier = Modifier.size(36.dp),
-            ) {
+            IconButton(onClick = onSwap, modifier = Modifier.size(36.dp)) {
                 Icon(
                     imageVector = Icons.Outlined.SwapVert,
                     contentDescription = stringResource(R.string.planner_swap_cd),
@@ -408,40 +372,50 @@ private fun SearchBarEndpoints(
 }
 
 @Composable
-private fun SearchEndpointRow(
-    icon: String,
-    iconColor: Color,
-    text: String,
-    isPlaceholder: Boolean,
+private fun EndpointField(
+    label: String,
+    stopName: String?,
     onClick: () -> Unit,
 ) {
     val spacing = LocalSpacing.current
-    Surface(onClick = onClick, color = Color.Transparent) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = spacing.lg, vertical = spacing.md),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(spacing.md),
+    Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Surface(
+            onClick = onClick,
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
         ) {
-            Text(
-                text = icon,
-                color = iconColor,
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (isPlaceholder) MaterialTheme.colorScheme.outline
-                else MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f),
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = spacing.lg, vertical = spacing.md),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(spacing.md),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.LocationOn,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp),
+                )
+                Text(
+                    text = stopName ?: stringResource(R.string.planner_pick_station),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (stopName == null) MaterialTheme.colorScheme.outline
+                    else MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun TimeOptionsSection(
+private fun TimeOptions(
     timeMode: TimeMode,
     date: LocalDate,
     today: LocalDate,
@@ -456,8 +430,8 @@ private fun TimeOptionsSection(
     val spacing = LocalSpacing.current
     val leaveNow = timeMode == TimeMode.DEPARTURE && travelTime == null
 
-    Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
-        RadioButtonRow(
+    Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
+        RadioRow(
             selected = leaveNow,
             onClick = {
                 onTimeModeSelected(TimeMode.DEPARTURE)
@@ -465,7 +439,7 @@ private fun TimeOptionsSection(
             },
             label = stringResource(R.string.planner_leave_now),
         )
-        RadioButtonRow(
+        RadioRow(
             selected = !leaveNow,
             onClick = {
                 onTimeModeSelected(TimeMode.ARRIVAL)
@@ -483,7 +457,7 @@ private fun TimeOptionsSection(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = spacing.xl),
+                    .padding(start = spacing.xl, top = spacing.xs),
                 horizontalArrangement = Arrangement.spacedBy(spacing.sm),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -513,7 +487,7 @@ private fun TimeOptionsSection(
 }
 
 @Composable
-private fun RadioButtonRow(
+private fun RadioRow(
     selected: Boolean,
     onClick: () -> Unit,
     label: String,
@@ -522,7 +496,7 @@ private fun RadioButtonRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 4.dp),
+            .padding(vertical = LocalSpacing.current.xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(LocalSpacing.current.sm),
     ) {
@@ -537,7 +511,7 @@ private fun RadioButtonRow(
 }
 
 @Composable
-private fun QuickPicksSection(
+private fun QuickPicks(
     stops: List<Stop>,
     onPick: (Stop) -> Unit,
 ) {
@@ -589,7 +563,6 @@ private fun JourneyAlternatives(
             val label = buildString {
                 append("${journey.durationMinutes} min")
                 if (journey.hasTransfers) append(" · ${journey.legs.size}t")
-                journey.firstDeparture?.let { append(" · $it") }
             }
             FilterChip(
                 selected = i == selectedIndex,
@@ -610,10 +583,9 @@ private fun PlanningSkeleton() {
                 .padding(spacing.lg),
             verticalArrangement = Arrangement.spacedBy(spacing.md),
         ) {
-            SkeletonBlock(modifier = Modifier.fillMaxWidth(0.7f), height = 24.dp)
+            SkeletonBlock(modifier = Modifier.fillMaxWidth(0.5f), height = 28.dp)
             SkeletonBlock(modifier = Modifier.fillMaxWidth(), height = 18.dp)
-            SkeletonBlock(modifier = Modifier.fillMaxWidth(0.9f), height = 18.dp)
-            SkeletonBlock(modifier = Modifier.fillMaxWidth(), height = 56.dp)
+            SkeletonBlock(modifier = Modifier.fillMaxWidth(0.8f), height = 18.dp)
         }
     }
 }
@@ -627,59 +599,19 @@ private fun JourneyResultCard(
 ) {
     val spacing = LocalSpacing.current
     Card(
-        shape = MaterialTheme.shapes.medium,
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.elevatedCardElevation(),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(spacing.md),
+            verticalArrangement = Arrangement.spacedBy(spacing.lg),
         ) {
-            JourneySummaryRow(journey = journey)
+            JourneyHeader(journey = journey)
 
-            journey.legs.forEachIndexed { i, leg ->
-                if (i > 0) {
-                    val transferStation = journey.legs[i - 1].destinationName
-                    TransferIndicator(stationName = transferStation)
-                }
-                JourneyLegSection(leg = leg, index = i, isLast = i == journey.legs.lastIndex)
-            }
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(spacing.md),
-            ) {
-                HighlightBox(
-                    label = stringResource(R.string.planner_first_departure),
-                    value = journey.firstDeparture ?: "—",
-                    modifier = Modifier.weight(1f),
-                )
-                HighlightBox(
-                    label = stringResource(R.string.planner_last_departure),
-                    value = journey.lastDeparture ?: "—",
-                    modifier = Modifier.weight(1f),
-                )
-                HighlightBox(
-                    label = stringResource(R.string.planner_departures),
-                    value = journey.legs.firstOrNull()?.departures?.count()?.toString() ?: "—",
-                    modifier = Modifier.weight(1f),
-                )
-            }
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
-            Text(
-                text = stringResource(R.string.planner_full_schedule),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            journey.legs.firstOrNull()?.let { leg -> DepartureSchedule(departures = leg.departures) }
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            JourneyTimeline(journey = journey)
 
             TextButton(
                 onClick = if (isSaved) onRemoveRoute else onSaveRoute,
@@ -701,60 +633,43 @@ private fun JourneyResultCard(
 }
 
 @Composable
-private fun JourneySummaryRow(journey: Journey) {
+private fun JourneyHeader(journey: Journey) {
     val spacing = LocalSpacing.current
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(spacing.md),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
+    Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+        Row(
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+        ) {
             Text(
                 text = "${journey.durationMinutes} min",
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
             if (journey.hasTransfers) {
                 Text(
-                    text = "${journey.legs.size} ${stringResource(R.string.planner_legs_unit)}",
-                    style = MaterialTheme.typography.labelSmall,
+                    text = stringResource(R.string.planner_transfers_count, journey.legs.size),
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 4.dp),
                 )
             }
         }
-        if (journey.distanceMeters > 0) {
-            StatChip(value = "${"%.1f".format(journey.distanceMeters / 1000.0)} km", label = stringResource(R.string.planner_distance))
-        }
-        journey.fareZone?.let {
-            StatChip(value = stringResource(R.string.planner_fare_zone, it), label = stringResource(R.string.planner_fare))
-        }
-        val carbonKg = journey.carbonKg
-        if (carbonKg != null && carbonKg > 0.0) {
-            StatChip(value = "${"%.1f".format(carbonKg)} kg", label = stringResource(R.string.planner_co2))
-        }
-    }
-}
 
-@Composable
-private fun StatChip(value: String, label: String) {
-    Surface(
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = LocalSpacing.current.sm, vertical = LocalSpacing.current.xs),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+        val stats = buildList {
+            if (journey.distanceMeters > 0) {
+                add("${"%.1f".format(journey.distanceMeters / 1000.0)} km")
+            }
+            journey.fareZone?.let { add(stringResource(R.string.planner_fare_zone, it)) }
+            val carbonKg = journey.carbonKg
+            if (carbonKg != null && carbonKg > 0.0) {
+                add("${"%.1f".format(carbonKg)} kg CO₂")
+            }
+        }
+        if (stats.isNotEmpty()) {
             Text(
-                text = value,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
+                text = stats.joinToString("  ·  "),
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
@@ -762,141 +677,133 @@ private fun StatChip(value: String, label: String) {
 }
 
 @Composable
-private fun JourneyLegSection(leg: JourneyLeg, index: Int, isLast: Boolean = false) {
+private fun JourneyTimeline(journey: Journey) {
     val spacing = LocalSpacing.current
-    Column(verticalArrangement = Arrangement.spacedBy(spacing.xxs)) {
+    Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+        journey.legs.forEachIndexed { i, leg ->
+            LegStationRow(leg = leg, isFirst = i == 0)
+            if (i < journey.legs.lastIndex) {
+                LegConnector(
+                    transferName = leg.destinationName,
+                    nextLeg = journey.legs[i + 1],
+                )
+            }
+        }
+        val lastLeg = journey.legs.last()
         Row(
+            modifier = Modifier.fillMaxWidth().padding(top = spacing.xs),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+            horizontalArrangement = Arrangement.spacedBy(spacing.md),
         ) {
-            if (leg.lineNames.isNotEmpty()) {
-                leg.lineNames.forEach { lineName ->
-                    Surface(
-                        shape = MaterialTheme.shapes.small,
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                    ) {
+            Icon(
+                imageVector = Icons.Outlined.LocationOn,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.size(20.dp),
+            )
+            Text(
+                text = lastLeg.destinationName,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+    }
+}
+
+@Composable
+private fun LegStationRow(leg: JourneyLeg, isFirst: Boolean) {
+    val spacing = LocalSpacing.current
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(spacing.md),
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.LocationOn,
+            contentDescription = null,
+            tint = if (isFirst) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+            modifier = Modifier.size(20.dp),
+        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Text(
+                text = leg.originName,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            if (leg.lineNames.isNotEmpty() || leg.headsigns.isNotEmpty()) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    leg.lineNames.forEach { lineName ->
+                        Surface(
+                            shape = MaterialTheme.shapes.small,
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                        ) {
+                            Text(
+                                text = lineName,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            )
+                        }
+                    }
+                    if (leg.headsigns.isNotEmpty()) {
                         Text(
-                            text = lineName,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            text = leg.headsigns.joinToString(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
             }
+        }
+        leg.departures.firstOrNull()?.let { firstDep ->
             Text(
-                text = "${leg.originName} → ${leg.destinationName}",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.weight(1f),
+                text = firstDep,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
             )
         }
+    }
+}
+
+@Composable
+private fun LegConnector(
+    transferName: String,
+    nextLeg: JourneyLeg,
+) {
+    val spacing = LocalSpacing.current
+    Column(modifier = Modifier.padding(start = 10.dp)) {
+        Box(
+            modifier = Modifier
+                .size(width = 1.dp, height = 20.dp)
+                .background(MaterialTheme.colorScheme.outlineVariant),
+        )
         Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = spacing.xs),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(spacing.md),
         ) {
-            if (leg.headsigns.isNotEmpty()) {
-                Text(
-                    text = stringResource(R.string.planner_direction, leg.headsigns.joinToString()),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Text(
-                text = stringResource(R.string.planner_departures_count, leg.departures.size),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            leg.departures.firstOrNull()?.let { first ->
-                Text(
-                    text = stringResource(R.string.planner_first_train, first),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun TransferIndicator(stationName: String) {
-    val spacing = LocalSpacing.current
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = spacing.xs),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.SwapVert,
-            contentDescription = null,
-            modifier = Modifier.size(16.dp),
-            tint = MaterialTheme.colorScheme.tertiary,
-        )
-        Text(
-            text = stringResource(R.string.planner_transfer_at, stationName),
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.tertiary,
-        )
-    }
-}
-
-@Composable
-private fun HighlightBox(label: String, value: String, modifier: Modifier = Modifier) {
-    val spacing = LocalSpacing.current
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
-    ) {
-        Column(
-            modifier = Modifier.padding(spacing.md),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(spacing.xxs),
-        ) {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
+            Icon(
+                imageVector = Icons.Outlined.KeyboardArrowDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.size(16.dp),
             )
             Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = stringResource(R.string.planner_transfer_at, transferName),
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.tertiary,
             )
-        }
-    }
-}
-
-@Composable
-private fun DepartureSchedule(departures: List<String>) {
-    val spacing = LocalSpacing.current
-    val byHour = departures.groupBy { it.substringBefore(':') }
-    Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
-        byHour.keys.sorted().forEach { hour ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "${hour}h",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.width(44.dp),
-                )
-                Text(
-                    text = byHour[hour]!!.joinToString("    "),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            }
         }
     }
 }
@@ -933,7 +840,7 @@ private fun StationPickerSheet(
                 onValueChange = { query = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = spacing.lg, vertical = spacing.md),
+                    .padding(horizontal = spacing.lg, vertical = spacing.sm),
                 placeholder = { Text(stringResource(R.string.planner_search_station)) },
                 leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                 singleLine = true,
