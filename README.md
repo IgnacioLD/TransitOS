@@ -146,8 +146,15 @@ appreciated: see the i18n section of the contributing guide.
 
 ## License
 
+TransitOS is dual-licensed:
+
+- **AGPL-3.0** for the community (free, open source, forever), and
+- a **commercial license** available to organizations that cannot comply with
+  the AGPL (for example, embedding TransitOS in a closed product).
+
 Copyright (c) 2025 the TransitOS contributors.
 
-Released under the [GNU AGPL-3.0](./LICENSE). This is a deliberate choice: any
-improved version of TransitOS, even one offered as a hosted service, must
-publish its source under the same terms.
+We keep this strong copyleft deliberately: any improved version of TransitOS,
+even one offered as a hosted service, must publish its source under the same
+terms. Contributions are accepted under our [CLA](./.github/CLA.md) so the
+project can offer both licenses. The free AGPL version will always exist.

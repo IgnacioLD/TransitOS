@@ -109,6 +109,7 @@ test where practical.
 
 - Branch prefix: `feat/`, `fix/`, `docs/`, `i18n/`, `chore/`, `refactor/`.
 - Commit message: imperative, concise ("Fix planner crash on empty results").
+- Sign off every commit with `git commit -s` (see the DCO section above).
 - One logical change per PR. Split unrelated changes into separate PRs.
 - Reference the issue number in the PR description ("Closes #123").
 
@@ -118,10 +119,37 @@ Use the GitHub issue tracker. The bug report template asks for your device,
 Android version, the operator you were using, and steps to reproduce. The more
 detail you give, the faster we can help.
 
-## Licensing
+## Contributor agreement (DCO + CLA)
 
-By contributing, you agree that your changes will be released under the
-[GNU AGPL-3.0](./LICENSE). Contributions under any other terms cannot be
-accepted.
+TransitOS is dual-licensed: a free AGPL version for the community, plus an
+optional commercial license for organizations that cannot comply with AGPL. To
+keep this model clean, every contribution is accepted under two short agreements
+that protect everyone:
+
+1. **The DCO (Developer Certificate of Origin)**: every commit is signed off
+   with `git commit -s`, confirming you wrote it and may contribute it. See
+   [`.github/DCO.md`](./.github/DCO.md).
+2. **The CLA (Contributor License Agreement)**: by opening a pull request you
+   agree to the [CLA](./.github/CLA.md). **You keep your copyright.** It is a
+   license, not an assignment. It only grants the project the right to offer your
+   contribution under both the AGPL and a commercial license, and it promises
+   that a free, open-source version of TransitOS will always exist.
+
+Neither agreement takes your copyright away or hides your work. They exist so
+the project can remain free forever and still have a sustainable path.
+
+### Signing your commits
+
+```bash
+git commit -s -m "Add transfer buffer setting"
+```
+
+This adds a `Signed-off-by: Your Name <you@example.com>` trailer. Our CI checks
+that every commit in a pull request has one. To fix existing commits:
+
+```bash
+git rebase --signoff master
+git push --force-with-lease
+```
 
 Questions? Open a discussion or an issue. Happy hacking.
