@@ -4,7 +4,7 @@
 
 **The open-source public transport app. Fast, calm, private.**
 
-The Breezy Weather of transit: no ads, no tracking, just the next arrivals.
+No ads, no tracking, just the next arrivals.
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
 [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
