@@ -32,10 +32,13 @@ fun TransitOSApp() {
                 .value
                 ?.destination
                 ?.route
-            TransitOSBottomBar(
-                currentRoute = currentRoute,
-                onNavigate = { route -> navController.navigateToTopLevelDestination(route) },
-            )
+            val isTopLevel = TopLevelDestination.entries.any { it.route == currentRoute }
+            if (isTopLevel) {
+                TransitOSBottomBar(
+                    currentRoute = currentRoute,
+                    onNavigate = { route -> navController.navigateToTopLevelDestination(route) },
+                )
+            }
         },
     ) { padding ->
         TransitOSNavHost(
@@ -92,7 +95,9 @@ private fun TransitOSNavHost(
             NetworkMapRoute(onBack = { navController.popBackStack() })
         }
         composable("settings") {
-            SettingsRoute()
+            SettingsRoute(
+                onBack = { navController.popBackStack() },
+            )
         }
     }
 }
