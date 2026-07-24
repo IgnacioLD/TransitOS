@@ -65,14 +65,17 @@ class MetrovalenciaApi(
         originInternalId: Long,
         destinationInternalId: Long,
         fecha: String,
+        hora: String? = null,
     ): FgvHorariosResponseDto = client.post("${config.fullBaseUrl}horarios-online2") {
         headerAcceptJson()
         contentType(ContentType.Application.FormUrlEncoded)
-        setBody(
-            "estacion_origen_id=$originInternalId" +
-                "&estacion_destino_id=$destinationInternalId" +
-                "&fecha=$fecha",
-        )
+        val body = buildString {
+            append("estacion_origen_id=$originInternalId")
+            append("&estacion_destino_id=$destinationInternalId")
+            append("&fecha=$fecha")
+            if (hora != null) append("&hora=$hora")
+        }
+        setBody(body)
     }.body()
 
     private fun io.ktor.client.request.HttpRequestBuilder.headerAcceptJson() {

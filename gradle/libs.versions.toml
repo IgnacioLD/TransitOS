@@ -29,6 +29,9 @@ koin = "4.0.0"
 # Images
 coil = "2.7.0"
 
+# Maps
+osmdroid = "6.1.18"
+
 # Testing
 junit = "4.13.2"
 truth = "1.4.4"
@@ -88,6 +91,9 @@ koin-test = { group = "io.insert-koin", name = "koin-test", version.ref = "koin"
 
 # Coil (deferred wiring)
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+
+# osmdroid
+osmdroid-android = { group = "org.osmdroid", name = "osmdroid-android", version.ref = "osmdroid" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }

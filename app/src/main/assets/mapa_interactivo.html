@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Metrovalencia</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{margin:0;padding:0}
+body{background:#f8f9fa;overflow:hidden}
+#map{width:100vw;height:100dvh}
+.station-marker{width:13px;height:13px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.station-label{font-size:11px;font-weight:600;font-family:-apple-system,sans-serif;color:#333;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;margin-top:-20px;white-space:nowrap;pointer-events:none}
+.legend{background:#fff;padding:12px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.15);font-family:-apple-system,sans-serif;font-size:13px;line-height:1.7;min-width:130px;max-height:60vh;overflow-y:auto}
+.legend h3{font-size:14px;margin-bottom:6px;color:#333}
+.legend-item{display:flex;align-items:center;padding:2px 4px;border-radius:4px;cursor:pointer;transition:opacity .15s}
+.legend-item:hover{background:#f0f0f0}
+.legend-item.hidden{opacity:.3}
+.legend-swatch{width:18px;height:5px;border-radius:3px;margin-right:8px;flex-shrink:0}
+.legend-label{flex:1}
+.station-popup{font-family:-apple-system,sans-serif;font-size:14px;line-height:1.5}
+.station-popup .name{font-weight:700;font-size:16px;margin-bottom:4px}
+.station-popup .lines{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.station-popup .line-badge{padding:2px 8px;border-radius:4px;color:#fff;font-size:12px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+const LINES = [
+  {id:"L1",color:"#e30613",coords:[[39.591,-0.462],[39.541,-0.393],[39.5032,-0.4447],[39.4761,-0.3981],[39.472,-0.3894],[39.4664,-0.3813],[39.463,-0.3795],[39.4545,-0.3825],[39.448,-0.387],[39.433,-0.4],[39.4275,-0.4165],[39.416,-0.433],[39.404,-0.463],[39.361,-0.494],[39.3305,-0.508],[39.0785,-0.5153]],stations:[{n:"Bétera",c:[39.591,-0.462]},{n:"Paterna",c:[39.5032,-0.4447]},{n:"Campanar",c:[39.4761,-0.3981]},{n:"Túria",c:[39.472,-0.3894]},{n:"Àngel Guimerà",c:[39.4664,-0.3813]},{n:"Plaça d'Espanya",c:[39.463,-0.3795]},{n:"Jesús",c:[39.4545,-0.3825]},{n:"Patraix",c:[39.448,-0.387]},{n:"Sant Isidre",c:[39.433,-0.4]},{n:"Torrent",c:[39.404,-0.463]},{n:"Villanueva de Castellón",c:[39.0785,-0.5153]}]},
+  {id:"L2",color:"#ffd100",coords:[[39.624,-0.595],[39.594,-0.584],[39.5032,-0.4447],[39.4761,-0.3981],[39.472,-0.3894],[39.4664,-0.3813],[39.463,-0.3795],[39.4545,-0.3825],[39.448,-0.387],[39.433,-0.4],[39.4275,-0.4165],[39.416,-0.433],[39.404,-0.463],[39.398,-0.469]],stations:[{n:"Llíria",c:[39.624,-0.595]},{n:"Benaguasil",c:[39.594,-0.584]},{n:"Paterna",c:[39.5032,-0.4447]},{n:"Campanar",c:[39.4761,-0.3981]},{n:"Túria",c:[39.472,-0.3894]},{n:"Àngel Guimerà",c:[39.4664,-0.3813]},{n:"Plaça d'Espanya",c:[39.463,-0.3795]},{n:"Jesús",c:[39.4545,-0.3825]},{n:"Patraix",c:[39.448,-0.387]},{n:"Sant Isidre",c:[39.433,-0.4]},{n:"Torrent",c:[39.404,-0.463]},{n:"Torrent Av.",c:[39.398,-0.469]}]},
+  {id:"L3",color:"#00a651",coords:[[39.592,-0.335],[39.567,-0.339],[39.555,-0.341],[39.543,-0.343],[39.536,-0.344],[39.524,-0.349],[39.512,-0.356],[39.506,-0.364],[39.496,-0.368],[39.488,-0.37],[39.48,-0.368],[39.474,-0.366],[39.471,-0.367],[39.4682,-0.3705],[39.469,-0.3767],[39.4664,-0.3813],[39.464,-0.389],[39.472,-0.411],[39.478,-0.443],[39.488,-0.462],[39.489,-0.473]],stations:[{n:"Rafelbunyol",c:[39.592,-0.335]},{n:"Alboraia",c:[39.506,-0.364]},{n:"Benimaclet",c:[39.48,-0.368]},{n:"Facultats",c:[39.474,-0.366]},{n:"Alameda",c:[39.471,-0.367]},{n:"Colón",c:[39.4682,-0.3705]},{n:"Xàtiva",c:[39.469,-0.3767]},{n:"Àngel Guimerà",c:[39.4664,-0.3813]},{n:"Aeroport",c:[39.489,-0.473]}]},
+  {id:"L4",color:"#ffd100",tram:true,coords:[[39.461,-0.3485],[39.46,-0.352],[39.4625,-0.357],[39.464,-0.362],[39.4725,-0.3715],[39.475,-0.371],[39.4775,-0.367],[39.48,-0.362],[39.487,-0.361],[39.495,-0.355],[39.5,-0.348],[39.508,-0.34],[39.507,-0.343],[39.503,-0.352]],stations:[{n:"Doctor Lluch",c:[39.461,-0.3485]},{n:"Pont de Fusta",c:[39.4725,-0.3715]},{n:"Tarongers",c:[39.4775,-0.367]},{n:"Blasco Ibáñez",c:[39.48,-0.362]},{n:"Mas del Rosari",c:[39.508,-0.34]}]},
+  {id:"L5",color:"#0054a8",coords:[[39.4567,-0.335],[39.459,-0.34],[39.462,-0.344],[39.465,-0.349],[39.471,-0.367],[39.4682,-0.3705],[39.469,-0.3767],[39.4664,-0.3813],[39.464,-0.389],[39.472,-0.411],[39.478,-0.443],[39.488,-0.462],[39.489,-0.473]],stations:[{n:"Marítim Serrería",c:[39.4567,-0.335]},{n:"Alameda",c:[39.471,-0.367]},{n:"Colón",c:[39.4682,-0.3705]},{n:"Xàtiva",c:[39.469,-0.3767]},{n:"Àngel Guimerà",c:[39.4664,-0.3813]},{n:"Aeroport",c:[39.489,-0.473]}]},
+  {id:"L6",color:"#7b2d8e",tram:true,coords:[[39.491,-0.39],[39.487,-0.388],[39.461,-0.3485],[39.46,-0.352],[39.4625,-0.357],[39.464,-0.362],[39.4725,-0.3715],[39.475,-0.371],[39.4775,-0.367],[39.48,-0.362],[39.487,-0.361],[39.495,-0.355],[39.479,-0.346],[39.507,-0.343],[39.503,-0.352],[39.4567,-0.335]],stations:[{n:"Tossal del Rei",c:[39.491,-0.39]},{n:"Doctor Lluch",c:[39.461,-0.3485]},{n:"Pont de Fusta",c:[39.4725,-0.3715]},{n:"Tarongers",c:[39.4775,-0.367]},{n:"Marítim Serrería",c:[39.4567,-0.335]}]},
+  {id:"L7",color:"#f39200",coords:[[39.4567,-0.335],[39.459,-0.34],[39.462,-0.344],[39.465,-0.349],[39.471,-0.367],[39.4682,-0.3705],[39.469,-0.3767],[39.4545,-0.3825],[39.448,-0.387],[39.433,-0.4],[39.4275,-0.4165],[39.416,-0.433],[39.404,-0.463],[39.398,-0.469]],stations:[{n:"Marítim Serrería",c:[39.4567,-0.335]},{n:"Colón",c:[39.4682,-0.3705]},{n:"Xàtiva",c:[39.469,-0.3767]},{n:"Jesús",c:[39.4545,-0.3825]},{n:"Torrent Av.",c:[39.398,-0.469]}]},
+  {id:"L8",color:"#e5007f",tram:true,coords:[[39.4567,-0.335],[39.457,-0.332],[39.457,-0.326]],stations:[{n:"Marítim Serrería",c:[39.4567,-0.335]},{n:"Neptú",c:[39.457,-0.326]}]},
+  {id:"L9",color:"#6a2c8f",coords:[[39.544,-0.56],[39.521,-0.531],[39.506,-0.47],[39.478,-0.443],[39.472,-0.411],[39.464,-0.389],[39.4664,-0.3813],[39.469,-0.3767],[39.4682,-0.3705],[39.471,-0.367],[39.474,-0.366],[39.48,-0.368],[39.488,-0.37],[39.496,-0.368],[39.506,-0.364]],stations:[{n:"Riba-roja",c:[39.544,-0.56]},{n:"Àngel Guimerà",c:[39.4664,-0.3813]},{n:"Xàtiva",c:[39.469,-0.3767]},{n:"Colón",c:[39.4682,-0.3705]},{n:"Alameda",c:[39.471,-0.367]},{n:"Benimaclet",c:[39.48,-0.368]},{n:"Alboraia",c:[39.506,-0.364]}]},
+  {id:"L10",color:"#00b4d8",tram:true,coords:[[39.459,-0.376],[39.46,-0.372],[39.4605,-0.365],[39.461,-0.358],[39.459,-0.35],[39.457,-0.345],[39.455,-0.34],[39.449,-0.328]],stations:[{n:"Alacant",c:[39.459,-0.376]},{n:"Ciutat Arts",c:[39.459,-0.35]},{n:"Natzaret",c:[39.449,-0.328]}]}
+];
+
+const map = L.map('map',{
+  center:[39.47,-0.38],
+  zoom:11.5,
+  zoomControl:true,
+  attributionControl:false,
+});
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+  maxZoom:20,
+  subdomains:'abcd',
+}).addTo(map);
+
+const polylineLayers = {};
+const stationGroups = {};
+const allMarkers = [];
+
+LINES.forEach(line=>{
+  const pl = L.polyline(line.coords,{
+    color:line.color,
+    weight:line.tram?4:6,
+    opacity:.85,
+    smoothFactor:2,
+  }).addTo(map);
+  polylineLayers[line.id]=pl;
+
+  line.stations.forEach(s=>{
+    if(!stationGroups[s.n])stationGroups[s.n]=[];
+    stationGroups[s.n].push(line.id);
+  });
+
+  line.stations.forEach(s=>{
+    const servingLines = stationGroups[s.n]||[line.id];
+    const marker = L.circleMarker(s.c,{
+      radius:5,
+      fillColor:line.color,
+      color:'#fff',
+      weight:2.5,
+      fillOpacity:1,
+      pane:'markerPane',
+    }).addTo(map);
+
+    const linesHtml = servingLines.map(lid=>{
+      const l=LINES.find(x=>x.id===lid);
+      return `<span class="line-badge" style="background:${l.color}">${lid}</span>`;
+    }).join('');
+
+    marker.bindPopup(`
+      <div class="station-popup">
+        <div class="name">${s.n}</div>
+        <div class="lines">${linesHtml}</div>
+      </div>
+    `,{closeButton:false,offset:[0,-8]});
+
+    marker.on('click',()=>{
+      if(window.AndroidBridge){
+        AndroidBridge.onStationTap(s.n);
+      }
+    });
+
+    allMarkers.push(marker);
+  });
+});
+
+// Station labels for major stations (dense network, only show a subset)
+const MAJOR = ['Àngel Guimerà','Xàtiva','Colón','Alameda','Marítim Serrería','Aeroport',
+               'Jesús','Benimaclet','Plaça d\'Espanya','Pont de Fusta','Torrent','Alacant',
+               'Alboraia','Rafelbunyol','Bétera','Llíria','Riba-roja','Natzaret'];
+MAJOR.forEach(name=>{
+  for(const s of allMarkers){
+    const popup = s.getPopup();
+    if(popup&&popup.getContent().includes(name)&&popup.getContent().includes('class="name"')) {
+      const ll = s.getLatLng();
+      const label = L.marker(ll,{
+        icon:L.divIcon({
+          className:'station-label',
+          html:name,
+          iconSize:[120,16],
+          iconAnchor:[60,0],
+        }),
+        interactive:false,
+      }).addTo(map);
+      break;
+    }
+  }
+});
+
+// Legend
+const legend = L.control({position:'topright'});
+legend.onAdd=function(){
+  const div = L.DomUtil.create('div','legend');
+  div.innerHTML=`<h3>Líneas</h3>${LINES.map(l=>`
+    <div class="legend-item active" data-line="${l.id}">
+      <div class="legend-swatch" style="background:${l.color}"></div>
+      <span class="legend-label">${l.id}${l.tram?' 🚊':''}</span>
+    </div>
+  `).join('')}`;
+  L.DomEvent.disableClickPropagation(div);
+  div.querySelectorAll('.legend-item').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const lid = el.dataset.line;
+      const active = el.classList.toggle('hidden');
+      if(active){
+        polylineLayers[lid].addTo(map);
+      } else {
+        map.removeLayer(polylineLayers[lid]);
+      }
+    });
+  });
+  return div;
+};
+legend.addTo(map);
+
+// Attribution
+L.control.attribution({position:'bottomright',prefix:'<a href="https://leafletjs.com">Leaflet</a> | © <a href="https://carto.com">CARTO</a> | © <a href="https://openstreetmap.org">OSM</a>'}).addTo(map);
+</script>
+</body>
+</html>

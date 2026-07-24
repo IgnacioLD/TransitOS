@@ -1,5 +1,7 @@
 package app.transitos.feature.planner
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.LocationOn
@@ -21,10 +24,18 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.SwapVert
+import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Schedule
+
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -74,6 +85,7 @@ import org.koin.androidx.compose.koinViewModel
 fun PlannerRoute(
     modifier: Modifier = Modifier,
     viewModel: PlannerViewModel = koinViewModel(),
+    onOpenMap: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val stops by viewModel.stops.collectAsStateWithLifecycle()
@@ -86,6 +98,9 @@ fun PlannerRoute(
         onSwap = viewModel::swapEndpoints,
         onSaveRoute = viewModel::saveCurrentRoute,
         onRemoveRoute = viewModel::removeCurrentRoute,
+        onSelectJourney = viewModel::selectJourney,
+        onSetArriveBy = viewModel::setArriveBy,
+        onOpenMap = onOpenMap,
         modifier = modifier,
     )
 }
@@ -96,11 +111,12 @@ fun PrefilledPlannerRoute(
     destinationStopId: String,
     modifier: Modifier = Modifier,
     viewModel: PlannerViewModel = koinViewModel(),
+    onOpenMap: () -> Unit = {},
 ) {
     LaunchedEffect(originStopId, destinationStopId) {
         viewModel.prefillRoute(originStopId, destinationStopId)
     }
-    PlannerRoute(modifier = modifier, viewModel = viewModel)
+    PlannerRoute(modifier = modifier, viewModel = viewModel, onOpenMap = onOpenMap)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -115,6 +131,9 @@ internal fun PlannerScreen(
     modifier: Modifier = Modifier,
     onSaveRoute: () -> Unit = {},
     onRemoveRoute: () -> Unit = {},
+    onSelectJourney: (Int) -> Unit = {},
+    onSetArriveBy: (String?) -> Unit = {},
+    onOpenMap: () -> Unit = {},
 ) {
     val spacing = LocalSpacing.current
     var picking by rememberSaveable { mutableStateOf<PickingTarget?>(null) }
@@ -165,16 +184,50 @@ internal fun PlannerScreen(
                 )
             }
 
+            item {
+                ArriveByRow(
+                    arriveBy = state.arriveBy,
+                    onSetArriveBy = onSetArriveBy,
+                )
+            }
+
+            item {
+                TextButton(
+                    onClick = onOpenMap,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Map,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.width(LocalSpacing.current.sm))
+                    Text("Ver plano de la red")
+                }
+            }
+
             when {
                 !state.canPlan -> item { HintCard() }
                 state.isPlanning -> item { PlanningSkeleton() }
-                state.journey != null -> item {
-                    JourneyResultCard(
-                        journey = state.journey!!,
-                        isSaved = state.isSaved,
-                        onSaveRoute = onSaveRoute,
-                        onRemoveRoute = onRemoveRoute,
-                    )
+                state.journeys.isNotEmpty() -> {
+                    if (state.journeys.size > 1) {
+                        item {
+                            JourneyAlternatives(
+                                journeys = state.journeys,
+                                selectedIndex = state.selectedJourneyIndex,
+                                onSelect = onSelectJourney,
+                            )
+                        }
+                    }
+                    item {
+                        val journey = state.selectedJourney!!
+                        JourneyResultCard(
+                            journey = journey,
+                            isSaved = state.isSaved,
+                            onSaveRoute = onSaveRoute,
+                            onRemoveRoute = onRemoveRoute,
+                        )
+                    }
                 }
                 state.errorMessage != null -> item {
                     EmptyState(
@@ -343,6 +396,194 @@ private fun DateChipRow(
             },
             leadingIcon = { Icon(Icons.Outlined.CalendarMonth, contentDescription = null) },
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ArriveByRow(
+    arriveBy: String?,
+    onSetArriveBy: (String?) -> Unit,
+) {
+    val spacing = LocalSpacing.current
+    var showTimePicker by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var selectedDate by remember { mutableStateOf(
+        arriveBy?.let {
+            val parts = it.split(" ")
+            if (parts.size == 2) parts[0] else null
+        } ?: ""
+    ) }
+    var selectedTime by remember { mutableStateOf(
+        arriveBy?.let {
+            val parts = it.split(" ")
+            if (parts.size == 2) parts[1] else it
+        } ?: ""
+    ) }
+
+    Surface(
+        onClick = { showDatePicker = true },
+        shape = MaterialTheme.shapes.medium,
+        color = if (arriveBy != null)
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+        else
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Schedule,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = if (arriveBy != null) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Llegada",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = arriveBy ?: "Pulsar para establecer hora de llegada",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (arriveBy != null) MaterialTheme.colorScheme.onSurface
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (arriveBy != null) {
+                IconButton(onClick = { onSetArriveBy(null) }) {
+                    Icon(
+                        Icons.Outlined.Close,
+                        contentDescription = "Quitar hora de llegada",
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            } else {
+                Icon(
+                    Icons.Outlined.ChevronRight,
+                    contentDescription = "Seleccionar",
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDate.let { dateStr ->
+                if (dateStr.isNotBlank()) {
+                    try {
+                        val parts = dateStr.split("/")
+                        java.time.LocalDate.of(
+                            parts[2].toInt(), parts[1].toInt(), parts[0].toInt()
+                        ).atStartOfDay(java.time.ZoneId.systemDefault())
+                            .toInstant().toEpochMilli()
+                    } catch (_: Exception) { null }
+                } else null
+            },
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val ld = java.time.Instant.ofEpochMilli(millis)
+                            .atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+                        selectedDate = "${ld.dayOfMonth.toString().padStart(2, '0')}/${
+                            ld.monthValue.toString().padStart(2, '0')}/${ld.year}"
+                    }
+                    showDatePicker = false
+                    showTimePicker = true
+                }) { Text("Siguiente") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancelar")
+                }
+            },
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    if (showTimePicker) {
+        val timePickerState = rememberTimePickerState(
+            initialHour = selectedTime.let { timeStr ->
+                if (timeStr.isNotBlank()) {
+                    try { timeStr.substringBefore(":").toInt() }
+                    catch (_: Exception) { 12 }
+                } else 12
+            },
+            initialMinute = selectedTime.let { timeStr ->
+                if (timeStr.isNotBlank()) {
+                    try { timeStr.substringAfter(":").toInt() }
+                    catch (_: Exception) { 0 }
+                } else 0
+            },
+            is24Hour = true,
+        )
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            title = { Text("Hora de llegada") },
+            text = {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    TimePicker(state = timePickerState)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val h = timePickerState.hour.toString().padStart(2, '0')
+                    val m = timePickerState.minute.toString().padStart(2, '0')
+                    onSetArriveBy("$selectedDate $h:$m")
+                    showTimePicker = false
+                }) { Text("Aceptar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) {
+                    Text("Cancelar")
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun JourneyAlternatives(
+    journeys: List<Journey>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+) {
+    val spacing = LocalSpacing.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+    ) {
+        journeys.forEachIndexed { i, journey ->
+            val label = buildString {
+                append("${journey.durationMinutes} min")
+                if (journey.hasTransfers) append(" · ${journey.legs.size}t")
+                journey.firstDeparture?.let { append(" · $it") }
+            }
+            FilterChip(
+                selected = i == selectedIndex,
+                onClick = { onSelect(i) },
+                label = { Text(label, maxLines = 1) },
+            )
+        }
     }
 }
 
