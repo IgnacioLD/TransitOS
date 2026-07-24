@@ -29,6 +29,10 @@
     <string name="planner_legs_unit">legs</string>
     <string name="planner_departures_count">%1$d departures</string>
     <string name="planner_direction">Direction: %1$s</string>
+    <string name="planner_transfer_at">Transfer at %1$s</string>
+    <string name="planner_first_train">First: %1$s</string>
+    <string name="time_now">Now</string>
+    <string name="time_choose">Choose time</string>
     <string name="planner_distance">Distance</string>
     <string name="planner_fare">Fare</string>
     <string name="planner_fare_zone">Zone %1$s</string>

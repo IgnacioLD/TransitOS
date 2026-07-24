@@ -188,7 +188,7 @@ internal fun PlannerScreen(
             }
 
             item {
-                ArriveByRow(
+                TravelTimeRow(
                     arriveBy = state.arriveBy,
                     onSetArriveBy = onSetArriveBy,
                 )
@@ -405,134 +405,51 @@ private fun DateChipRow(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ArriveByRow(
+private fun TravelTimeRow(
     arriveBy: String?,
     onSetArriveBy: (String?) -> Unit,
 ) {
     val spacing = LocalSpacing.current
     var showTimePicker by remember { mutableStateOf(false) }
-    var showDatePicker by remember { mutableStateOf(false) }
-    var selectedDate by remember { mutableStateOf(
-        arriveBy?.let {
-            val parts = it.split(" ")
-            if (parts.size == 2) parts[0] else null
-        } ?: ""
-    ) }
-    var selectedTime by remember { mutableStateOf(
-        arriveBy?.let {
-            val parts = it.split(" ")
-            if (parts.size == 2) parts[1] else it
-        } ?: ""
-    ) }
 
-    Surface(
-        onClick = { showDatePicker = true },
-        shape = MaterialTheme.shapes.medium,
-        color = if (arriveBy != null)
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-        else
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+    Row(
         modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(spacing.md),
-            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Schedule,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-                tint = if (arriveBy != null) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Column(modifier = Modifier.weight(1f)) {
+        FilterChip(
+            selected = arriveBy == null,
+            onClick = { onSetArriveBy(null) },
+            label = { Text(stringResource(R.string.time_now)) },
+        )
+        FilterChip(
+            selected = arriveBy != null,
+            onClick = { showTimePicker = true },
+            leadingIcon = { Icon(Icons.Outlined.Schedule, contentDescription = null, modifier = Modifier.size(18.dp)) },
+            label = {
                 Text(
-                    text = stringResource(R.string.planner_arrival),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    if (arriveBy != null) arriveBy
+                    else stringResource(R.string.time_choose),
                 )
-                Text(
-                    text = arriveBy ?: stringResource(R.string.planner_arrival_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (arriveBy != null) MaterialTheme.colorScheme.onSurface
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            if (arriveBy != null) {
-                IconButton(onClick = { onSetArriveBy(null) }) {
-                    Icon(
-                        Icons.Outlined.Close,
-                        contentDescription = stringResource(R.string.planner_clear_arrival_cd),
-                        modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            } else {
-                Icon(
-                    Icons.Outlined.ChevronRight,
-                    contentDescription = stringResource(R.string.planner_select_cd),
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    }
-
-    if (showDatePicker) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = selectedDate.let { dateStr ->
-                if (dateStr.isNotBlank()) {
-                    try {
-                        val parts = dateStr.split("/")
-                        java.time.LocalDate.of(
-                            parts[2].toInt(), parts[1].toInt(), parts[0].toInt()
-                        ).atStartOfDay(java.time.ZoneId.systemDefault())
-                            .toInstant().toEpochMilli()
-                    } catch (_: Exception) { null }
-                } else null
             },
         )
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { millis ->
-                        val ld = java.time.Instant.ofEpochMilli(millis)
-                            .atZone(java.time.ZoneId.systemDefault()).toLocalDate()
-                        selectedDate = "${ld.dayOfMonth.toString().padStart(2, '0')}/${
-                            ld.monthValue.toString().padStart(2, '0')}/${ld.year}"
-                    }
-                    showDatePicker = false
-                    showTimePicker = true
-                }) { Text(stringResource(coreUiR.string.action_next)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text(stringResource(coreUiR.string.action_cancel))
-                }
-            },
-        ) {
-            DatePicker(state = datePickerState)
+        if (arriveBy != null) {
+            IconButton(onClick = { onSetArriveBy(null) }) {
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = stringResource(R.string.planner_clear_arrival_cd),
+                    modifier = Modifier.size(18.dp),
+                )
+            }
         }
     }
 
     if (showTimePicker) {
+        val initialHour = arriveBy?.substringBefore(":")?.toIntOrNull() ?: java.time.LocalTime.now().hour
+        val initialMinute = arriveBy?.substringAfter(":")?.toIntOrNull() ?: java.time.LocalTime.now().minute
         val timePickerState = rememberTimePickerState(
-            initialHour = selectedTime.let { timeStr ->
-                if (timeStr.isNotBlank()) {
-                    try { timeStr.substringBefore(":").toInt() }
-                    catch (_: Exception) { 12 }
-                } else 12
-            },
-            initialMinute = selectedTime.let { timeStr ->
-                if (timeStr.isNotBlank()) {
-                    try { timeStr.substringAfter(":").toInt() }
-                    catch (_: Exception) { 0 }
-                } else 0
-            },
+            initialHour = initialHour,
+            initialMinute = initialMinute,
             is24Hour = true,
         )
         AlertDialog(
@@ -550,7 +467,7 @@ private fun ArriveByRow(
                 TextButton(onClick = {
                     val h = timePickerState.hour.toString().padStart(2, '0')
                     val m = timePickerState.minute.toString().padStart(2, '0')
-                    onSetArriveBy("$selectedDate $h:$m")
+                    onSetArriveBy("$h:$m")
                     showTimePicker = false
                 }) { Text(stringResource(coreUiR.string.action_accept)) }
             },
@@ -647,8 +564,11 @@ private fun JourneyResultCard(
             JourneySummaryRow(journey = journey)
 
             journey.legs.forEachIndexed { i, leg ->
-                if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                JourneyLegSection(leg = leg, index = i)
+                if (i > 0) {
+                    val transferStation = journey.legs[i - 1].destinationName
+                    TransferIndicator(stationName = transferStation)
+                }
+                JourneyLegSection(leg = leg, index = i, isLast = i == journey.legs.lastIndex)
             }
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -766,13 +686,29 @@ private fun StatChip(value: String, label: String) {
 }
 
 @Composable
-private fun JourneyLegSection(leg: JourneyLeg, index: Int) {
+private fun JourneyLegSection(leg: JourneyLeg, index: Int, isLast: Boolean = false) {
     val spacing = LocalSpacing.current
     Column(verticalArrangement = Arrangement.spacedBy(spacing.xxs)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(spacing.sm),
         ) {
+            if (leg.lineNames.isNotEmpty()) {
+                leg.lineNames.forEach { lineName ->
+                    Surface(
+                        shape = MaterialTheme.shapes.small,
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                    ) {
+                        Text(
+                            text = lineName,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        )
+                    }
+                }
+            }
             Text(
                 text = "${leg.originName} → ${leg.destinationName}",
                 style = MaterialTheme.typography.bodyLarge,
@@ -780,19 +716,57 @@ private fun JourneyLegSection(leg: JourneyLeg, index: Int) {
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.weight(1f),
             )
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(spacing.md),
+        ) {
+            if (leg.headsigns.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.planner_direction, leg.headsigns.joinToString()),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Text(
                 text = stringResource(R.string.planner_departures_count, leg.departures.size),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            leg.departures.firstOrNull()?.let { first ->
+                Text(
+                    text = stringResource(R.string.planner_first_train, first),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
         }
-        if (leg.headsigns.isNotEmpty()) {
-            Text(
-                text = stringResource(R.string.planner_direction, leg.headsigns.joinToString()),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+    }
+}
+
+@Composable
+private fun TransferIndicator(stationName: String) {
+    val spacing = LocalSpacing.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = spacing.xs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.SwapVert,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = MaterialTheme.colorScheme.tertiary,
+        )
+        Text(
+            text = stringResource(R.string.planner_transfer_at, stationName),
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.tertiary,
+        )
     }
 }
 

@@ -169,6 +169,7 @@ internal fun FgvTransbordoDto.toLeg(): JourneyLeg = JourneyLeg(
     departures = horas
         .flatMap { (hour, times) -> times.map { time -> time } }
         .sorted(),
+    lineNames = lineas,
 )
 
 /**

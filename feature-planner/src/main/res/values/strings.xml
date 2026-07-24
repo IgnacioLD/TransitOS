@@ -29,6 +29,10 @@
     <string name="planner_legs_unit">tramos</string>
     <string name="planner_departures_count">%1$d salidas</string>
     <string name="planner_direction">Dirección: %1$s</string>
+    <string name="planner_transfer_at">Transbordo en %1$s</string>
+    <string name="planner_first_train">Primero: %1$s</string>
+    <string name="time_now">Ahora</string>
+    <string name="time_choose">Elegir hora</string>
     <string name="planner_distance">Distancia</string>
     <string name="planner_fare">Tarifa</string>
     <string name="planner_fare_zone">Zona %1$s</string>

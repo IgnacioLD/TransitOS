@@ -46,4 +46,5 @@ public data class JourneyLeg(
     public val destinationName: String,
     public val headsigns: List<String>,
     public val departures: List<String>,
+    public val lineNames: List<String> = emptyList(),
 )
