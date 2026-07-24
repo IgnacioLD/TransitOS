@@ -1,0 +1,38 @@
+# Built artifacts
+build/
+*.apk
+*.aab
+*.dex
+*.class
+
+# Gradle
+.gradle/
+local.properties
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+*.iws
+*.ipr
+captures/
+.cxx/
+.kotlin/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keystore (never commit signing material)
+*.jks
+*.keystore
+
+# Logs
+*.log
+
+# Research workspace (decompiled 3rd-party APKs, never commit — licensing)
+.research/
+
+# Scratch / planning artifacts
+hon.json
+plan.json
+cookies.txt

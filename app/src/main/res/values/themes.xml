@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Compose renders the entire UI via MaterialTheme; this XML theme only needs to
+      remove the platform action bar and stay out of the way during cold start.
+      enableEdgeToEdge() + Compose handle the actual system-bar styling.
+    -->
+    <style name="Theme.TransitOS" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
