@@ -42,4 +42,8 @@
     <string name="planner_co2">CO₂</string>
     <string name="date_today">Hui</string>
     <string name="date_tomorrow">Demà</string>
+    <string name="planner_leave_now">Eixir ara</string>
+    <string name="planner_arrive_by">Arribar abans de les…</string>
+    <string name="planner_search_route">Buscar ruta</string>
+    <string name="planner_quick_picks">Suggeriments</string>
 </resources>

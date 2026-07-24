@@ -37,28 +37,23 @@ class PlannerViewModel(
     val state: StateFlow<PlannerUiState> = _state.asStateFlow()
 
     fun setOrigin(stop: Stop) {
-        _state.update { it.copy(origin = stop) }
-        planIfReady()
+        _state.update { it.copy(origin = stop, hasSearched = false, journeys = emptyList()) }
     }
 
     fun setDestination(stop: Stop) {
-        _state.update { it.copy(destination = stop) }
-        planIfReady()
+        _state.update { it.copy(destination = stop, hasSearched = false, journeys = emptyList()) }
     }
 
     fun setDate(date: LocalDate) {
         _state.update { it.copy(date = date) }
-        planIfReady()
     }
 
-    fun setArriveBy(time: String?) {
+    fun setTravelTime(time: String?) {
         _state.update { it.copy(travelTime = time) }
-        planIfReady()
     }
 
     fun setTimeMode(mode: TimeMode) {
         _state.update { it.copy(timeMode = mode) }
-        planIfReady()
     }
 
     fun selectJourney(index: Int) {
@@ -71,13 +66,39 @@ class PlannerViewModel(
         val destination = stops.find { it.id == destinationId }
         if (origin != null && destination != null) {
             _state.update { it.copy(origin = origin, destination = destination) }
-            planIfReady()
+            search()
         }
     }
 
     fun swapEndpoints() {
-        _state.update { it.copy(origin = it.destination, destination = it.origin) }
-        planIfReady()
+        _state.update { it.copy(origin = it.destination, destination = it.origin, hasSearched = false, journeys = emptyList()) }
+    }
+
+    fun search() {
+        val current = _state.value
+        val origin = current.origin ?: return
+        val destination = current.destination ?: return
+        if (origin.id == destination.id) {
+            _state.update { it.copy(journeys = emptyList(), errorMessage = null, hasSearched = true) }
+            return
+        }
+        val routeId = routeIdFor(origin.id, destination.id)
+        viewModelScope.launch {
+            _state.update { it.copy(isPlanning = true, errorMessage = null, hasSearched = true) }
+            val result = runCatching {
+                repository.planJourney(origin.id, destination.id, current.date, current.travelTime)
+            }
+            _state.update { s ->
+                val journeys = result.getOrDefault(emptyList())
+                s.copy(
+                    isPlanning = false,
+                    journeys = journeys,
+                    selectedJourneyIndex = 0,
+                    errorMessage = if (journeys.isEmpty()) result.exceptionOrNull()?.message else null,
+                    isSaved = routeId in savedRouteIds.value,
+                )
+            }
+        }
     }
 
     fun saveCurrentRoute() {
@@ -99,33 +120,6 @@ class PlannerViewModel(
         viewModelScope.launch {
             routeFavorites.removeRoute(routeId)
             _state.update { it.copy(isSaved = false) }
-        }
-    }
-
-    private fun planIfReady() {
-        val current = _state.value
-        val origin = current.origin ?: return
-        val destination = current.destination ?: return
-        if (origin.id == destination.id) {
-            _state.update { it.copy(journeys = emptyList(), errorMessage = null) }
-            return
-        }
-        val routeId = routeIdFor(origin.id, destination.id)
-        viewModelScope.launch {
-            _state.update { it.copy(isPlanning = true, errorMessage = null) }
-            val result = runCatching {
-                repository.planJourney(origin.id, destination.id, current.date, current.travelTime)
-            }
-            _state.update { s ->
-                val journeys = result.getOrDefault(emptyList())
-                s.copy(
-                    isPlanning = false,
-                    journeys = journeys,
-                    selectedJourneyIndex = 0,
-                    errorMessage = if (journeys.isEmpty()) result.exceptionOrNull()?.message else null,
-                    isSaved = routeId in savedRouteIds.value,
-                )
-            }
         }
     }
 

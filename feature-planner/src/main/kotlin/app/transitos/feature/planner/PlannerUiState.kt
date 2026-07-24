@@ -16,6 +16,7 @@ data class PlannerUiState(
     val isSaved: Boolean = false,
     val timeMode: TimeMode = TimeMode.DEPARTURE,
     val travelTime: String? = null,
+    val hasSearched: Boolean = false,
     val errorMessage: String? = null,
 ) {
     val canPlan: Boolean get() = origin != null && destination != null && origin != destination

@@ -42,4 +42,8 @@
     <string name="planner_co2">CO₂</string>
     <string name="date_today">Today</string>
     <string name="date_tomorrow">Tomorrow</string>
+    <string name="planner_leave_now">Leave now</string>
+    <string name="planner_arrive_by">Arrive before…</string>
+    <string name="planner_search_route">Search route</string>
+    <string name="planner_quick_picks">Suggestions</string>
 </resources>

@@ -1,5 +1,7 @@
 package app.transitos.feature.planner
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -17,25 +19,24 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.RadioButtonChecked
+import androidx.compose.material.icons.outlined.RadioButtonUnchecked
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.SwapVert
-import androidx.compose.material.icons.outlined.Map
-import androidx.compose.material.icons.outlined.ChevronRight
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Schedule
-
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -43,18 +44,20 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,6 +65,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -81,7 +85,6 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
-import androidx.compose.runtime.LaunchedEffect
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
@@ -101,12 +104,13 @@ fun PlannerRoute(
         onOriginSelected = viewModel::setOrigin,
         onDestinationSelected = viewModel::setDestination,
         onDateSelected = viewModel::setDate,
+        onTravelTimeSelected = viewModel::setTravelTime,
+        onTimeModeSelected = viewModel::setTimeMode,
         onSwap = viewModel::swapEndpoints,
+        onSearch = viewModel::search,
         onSaveRoute = viewModel::saveCurrentRoute,
         onRemoveRoute = viewModel::removeCurrentRoute,
         onSelectJourney = viewModel::selectJourney,
-        onSetArriveBy = viewModel::setArriveBy,
-        onSetTimeMode = viewModel::setTimeMode,
         onOpenMap = onOpenMap,
         modifier = modifier,
     )
@@ -134,24 +138,38 @@ internal fun PlannerScreen(
     onOriginSelected: (Stop) -> Unit,
     onDestinationSelected: (Stop) -> Unit,
     onDateSelected: (LocalDate) -> Unit,
+    onTravelTimeSelected: (String?) -> Unit,
+    onTimeModeSelected: (TimeMode) -> Unit,
     onSwap: () -> Unit,
+    onSearch: () -> Unit,
     modifier: Modifier = Modifier,
     onSaveRoute: () -> Unit = {},
     onRemoveRoute: () -> Unit = {},
     onSelectJourney: (Int) -> Unit = {},
-    onSetArriveBy: (String?) -> Unit = {},
-    onSetTimeMode: (TimeMode) -> Unit = {},
     onOpenMap: () -> Unit = {},
 ) {
     val spacing = LocalSpacing.current
     var picking by rememberSaveable { mutableStateOf<PickingTarget?>(null) }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    var showTimePicker by rememberSaveable { mutableStateOf(false) }
 
     val timeZone = remember { TimeZone.currentSystemDefault() }
     val today = remember { Clock.System.todayIn(timeZone) }
     val tomorrow = remember { today.plus(DatePeriod(days = 1)) }
 
-    Scaffold(modifier = modifier.fillMaxSize()) { padding ->
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.planner_title)) },
+                actions = {
+                    IconButton(onClick = onOpenMap) {
+                        Icon(Icons.Outlined.Map, contentDescription = stringResource(R.string.planner_view_network_map))
+                    }
+                },
+            )
+        },
+    ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -163,62 +181,43 @@ internal fun PlannerScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(spacing.md),
         ) {
-            item {
-                Text(
-                    text = stringResource(R.string.planner_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(top = spacing.md, bottom = spacing.xs),
-                )
-            }
+            item { SearchBarEndpoints(
+                origin = state.origin,
+                destination = state.destination,
+                onPickOrigin = { picking = PickingTarget.ORIGIN },
+                onPickDestination = { picking = PickingTarget.DESTINATION },
+                onSwap = onSwap,
+            ) }
 
-            item {
-                EndpointSelector(
-                    origin = state.origin,
-                    destination = state.destination,
-                    onPickOrigin = { picking = PickingTarget.ORIGIN },
-                    onPickDestination = { picking = PickingTarget.DESTINATION },
-                    onSwap = onSwap,
-                )
-            }
+            item { TimeOptionsSection(
+                timeMode = state.timeMode,
+                date = state.date,
+                today = today,
+                tomorrow = tomorrow,
+                travelTime = state.travelTime,
+                onTimeModeSelected = onTimeModeSelected,
+                onDateSelected = onDateSelected,
+                onTravelTimeSelected = onTravelTimeSelected,
+                onShowDatePicker = { showDatePicker = true },
+                onShowTimePicker = { showTimePicker = true },
+            ) }
 
-            item {
-                DateChipRow(
-                    selected = state.date,
-                    today = today,
-                    tomorrow = tomorrow,
-                    onSelect = onDateSelected,
-                    onPickCustom = { showDatePicker = true },
-                )
-            }
-
-            item {
-                TravelTimeRow(
-                    timeMode = state.timeMode,
-                    travelTime = state.travelTime,
-                    onSetTimeMode = onSetTimeMode,
-                    onSetTravelTime = onSetArriveBy,
-                )
-            }
-
-            item {
-                TextButton(
-                    onClick = onOpenMap,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Map,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Spacer(Modifier.width(LocalSpacing.current.sm))
-                    Text(stringResource(R.string.planner_view_network_map))
+            if (state.canPlan) {
+                item {
+                    Button(
+                        onClick = onSearch,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(Icons.Outlined.Search, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(spacing.sm))
+                        Text(stringResource(R.string.planner_search_route))
+                    }
                 }
             }
 
             when {
-                !state.canPlan -> item { HintCard() }
                 state.isPlanning -> item { PlanningSkeleton() }
+
                 state.journeys.isNotEmpty() -> {
                     if (state.journeys.size > 1) {
                         item {
@@ -230,15 +229,17 @@ internal fun PlannerScreen(
                         }
                     }
                     item {
-                        val journey = state.selectedJourney!!
                         JourneyResultCard(
-                            journey = journey,
+                            journey = state.selectedJourney!!,
                             isSaved = state.isSaved,
                             onSaveRoute = onSaveRoute,
                             onRemoveRoute = onRemoveRoute,
                         )
                     }
                 }
+
+                !state.canPlan -> item { QuickPicksSection(stops = stops, onPick = onOriginSelected) }
+
                 state.errorMessage != null -> item {
                     EmptyState(
                         icon = Icons.Outlined.Search,
@@ -246,7 +247,8 @@ internal fun PlannerScreen(
                         subtitle = state.errorMessage,
                     )
                 }
-                else -> item {
+
+                state.hasSearched -> item {
                     EmptyState(
                         icon = Icons.Outlined.Search,
                         title = stringResource(R.string.planner_no_route_title),
@@ -260,8 +262,8 @@ internal fun PlannerScreen(
     val target = picking
     if (target != null) {
         StationPickerSheet(
-            title = if (target == PickingTarget.ORIGIN) stringResource(R.string.planner_origin)
-            else stringResource(R.string.planner_destination),
+            title = if (target == PickingTarget.ORIGIN) stringResource(R.string.planner_from)
+            else stringResource(R.string.planner_to),
             stops = stops,
             onPick = { stop ->
                 when (target) {
@@ -298,184 +300,11 @@ internal fun PlannerScreen(
             DatePicker(state = pickerState)
         }
     }
-}
-
-private enum class PickingTarget { ORIGIN, DESTINATION }
-
-@Composable
-private fun EndpointSelector(
-    origin: Stop?,
-    destination: Stop?,
-    onPickOrigin: () -> Unit,
-    onPickDestination: () -> Unit,
-    onSwap: () -> Unit,
-) {
-    val spacing = LocalSpacing.current
-    Surface(
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-    ) {
-        Box(contentAlignment = Alignment.CenterEnd) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = spacing.lg),
-                verticalArrangement = Arrangement.spacedBy(spacing.sm),
-            ) {
-                EndpointRow(label = stringResource(R.string.planner_from), stop = origin, onClick = onPickOrigin)
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                EndpointRow(label = stringResource(R.string.planner_to), stop = destination, onClick = onPickDestination)
-            }
-            IconButton(
-                onClick = onSwap,
-                modifier = Modifier.padding(end = spacing.md),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.SwapVert,
-                    contentDescription = stringResource(R.string.planner_swap_cd),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun EndpointRow(label: String, stop: Stop?, onClick: () -> Unit) {
-    val spacing = LocalSpacing.current
-    Surface(onClick = onClick, color = Color.Transparent) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = spacing.xs),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(spacing.md),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.LocationOn,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = stop?.name ?: stringResource(R.string.planner_pick_station),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = if (stop == null) MaterialTheme.colorScheme.outline
-                    else MaterialTheme.colorScheme.onSurface,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun DateChipRow(
-    selected: LocalDate,
-    today: LocalDate,
-    tomorrow: LocalDate,
-    onSelect: (LocalDate) -> Unit,
-    onPickCustom: () -> Unit,
-) {
-    val spacing = LocalSpacing.current
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-    ) {
-        FilterChip(
-            selected = selected == today,
-            onClick = { onSelect(today) },
-            label = { Text(stringResource(R.string.date_today)) },
-        )
-        FilterChip(
-            selected = selected == tomorrow,
-            onClick = { onSelect(tomorrow) },
-            label = { Text(stringResource(R.string.date_tomorrow)) },
-        )
-        FilterChip(
-            selected = selected != today && selected != tomorrow,
-            onClick = onPickCustom,
-            label = {
-                Text(
-                    if (selected != today && selected != tomorrow) formatHumanDate(selected)
-                    else stringResource(R.string.planner_pick_date),
-                )
-            },
-            leadingIcon = { Icon(Icons.Outlined.CalendarMonth, contentDescription = null) },
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TravelTimeRow(
-    timeMode: TimeMode,
-    travelTime: String?,
-    onSetTimeMode: (TimeMode) -> Unit,
-    onSetTravelTime: (String?) -> Unit,
-) {
-    val spacing = LocalSpacing.current
-    var showTimePicker by rememberSaveable { mutableStateOf(false) }
-
-    Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            SegmentedButton(
-                selected = timeMode == TimeMode.DEPARTURE,
-                onClick = { onSetTimeMode(TimeMode.DEPARTURE) },
-                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-            ) {
-                Text(stringResource(R.string.time_departure))
-            }
-            SegmentedButton(
-                selected = timeMode == TimeMode.ARRIVAL,
-                onClick = { onSetTimeMode(TimeMode.ARRIVAL) },
-                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-            ) {
-                Text(stringResource(R.string.time_arrival))
-            }
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            FilterChip(
-                selected = travelTime == null,
-                onClick = { onSetTravelTime(null) },
-                label = { Text(stringResource(R.string.time_now)) },
-            )
-            FilterChip(
-                selected = travelTime != null,
-                onClick = { showTimePicker = true },
-                leadingIcon = { Icon(Icons.Outlined.Schedule, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                label = {
-                    Text(
-                        if (travelTime != null) travelTime
-                        else stringResource(R.string.time_choose),
-                    )
-                },
-            )
-            if (travelTime != null) {
-                IconButton(onClick = { onSetTravelTime(null) }) {
-                    Icon(
-                        Icons.Outlined.Close,
-                        contentDescription = stringResource(R.string.planner_clear_arrival_cd),
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-            }
-        }
-    }
 
     if (showTimePicker) {
-        val initialHour = travelTime?.substringBefore(":")?.toIntOrNull()
+        val initialHour = state.travelTime?.substringBefore(":")?.toIntOrNull()
             ?: java.time.LocalTime.now().hour
-        val initialMinute = travelTime?.substringAfter(":")?.toIntOrNull()
+        val initialMinute = state.travelTime?.substringAfter(":")?.toIntOrNull()
             ?: java.time.LocalTime.now().minute
         val timePickerState = rememberTimePickerState(
             initialHour = initialHour,
@@ -486,7 +315,7 @@ private fun TravelTimeRow(
             onDismissRequest = { showTimePicker = false },
             title = {
                 Text(
-                    if (timeMode == TimeMode.ARRIVAL)
+                    if (state.timeMode == TimeMode.ARRIVAL)
                         stringResource(R.string.planner_arrival_time_title)
                     else
                         stringResource(R.string.planner_departure_time_title),
@@ -504,7 +333,7 @@ private fun TravelTimeRow(
                 TextButton(onClick = {
                     val h = timePickerState.hour.toString().padStart(2, '0')
                     val m = timePickerState.minute.toString().padStart(2, '0')
-                    onSetTravelTime("$h:$m")
+                    onTravelTimeSelected("$h:$m")
                     showTimePicker = false
                 }) { Text(stringResource(coreUiR.string.action_accept)) }
             },
@@ -514,6 +343,232 @@ private fun TravelTimeRow(
                 }
             },
         )
+    }
+}
+
+private enum class PickingTarget { ORIGIN, DESTINATION }
+
+@Composable
+private fun SearchBarEndpoints(
+    origin: Stop?,
+    destination: Stop?,
+    onPickOrigin: () -> Unit,
+    onPickDestination: () -> Unit,
+    onSwap: () -> Unit,
+) {
+    val spacing = LocalSpacing.current
+    Box {
+        Surface(
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(0.dp),
+            ) {
+                SearchEndpointRow(
+                    icon = "●",
+                    iconColor = MaterialTheme.colorScheme.primary,
+                    text = origin?.name ?: stringResource(R.string.planner_pick_station),
+                    isPlaceholder = origin == null,
+                    onClick = onPickOrigin,
+                )
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                    modifier = Modifier.padding(start = spacing.lg + 20.dp),
+                )
+                SearchEndpointRow(
+                    icon = "●",
+                    iconColor = MaterialTheme.colorScheme.tertiary,
+                    text = destination?.name ?: stringResource(R.string.planner_pick_station),
+                    isPlaceholder = destination == null,
+                    onClick = onPickDestination,
+                )
+            }
+        }
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 2.dp,
+            modifier = Modifier.align(Alignment.CenterEnd).padding(end = spacing.sm),
+        ) {
+            IconButton(
+                onClick = onSwap,
+                modifier = Modifier.size(36.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.SwapVert,
+                    contentDescription = stringResource(R.string.planner_swap_cd),
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchEndpointRow(
+    icon: String,
+    iconColor: Color,
+    text: String,
+    isPlaceholder: Boolean,
+    onClick: () -> Unit,
+) {
+    val spacing = LocalSpacing.current
+    Surface(onClick = onClick, color = Color.Transparent) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = spacing.lg, vertical = spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(spacing.md),
+        ) {
+            Text(
+                text = icon,
+                color = iconColor,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (isPlaceholder) MaterialTheme.colorScheme.outline
+                else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun TimeOptionsSection(
+    timeMode: TimeMode,
+    date: LocalDate,
+    today: LocalDate,
+    tomorrow: LocalDate,
+    travelTime: String?,
+    onTimeModeSelected: (TimeMode) -> Unit,
+    onDateSelected: (LocalDate) -> Unit,
+    onTravelTimeSelected: (String?) -> Unit,
+    onShowDatePicker: () -> Unit,
+    onShowTimePicker: () -> Unit,
+) {
+    val spacing = LocalSpacing.current
+    val leaveNow = timeMode == TimeMode.DEPARTURE && travelTime == null
+
+    Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+        RadioButtonRow(
+            selected = leaveNow,
+            onClick = {
+                onTimeModeSelected(TimeMode.DEPARTURE)
+                onTravelTimeSelected(null)
+            },
+            label = stringResource(R.string.planner_leave_now),
+        )
+        RadioButtonRow(
+            selected = !leaveNow,
+            onClick = {
+                onTimeModeSelected(TimeMode.ARRIVAL)
+                if (travelTime == null) {
+                    val now = java.time.LocalTime.now()
+                    val h = now.hour.toString().padStart(2, '0')
+                    val m = now.minute.toString().padStart(2, '0')
+                    onTravelTimeSelected("$h:$m")
+                }
+            },
+            label = stringResource(R.string.planner_arrive_by),
+        )
+
+        AnimatedVisibility(visible = !leaveNow) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = spacing.xl),
+                horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                FilterChip(
+                    selected = false,
+                    onClick = onShowDatePicker,
+                    leadingIcon = { Icon(Icons.Outlined.CalendarMonth, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                    label = {
+                        Text(
+                            when {
+                                date == today -> stringResource(R.string.date_today)
+                                date == tomorrow -> stringResource(R.string.date_tomorrow)
+                                else -> formatHumanDate(date)
+                            },
+                        )
+                    },
+                )
+                FilterChip(
+                    selected = false,
+                    onClick = onShowTimePicker,
+                    leadingIcon = { Icon(Icons.Outlined.Schedule, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                    label = { Text(travelTime ?: stringResource(R.string.time_now)) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RadioButtonRow(
+    selected: Boolean,
+    onClick: () -> Unit,
+    label: String,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(LocalSpacing.current.sm),
+    ) {
+        RadioButton(selected = selected, onClick = onClick)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (selected) MaterialTheme.colorScheme.onSurface
+            else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun QuickPicksSection(
+    stops: List<Stop>,
+    onPick: (Stop) -> Unit,
+) {
+    val spacing = LocalSpacing.current
+    val quickPicks = remember(stops) {
+        val names = listOf("Xàtiva", "Colón", "Benimaclet", "Marítim", "Aeroport")
+        names.mapNotNull { name ->
+            stops.firstOrNull { it.name.contains(name, ignoreCase = true) }
+        }
+    }
+    if (quickPicks.isEmpty()) return
+    Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
+        Text(
+            text = stringResource(R.string.planner_quick_picks),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+        ) {
+            quickPicks.forEach { stop ->
+                FilterChip(
+                    selected = false,
+                    onClick = { onPick(stop) },
+                    label = { Text(stop.name, maxLines = 1) },
+                )
+            }
+        }
     }
 }
 
@@ -542,22 +597,6 @@ private fun JourneyAlternatives(
                 label = { Text(label, maxLines = 1) },
             )
         }
-    }
-}
-
-@Composable
-private fun HintCard() {
-    val spacing = LocalSpacing.current
-    Surface(
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-    ) {
-        Text(
-            text = stringResource(R.string.planner_hint),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(spacing.lg),
-        )
     }
 }
 
