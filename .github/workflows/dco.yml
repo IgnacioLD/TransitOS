@@ -29,7 +29,7 @@ jobs:
               echo "::error file=commit::Commit ${sha:0:9} is missing a Signed-off-by line. Add it with: git commit -s (see .github/DCO.md)"
               rc=1
             fi
-          done < <(git rev-list "${base}..HEAD")
+          done < <(git rev-list --no-merges "${base}..HEAD")
           if [ "$rc" -ne 0 ]; then
             echo "To fix existing commits: git rebase --signoff ${BASE_REF} && git push --force-with-lease"
             exit "$rc"
