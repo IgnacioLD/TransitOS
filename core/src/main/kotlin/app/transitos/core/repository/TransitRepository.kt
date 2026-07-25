@@ -44,4 +44,6 @@ public interface TransitRepository {
         isDeparture: Boolean = true,
         minTransferMinutes: Int = 5,
     ): List<Journey>
+
+    public suspend fun refresh()
 }

@@ -16,7 +16,9 @@ import com.glossostudio.transitos.provider.metrovalencia.mapper.toArrivals
 import com.glossostudio.transitos.provider.metrovalencia.mapper.toJourney
 import com.glossostudio.transitos.provider.metrovalencia.mapper.toLine
 import com.glossostudio.transitos.provider.metrovalencia.mapper.toStop
+import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,6 +30,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.LocalDate
 import kotlin.math.min
 
@@ -63,6 +66,14 @@ class MetrovalenciaRepository(
     private val nowMs: () -> Long = System::currentTimeMillis,
 ) : TransitRepository {
 
+    private val arrivalsRefreshSignal = Channel<Unit>(Channel.CONFLATED)
+    private val alertsRefreshSignal = Channel<Unit>(Channel.CONFLATED)
+
+    override suspend fun refresh() {
+        arrivalsRefreshSignal.trySend(Unit)
+        alertsRefreshSignal.trySend(Unit)
+    }
+
     private val backend: StateFlow<MetrovalenciaBackend> = settings
         .observeProviderBackend(MetrovalenciaConfig.OPERATOR_ID)
         .map { it.toMetrovalenciaBackendOr(MetrovalenciaBackend.FGV) }
@@ -87,6 +98,7 @@ class MetrovalenciaRepository(
         fetch = { fetchAlertsWithLineNames() },
         intervalMs = config.alertsPollMs,
         started = SharingStarted.Eagerly,
+        refreshSignal = alertsRefreshSignal,
     )
 
     override fun observeStops(): Flow<List<Stop>> = stopsState
@@ -114,7 +126,12 @@ class MetrovalenciaRepository(
                             response.previsiones.flatMap { it.toArrivals(stopId, now, lineByFgvId) }
                         }.getOrDefault(emptyList())
                         emit(arrivals)
-                        delay(config.arrivalsPollMs)
+                        val deadline = nowMs() + config.arrivalsPollMs
+                        while (true) {
+                            val remaining = deadline - nowMs()
+                            if (remaining <= 0L) break
+                            withTimeoutOrNull(remaining) { arrivalsRefreshSignal.receive() }
+                        }
                     }
                 }
                     .distinctUntilChanged()
@@ -212,10 +229,20 @@ class MetrovalenciaRepository(
         fetch: suspend () -> List<T>,
         intervalMs: Long,
         started: SharingStarted = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+        refreshSignal: Channel<Unit>? = null,
     ): StateFlow<List<T>> = flow {
         while (true) {
             emit(runCatching { fetch() }.getOrDefault(emptyList()))
-            delay(intervalMs)
+            if (refreshSignal != null) {
+                val deadline = nowMs() + intervalMs
+                while (true) {
+                    val remaining = deadline - nowMs()
+                    if (remaining <= 0L) break
+                    withTimeoutOrNull(remaining) { refreshSignal.receive() }
+                }
+            } else {
+                delay(intervalMs)
+            }
         }
     }
         .distinctUntilChanged()

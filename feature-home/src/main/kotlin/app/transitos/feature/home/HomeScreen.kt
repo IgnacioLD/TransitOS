@@ -39,6 +39,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,6 +77,7 @@ fun HomeRoute(
         onNavigateToPlanner = onNavigateToPlanner,
         onNavigateToSettings = onNavigateToSettings,
         onRenameRoute = viewModel::renameRoute,
+        onRefresh = viewModel::refresh,
         modifier = modifier,
     )
 }
@@ -88,6 +90,7 @@ internal fun HomeScreen(
     onNavigateToPlanner: (originStopId: String, destinationStopId: String) -> Unit = { _, _ -> },
     onNavigateToSettings: () -> Unit = {},
     onRenameRoute: (routeId: String, label: String) -> Unit = { _, _ -> },
+    onRefresh: () -> Unit = {},
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val alertCount = (state as? HomeUiState.Ready)?.alerts?.size ?: 0
@@ -113,17 +116,24 @@ internal fun HomeScreen(
                 when (current) {
                     HomeUiState.Loading -> FavoritesSkeleton()
                     is HomeUiState.Error -> ErrorState(error = current.error)
-                    is HomeUiState.Ready -> HomeContent(
-                state = current,
-                onNavigateToPlanner = onNavigateToPlanner,
-                onRenameRoute = onRenameRoute,
-            )
+                    is HomeUiState.Ready -> {
+                        PullToRefreshBox(
+                            isRefreshing = current.isRefreshing,
+                            onRefresh = onRefresh,
+                        ) {
+                            HomeContent(
+                                state = current,
+                                onNavigateToPlanner = onNavigateToPlanner,
+                                onRenameRoute = onRenameRoute,
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
-
+ 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeTopBar(

@@ -8,6 +8,7 @@ import com.glossostudio.transitos.core.repository.TransitRepository
 import com.glossostudio.transitos.core.result.AppError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -70,8 +71,23 @@ class HomeViewModel(
             }
         }
 
-    val uiState: StateFlow<HomeUiState> = combined
-        .catch { emit(HomeUiState.Error(AppError.Unknown(it.message ?: "Error desconocido", it))) }
+    private val _isRefreshing = MutableStateFlow(false)
+
+    fun refresh() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            repository.refresh()
+            _isRefreshing.value = false
+        }
+    }
+
+    val uiState: StateFlow<HomeUiState> = combine(
+        combined.catch { emit(HomeUiState.Error(AppError.Unknown(it.message ?: "Error desconocido", it))) },
+        _isRefreshing,
+    ) { state, refreshing ->
+        if (state is HomeUiState.Ready) state.copy(isRefreshing = refreshing)
+        else state
+    }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),

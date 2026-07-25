@@ -12,6 +12,7 @@ sealed interface HomeUiState {
         val favorites: List<FavoriteArrivals>,
         val alerts: List<Alert>,
         val savedRoutes: List<SavedRouteInfo> = emptyList(),
+        val isRefreshing: Boolean = false,
     ) : HomeUiState
 
     data class Error(val error: AppError) : HomeUiState
