@@ -15,7 +15,7 @@
     <string name="about_privacy">Privacidad</string>
     <string name="about_privacy_desc">TransitOS no recopila datos personales.</string>
     <string name="about_source">Código fuente</string>
-    <string name="about_disclaimer">Esta aplicación es un proyecto independiente y de código abierto. No está afiliada ni respaldada por Metrovalencia ni por FGV. Los datos se obtienen de los servicios disponibles de la red de transporte.</string>
+    <string name="about_disclaimer">TransitOS es un proyecto independiente y de código abierto, sin ánimo de lucro. No está afiliado, asociado, autorizado ni respaldado por Metrovalencia, por FGV (Ferrocarrils de la Generalitat Valenciana) ni por ninguna otra entidad pública o gubernamental. No representa a ningún organismo oficial. Los datos de horarios y servicio proceden de la API pública de FGV (https://www.fgv.es).</string>
     <string name="settings_transfer_buffer">Margen de transbordo</string>
     <string name="settings_transfer_buffer_desc">Minutos mínimos de espera entre transbordos. Con menos margen tendrás que ir con prisa.</string>
     <string name="settings_transfer_buffer_value">%1$d min</string>
