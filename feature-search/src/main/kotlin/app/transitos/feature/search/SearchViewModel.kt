@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.glossostudio.transitos.core.repository.FavoritesRepository
 import com.glossostudio.transitos.core.repository.TransitRepository
-import java.text.Normalizer
+import com.glossostudio.transitos.core.util.stripDiacritics
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,7 +22,6 @@ class SearchViewModel(
 ) : ViewModel() {
 
     private val _query = MutableStateFlow("")
-    private val normalizedNames = mutableMapOf<String, String>()
     val query: StateFlow<String> = _query.asStateFlow()
 
     val allStops: StateFlow<List<com.glossostudio.transitos.core.model.Stop>> = repository.observeStops()
@@ -37,8 +36,8 @@ class SearchViewModel(
         combine(allStops, query) { stops, q ->
             if (q.isBlank()) stops
             else {
-                val normalizedQuery = q.normalized()
-                stops.filter { it.name.normalized().contains(normalizedQuery, ignoreCase = true) }
+                val normalizedQuery = q.stripDiacritics()
+                stops.filter { it.name.stripDiacritics().contains(normalizedQuery, ignoreCase = true) }
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
@@ -55,10 +54,4 @@ class SearchViewModel(
             }
         }
     }
-
-    private fun String.normalized(): String =
-        normalizedNames.getOrPut(this) {
-            Normalizer.normalize(this, Normalizer.Form.NFD)
-                .replace(Regex("\\p{M}"), "")
-        }
 }

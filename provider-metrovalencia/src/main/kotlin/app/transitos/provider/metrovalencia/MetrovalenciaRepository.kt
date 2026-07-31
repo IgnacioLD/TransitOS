@@ -8,9 +8,12 @@ import com.glossostudio.transitos.core.model.Stop
 import com.glossostudio.transitos.core.provider.ProviderSettingsRepository
 import com.glossostudio.transitos.core.repository.TransitRepository
 import com.glossostudio.transitos.provider.metrovalencia.api.MetrovalenciaApi
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvPlanificadorDto
 import com.glossostudio.transitos.provider.metrovalencia.mapper.LineDisplayInfo
+import com.glossostudio.transitos.provider.metrovalencia.mapper.addMinutesToTime
 import com.glossostudio.transitos.provider.metrovalencia.mapper.formatAsFgvFecha
 import com.glossostudio.transitos.provider.metrovalencia.mapper.parseArgbHexOrNull
+import com.glossostudio.transitos.provider.metrovalencia.mapper.timeDiffMinutes
 import com.glossostudio.transitos.provider.metrovalencia.mapper.toAlert
 import com.glossostudio.transitos.provider.metrovalencia.mapper.toArrivals
 import com.glossostudio.transitos.provider.metrovalencia.mapper.toJourney
@@ -195,8 +198,65 @@ class MetrovalenciaRepository(
                 )
             }
             if (response.status != 200) emptyList()
-            else response.resultado.mapNotNull { it.toJourney(date, minTransferMinutes) }
+            else response.resultado.mapNotNull { dto ->
+                val enforced = enforceTransferBuffer(dto, date, minTransferMinutes)
+                enforced.toJourney(date)
+            }
         }.getOrDefault(emptyList())
+    }
+
+    /**
+     * Enforces the user's minimum transfer time by re-planning tight transfers.
+     *
+     * Walks the planned legs: when the real schedule gap at a transfer is
+     * shorter than [minTransferMinutes], calls `planificador-online2` again
+     * from the transfer station to the final destination with
+     * `hora_salida = previous_arrival + buffer`. The returned sub-journey's
+     * legs replace everything from the transfer onward. If the sub-journey
+     * itself has a tight transfer, the loop re-checks it (cascading).
+     *
+     * Falls back to the original legs when re-planning fails or the station
+     * lacks an internal id.
+     */
+    private suspend fun enforceTransferBuffer(
+        dto: FgvPlanificadorDto,
+        date: LocalDate,
+        minTransferMinutes: Int,
+    ): FgvPlanificadorDto {
+        if (dto.pasos.size <= 1 || minTransferMinutes <= 0) return dto
+        val pasos = dto.pasos.toMutableList()
+        val destInternalId = dto.estacion_destino?.id ?: return dto
+        var i = 1
+        while (i < pasos.size) {
+            val prevArrival = pasos[i - 1].hora_llegada
+            val thisDeparture = pasos[i].hora_salida
+            val realWait = timeDiffMinutes(prevArrival, thisDeparture)
+            if (realWait != null && realWait < minTransferMinutes) {
+                val transferInternalId = pasos[i].estacion_origen?.id
+                if (transferInternalId != null) {
+                    val newDeparture = addMinutesToTime(prevArrival, minTransferMinutes)
+                    val subResponse = runCatching {
+                        api.planificadorOnline(
+                            originInternalId = transferInternalId,
+                            destinationInternalId = destInternalId,
+                            fecha = date.formatAsFgvFecha(),
+                            horaSalida = newDeparture,
+                            horaLlegada = null,
+                        )
+                    }.getOrNull()
+                    if (subResponse?.status == 200 && subResponse.resultado.isNotEmpty()) {
+                        val subPasos = subResponse.resultado.first().pasos
+                        if (subPasos.isNotEmpty()) {
+                            pasos.subList(i, pasos.size).clear()
+                            pasos.addAll(subPasos)
+                            continue
+                        }
+                    }
+                }
+            }
+            i++
+        }
+        return dto.copy(pasos = pasos)
     }
 
     /**

@@ -146,26 +146,34 @@ internal fun parseArgbHexOrNull(hex: String): Long? = runCatching {
  * horarios mapper, this produces legs with specific departure/arrival times,
  * line colors, and transfer info.
  *
- * [minTransferMinutes] is the user-configurable buffer: if the API says a
- * transfer takes fewer minutes than this, we pad the wait and shift subsequent
- * leg times so the displayed arrival is realistic.
+ * The wait at each transfer is the gap between the previous leg's arrival and
+ * this leg's departure, read from the real schedules — not FGV's `min_espera`,
+ * which is only a platform-walk estimate and ignores how long until the next
+ * train actually leaves.
+ *
+ * Duration is computed from the first departure to the last arrival so it
+ * stays correct after the repository stitches re-planned sub-journeys.
  */
 internal fun FgvPlanificadorDto.toJourney(
     date: LocalDate,
-    minTransferMinutes: Int = 5,
 ): Journey? {
     if (pasos.isEmpty()) return null
-    val rawLegs = pasos.mapIndexed { index, paso ->
+    val legs = pasos.mapIndexed { index, paso ->
         paso.toLeg(
-            waitFromPrevious = if (index > 0) pasos[index - 1].transbordo?.minEspera else null,
+            waitFromPrevious = if (index > 0) {
+                timeDiffMinutes(pasos[index - 1].hora_llegada, paso.hora_salida)
+                    ?: pasos[index - 1].transbordo?.minEspera
+            } else null,
         )
     }
-    val legs = applyTransferBuffer(rawLegs, minTransferMinutes)
     if (legs.isEmpty()) return null
-    val totalBuffer = totalBufferAdded(rawLegs, legs)
+    val computedDuration = timeDiffMinutes(
+        pasos.first().hora_salida,
+        pasos.last().hora_llegada,
+    ) ?: duracion_minutos
     return Journey(
         date = date,
-        durationMinutes = duracion_minutos + totalBuffer,
+        durationMinutes = computedDuration,
         distanceMeters = 0L,
         fareZone = tarifas,
         carbonKg = huella_de_carbono,
@@ -188,44 +196,24 @@ internal fun FgvPasoDto.toLeg(waitFromPrevious: Int? = null): JourneyLeg {
     )
 }
 
-private fun applyTransferBuffer(
-    legs: List<JourneyLeg>,
-    minTransfer: Int,
-): List<JourneyLeg> {
-    if (legs.size <= 1 || minTransfer <= 0) return legs
-    var cumulativeShift = 0
-    return legs.mapIndexed { index, leg ->
-        if (index == 0) return@mapIndexed leg
-        val wait = leg.waitMinutes ?: 0
-        val needed = if (wait < minTransfer) minTransfer - wait else 0
-        cumulativeShift += needed
-        if (cumulativeShift > 0) {
-            leg.copy(
-                waitMinutes = wait + needed,
-                departureTime = leg.departureTime?.let { addMinutesToTime(it, cumulativeShift) },
-                arrivalTime = leg.arrivalTime?.let { addMinutesToTime(it, cumulativeShift) },
-            )
-        } else leg
-    }
-}
-
-private fun totalBufferAdded(original: List<JourneyLeg>, buffered: List<JourneyLeg>): Int {
-    var total = 0
-    for (i in original.indices) {
-        val o = original[i].waitMinutes ?: 0
-        val b = buffered[i].waitMinutes ?: 0
-        total += (b - o).coerceAtLeast(0)
-    }
-    return total
-}
-
-private fun addMinutesToTime(time: String, minutes: Int): String {
-    val parts = time.split(":")
-    if (parts.size != 2) return time
-    val h = parts[0].toIntOrNull() ?: return time
-    val m = parts[1].toIntOrNull() ?: return time
-    val total = h * 60 + m + minutes
+internal fun addMinutesToTime(time: String, minutes: Int): String {
+    val total = (parseHHmm(time) ?: return time) + minutes
     return "%02d:%02d".format((total / 60) % 24, total % 60)
+}
+
+internal fun timeDiffMinutes(from: String, to: String): Int? {
+    val start = parseHHmm(from) ?: return null
+    val end = parseHHmm(to) ?: return null
+    val diff = end - start
+    return if (diff >= 0) diff else diff + 24 * 60
+}
+
+internal fun parseHHmm(time: String): Int? {
+    val parts = time.split(":")
+    if (parts.size != 2) return null
+    val h = parts[0].toIntOrNull() ?: return null
+    val m = parts[1].toIntOrNull() ?: return null
+    return h * 60 + m
 }
 
 /**

@@ -6,10 +6,14 @@ import com.glossostudio.transitos.core.model.TransportMode
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvIncidenciaDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvJourneyAlternativeDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvLineDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvPasoDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvPlanificadorDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvPlanificadorLineaDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvPrevisionDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvStationDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvTrainDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvTransbordoDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvTransbordoPlanificadorDto
 import com.glossostudio.transitos.provider.metrovalencia.mapper.LineDisplayInfo
 import com.google.common.truth.Truth.assertThat
 import kotlinx.datetime.LocalDate
@@ -241,5 +245,122 @@ class FgvMappersTest {
     fun `fecha formats as dd slash MM slash yyyy for FGV`() {
         assertThat(LocalDate.parse("2026-07-23").formatAsFgvFecha()).isEqualTo("23/07/2026")
         assertThat(LocalDate.parse("2026-12-01").formatAsFgvFecha()).isEqualTo("01/12/2026")
+    }
+
+    @Test
+    fun `planificador direct journey maps with real times and duration`() {
+        val dto = FgvPlanificadorDto(
+            duracion_minutos = 27,
+            estacion_origen = FgvStationDto(estacionIdFgv = 12, nombre = "Benimaclet"),
+            estacion_destino = FgvStationDto(estacionIdFgv = 2, nombre = "La Pobla de Farnals"),
+            pasos = listOf(
+                FgvPasoDto(
+                    orden = 1,
+                    hora_salida = "10:00",
+                    hora_llegada = "10:27",
+                    estacion_origen = FgvStationDto(estacionIdFgv = 12, nombre = "Benimaclet"),
+                    estacion_destino = FgvStationDto(estacionIdFgv = 2, nombre = "La Pobla de Farnals"),
+                    tren_origen = "Rafelbunyol",
+                    linea_origen = FgvPlanificadorLineaDto(
+                        color = "#FEC601", nombre_corto = "L3", lineaIdFgv = 3,
+                    ),
+                ),
+            ),
+        )
+
+        val journey = dto.toJourney(LocalDate.parse("2026-07-23"))!!
+
+        assertThat(journey.legs).hasSize(1)
+        assertThat(journey.legs[0].departureTime).isEqualTo("10:00")
+        assertThat(journey.legs[0].arrivalTime).isEqualTo("10:27")
+        assertThat(journey.legs[0].waitMinutes).isNull()
+        // Duration from actual times, not the API's duracion_minutos.
+        assertThat(journey.durationMinutes).isEqualTo(27)
+    }
+
+    @Test
+    fun `planificador transfer journey computes real wait from schedule gap`() {
+        val dto = FgvPlanificadorDto(
+            duracion_minutos = 40,
+            estacion_origen = FgvStationDto(estacionIdFgv = 12, nombre = "Benimaclet"),
+            estacion_destino = FgvStationDto(estacionIdFgv = 2, nombre = "La Pobla de Farnals"),
+            pasos = listOf(
+                FgvPasoDto(
+                    orden = 1,
+                    hora_salida = "10:00",
+                    hora_llegada = "10:15",
+                    estacion_origen = FgvStationDto(estacionIdFgv = 12, nombre = "Benimaclet"),
+                    estacion_destino = FgvStationDto(estacionIdFgv = 20, nombre = "Almassera"),
+                    tren_origen = "Rafelbunyol",
+                    linea_origen = FgvPlanificadorLineaDto(color = "#FEC601", nombre_corto = "L3"),
+                    transbordo = FgvTransbordoPlanificadorDto(minEspera = 3),
+                ),
+                FgvPasoDto(
+                    orden = 2,
+                    hora_salida = "10:22",
+                    hora_llegada = "10:40",
+                    estacion_origen = FgvStationDto(estacionIdFgv = 20, nombre = "Almassera"),
+                    estacion_destino = FgvStationDto(estacionIdFgv = 2, nombre = "La Pobla de Farnals"),
+                    tren_origen = "Castelló",
+                    linea_origen = FgvPlanificadorLineaDto(color = "#FF6600", nombre_corto = "L5"),
+                ),
+            ),
+        )
+
+        val journey = dto.toJourney(LocalDate.parse("2026-07-23"))!!
+
+        assertThat(journey.legs).hasSize(2)
+        // Real wait is 10:22 - 10:15 = 7 minutes, not the minEspera of 3.
+        assertThat(journey.legs[1].waitMinutes).isEqualTo(7)
+        // Duration from 10:00 to 10:40 = 40 minutes.
+        assertThat(journey.durationMinutes).isEqualTo(40)
+    }
+
+    @Test
+    fun `planificador transfer falls back to minEspera when times unparseable`() {
+        val dto = FgvPlanificadorDto(
+            duracion_minutos = 0,
+            estacion_destino = FgvStationDto(estacionIdFgv = 2, nombre = "Dest"),
+            pasos = listOf(
+                FgvPasoDto(
+                    hora_salida = "10:00",
+                    hora_llegada = "garbage",
+                    estacion_origen = FgvStationDto(estacionIdFgv = 1, nombre = "A"),
+                    estacion_destino = FgvStationDto(estacionIdFgv = 3, nombre = "B"),
+                    transbordo = FgvTransbordoPlanificadorDto(minEspera = 5),
+                ),
+                FgvPasoDto(
+                    hora_salida = "10:10",
+                    hora_llegada = "10:20",
+                    estacion_origen = FgvStationDto(estacionIdFgv = 3, nombre = "B"),
+                    estacion_destino = FgvStationDto(estacionIdFgv = 2, nombre = "Dest"),
+                ),
+            ),
+        )
+
+        val journey = dto.toJourney(LocalDate.parse("2026-07-23"))!!
+
+        // Unparseable arrival → fallback to minEspera.
+        assertThat(journey.legs[1].waitMinutes).isEqualTo(5)
+    }
+
+    @Test
+    fun `timeDiffMinutes handles same-hour, cross-hour, and overnight`() {
+        assertThat(timeDiffMinutes("10:00", "10:27")).isEqualTo(27)
+        assertThat(timeDiffMinutes("10:45", "11:15")).isEqualTo(30)
+        assertThat(timeDiffMinutes("23:50", "00:10")).isEqualTo(20)
+    }
+
+    @Test
+    fun `timeDiffMinutes returns null for unparseable input`() {
+        assertThat(timeDiffMinutes("garbage", "10:00")).isNull()
+        assertThat(timeDiffMinutes("10:00", "")).isNull()
+    }
+
+    @Test
+    fun `addMinutesToTime wraps past midnight`() {
+        assertThat(addMinutesToTime("10:00", 15)).isEqualTo("10:15")
+        assertThat(addMinutesToTime("23:50", 20)).isEqualTo("00:10")
+        assertThat(addMinutesToTime("09:00", 0)).isEqualTo("09:00")
     }
 }
