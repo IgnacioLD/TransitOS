@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -59,6 +60,7 @@ import com.glossostudio.transitos.core.ui.AlertsSection
 import com.glossostudio.transitos.core.ui.EmptyState
 import com.glossostudio.transitos.core.ui.ErrorState
 import com.glossostudio.transitos.core.ui.FavoriteStopCard
+import com.glossostudio.transitos.core.ui.FavoriteStopCardSkeleton
 import com.glossostudio.transitos.core.ui.FavoritesSkeleton
 import com.glossostudio.transitos.core.ui.SectionHeader
 import com.glossostudio.transitos.core.ui.R as coreUiR
@@ -103,6 +105,11 @@ internal fun HomeScreen(
                 onNavigateToSettings = onNavigateToSettings,
             )
         },
+        // The host Scaffold (TransitOSApp) already insets content above the
+        // bottom navigation bar, so this nested Scaffold must not re-apply the
+        // system bar insets — otherwise the bottom inset is counted twice and
+        // eats into the list.
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         modifier = modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -110,6 +117,7 @@ internal fun HomeScreen(
         AnimatedContent(
             targetState = state,
             transitionSpec = { fadeIn() togetherWith fadeOut() },
+            contentKey = { it::class },
             label = "home-state",
         ) { current ->
             Box(modifier = Modifier.padding(padding)) {
@@ -211,7 +219,15 @@ private fun HomeContent(
 
         item { SectionHeader(favoritesTitle) }
 
-        if (state.favorites.isEmpty()) {
+        if (state.isLoading) {
+            items(listOf(0, 1), key = { "skeleton-$it" }) {
+                FavoriteStopCardSkeleton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = spacing.screenGutter),
+                )
+            }
+        } else if (state.favorites.isEmpty()) {
             item {
                 EmptyState(
                     icon = Icons.Outlined.BookmarkAdd,
