@@ -83,6 +83,7 @@ import com.glossostudio.transitos.core.model.JourneyLeg
 import com.glossostudio.transitos.core.model.Stop
 import com.glossostudio.transitos.core.ui.R as coreUiR
 import com.glossostudio.transitos.core.ui.SkeletonBlock
+import com.glossostudio.transitos.core.util.stripDiacritics
 import com.glossostudio.transitos.feature.planner.R
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DatePeriod
@@ -913,7 +914,10 @@ private fun StationPickerSheet(
     var query by rememberSaveable { mutableStateOf("") }
     val filtered = remember(query, stops) {
         if (query.isBlank()) stops
-        else stops.filter { it.name.contains(query, ignoreCase = true) }
+        else {
+            val nq = query.stripDiacritics()
+            stops.filter { it.name.stripDiacritics().contains(nq, ignoreCase = true) }
+        }
     }
 
     ModalBottomSheet(
