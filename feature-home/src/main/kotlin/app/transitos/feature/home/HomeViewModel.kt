@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -67,7 +68,12 @@ class HomeViewModel(
                 )
             }
             arrivalsFlow.map { favs ->
-                HomeUiState.Ready(favorites = favs, alerts = alerts, savedRoutes = routeInfos)
+                HomeUiState.Ready(
+                    favorites = favs,
+                    alerts = alerts,
+                    savedRoutes = routeInfos,
+                    isLoading = favs.isEmpty() && favIds.isNotEmpty(),
+                )
             }
         }
 
@@ -77,6 +83,11 @@ class HomeViewModel(
         viewModelScope.launch {
             _isRefreshing.value = true
             repository.refresh()
+            // The refresh signal already kicked off an immediate background
+            // re-fetch. Show the spinner for a brief, fixed beat for feedback
+            // then dismiss — never waiting on data arrival, which can be
+            // delayed/deduped and would make the spinner feel stuck.
+            delay(REFRESH_MIN_MS)
             _isRefreshing.value = false
         }
     }
@@ -98,6 +109,11 @@ class HomeViewModel(
         viewModelScope.launch {
             routeFavorites.renameRoute(routeId, label)
         }
+    }
+
+    private companion object {
+        /** How long the pull-to-refresh spinner stays up for feedback. */
+        const val REFRESH_MIN_MS = 600L
     }
 }
 

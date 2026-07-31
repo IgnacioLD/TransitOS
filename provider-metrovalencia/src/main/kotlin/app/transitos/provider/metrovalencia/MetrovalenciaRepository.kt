@@ -130,7 +130,10 @@ class MetrovalenciaRepository(
                         while (true) {
                             val remaining = deadline - nowMs()
                             if (remaining <= 0L) break
-                            withTimeoutOrNull(remaining) { arrivalsRefreshSignal.receive() }
+                            // A refresh signal breaks the wait early so the next
+                            // fetch runs immediately instead of waiting for the
+                            // full poll interval.
+                            if (withTimeoutOrNull(remaining) { arrivalsRefreshSignal.receive() } != null) break
                         }
                     }
                 }
@@ -238,7 +241,7 @@ class MetrovalenciaRepository(
                 while (true) {
                     val remaining = deadline - nowMs()
                     if (remaining <= 0L) break
-                    withTimeoutOrNull(remaining) { refreshSignal.receive() }
+                    if (withTimeoutOrNull(remaining) { refreshSignal.receive() } != null) break
                 }
             } else {
                 delay(intervalMs)

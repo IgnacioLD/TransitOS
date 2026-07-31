@@ -13,6 +13,12 @@ sealed interface HomeUiState {
         val alerts: List<Alert>,
         val savedRoutes: List<SavedRouteInfo> = emptyList(),
         val isRefreshing: Boolean = false,
+        /**
+         * True while the user has favorited stops but their arrivals haven't
+         * resolved yet (catalog/arrivals still loading). Drives the shimmer
+         * placeholders so favorites don't appear to "pop in".
+         */
+        val isLoading: Boolean = false,
     ) : HomeUiState
 
     data class Error(val error: AppError) : HomeUiState
