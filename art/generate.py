@@ -5,6 +5,9 @@ It reads the localized strings from ``art/i18n/<locale>.json`` and the SVG
 templates from ``art/templates/``, then produces, for every locale (en, es, ca):
 
   * the 512x512 app icon (locale independent, 24-bit PNG, no alpha)
+  * the Android launcher icons: legacy mipmap PNGs, the adaptive foreground
+    layers, the splash logo and the in-app brand logo (all derived from the
+    same ``icon-transitos.svg``)
   * the 1024x500 feature graphic
   * the 180x120 promo graphic
   * framed phone (1080x1920), 7-inch (1200x1920) and 10-inch (1600x2560)
@@ -17,7 +20,8 @@ Requires ``rsvg-convert`` and ImageMagick (``magick``) on PATH.
 
 Usage:
     python3 art/generate.py                 # everything that has sources
-    python3 art/generate.py --graphics      # icon + feature + promo + copy
+    python3 art/generate.py --graphics      # Play icon + Android icons + feature + promo + copy
+    python3 art/generate.py --android-icons # Android launcher/splash/brand icons only
     python3 art/generate.py --screenshots   # framed screenshots only
     python3 art/generate.py --check         # validate existing outputs
 """
@@ -38,6 +42,20 @@ TEMPLATES = ART / "templates"
 I18N = ART / "i18n"
 RAW = ART / "screenshots" / "raw"
 BUILD = ART / ".build"
+
+APP_RES = REPO / "app" / "src" / "main" / "res"
+CORE_UI_RES = REPO / "core-ui" / "src" / "main" / "res"
+
+# Android icon geometry. The launcher mark, the adaptive foreground and the
+# splash logo all come from the same SVG, only the canvas and the safe-area
+# padding change.
+DENSITY_SCALE = {"mdpi": 1.0, "hdpi": 1.5, "xhdpi": 2.0, "xxhdpi": 3.0, "xxxhdpi": 4.0}
+LEGACY_LAUNCHER_PX = {"mdpi": 48, "hdpi": 72, "xhdpi": 96, "xxhdpi": 144, "xxxhdpi": 192}
+ADAPTIVE_LAYER_DP = 108
+ADAPTIVE_FOREGROUND_DP = 106
+SPLASH_LAYER_DP = 288
+SPLASH_ICON_DP = 276
+BRAND_LOGO_DP = 64
 
 LOCALES = ("en", "es", "ca")
 LOCALE_SUFFIX = {"en": "", "es": "-es", "ca": "-ca"}
@@ -258,6 +276,150 @@ def build_icon() -> Path:
     run(["magick", str(out), "-background", "#006A6A", "-alpha", "remove", "-alpha", "off", f"PNG24:{flat}"])
     shutil.move(str(flat), out)
     return out
+
+
+# --------------------------------------------------------------------------- #
+# Android launcher / splash / brand icons
+# --------------------------------------------------------------------------- #
+def _svg_defs_and_train(svg: str) -> tuple[str, str]:
+    """Split the source SVG into its <defs> and the filtered train group.
+
+    The train carries the glass gradient, the headlight glow and the drop
+    shadow, so the adaptive foreground and splash mark keep every filter.
+    """
+    defs = svg[svg.index("<defs>") : svg.index("</defs>") + len("</defs>")]
+    marker = '<g filter="url(#drop)">'
+    start = svg.index(marker)
+    end = svg.index("</g>", start) + len("</g>")
+    return defs, svg[start:end]
+
+
+def _train_svg() -> str:
+    """Train-only SVG on a transparent canvas centred on the train.
+
+    The source bbox centre is (256, 262); the viewBox is offset so that point
+    lands exactly in the middle. That makes centring the mark on a square
+    canvas a plain `-gravity center -extent`, no manual offsets.
+    """
+    svg = read_svg(ART / "icon-transitos.svg")
+    defs, train = _svg_defs_and_train(svg)
+    return (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" '
+        'viewBox="6 12 500 500">' + defs + train + "</svg>"
+    )
+
+
+def _dp(size: float, density: str) -> int:
+    return round(size * DENSITY_SCALE[density])
+
+
+def _center_on_canvas(source: Path, canvas_px: int, out: Path) -> None:
+    out.parent.mkdir(parents=True, exist_ok=True)
+    run(
+        [
+            "magick",
+            str(source),
+            "-background",
+            "none",
+            "-gravity",
+            "center",
+            "-extent",
+            f"{canvas_px}x{canvas_px}",
+            "-strip",
+            f"PNG32:{out}",
+        ]
+    )
+
+
+def build_android_launcher_icons() -> list[Path]:
+    """Legacy mipmap PNGs (ic_launcher + ic_launcher_round) per density."""
+    svg = read_svg(ART / "icon-transitos.svg")
+    written: list[Path] = []
+    for density, px in LEGACY_LAUNCHER_PX.items():
+        out_dir = APP_RES / f"mipmap-{density}"
+        square = out_dir / "ic_launcher.png"
+        rsvg(svg, square, px, px)
+        written.append(square)
+
+        round_png = out_dir / "ic_launcher_round.png"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        run(
+            [
+                "magick",
+                str(square),
+                "-alpha",
+                "set",
+                "(",
+                "+clone",
+                "-fill",
+                "black",
+                "-colorize",
+                "100",
+                "-fill",
+                "white",
+                "-draw",
+                f"circle {px / 2},{px / 2} {px / 2},0",
+                ")",
+                "-compose",
+                "CopyOpacity",
+                "-composite",
+                "-strip",
+                f"PNG32:{round_png}",
+            ]
+        )
+        written.append(round_png)
+    return written
+
+
+def build_android_adaptive_layers() -> list[Path]:
+    """Adaptive-icon foreground PNGs: the train, inside the 66dp safe zone."""
+    train = _train_svg()
+    written: list[Path] = []
+    for density in DENSITY_SCALE:
+        canvas = _dp(ADAPTIVE_LAYER_DP, density)
+        icon = _dp(ADAPTIVE_FOREGROUND_DP, density)
+        tmp = BUILD / f"adaptive-foreground-{density}.png"
+        out = APP_RES / f"drawable-{density}" / "ic_launcher_foreground.png"
+        rsvg(train, tmp, icon, icon)
+        _center_on_canvas(tmp, canvas, out)
+        written.append(out)
+    return written
+
+
+def build_android_splash() -> list[Path]:
+    """Splash logo PNGs: the train, sized for the 288dp splash icon box."""
+    train = _train_svg()
+    written: list[Path] = []
+    for density in DENSITY_SCALE:
+        canvas = _dp(SPLASH_LAYER_DP, density)
+        icon = _dp(SPLASH_ICON_DP, density)
+        tmp = BUILD / f"splash-logo-{density}.png"
+        out = APP_RES / f"drawable-{density}" / "ic_splash_logo.png"
+        rsvg(train, tmp, icon, icon)
+        _center_on_canvas(tmp, canvas, out)
+        written.append(out)
+    return written
+
+
+def build_android_brand_logo() -> list[Path]:
+    """In-app brand logo used by the shared core-ui BrandLogo composable."""
+    svg = read_svg(ART / "icon-transitos.svg")
+    written: list[Path] = []
+    for density in DENSITY_SCALE:
+        px = _dp(BRAND_LOGO_DP, density)
+        out = CORE_UI_RES / f"drawable-{density}" / "ic_brand_logo.png"
+        rsvg(svg, out, px, px)
+        written.append(out)
+    return written
+
+
+def build_android_icons() -> list[Path]:
+    written: list[Path] = []
+    written += build_android_launcher_icons()
+    written += build_android_adaptive_layers()
+    written += build_android_splash()
+    written += build_android_brand_logo()
+    return written
 
 
 # --------------------------------------------------------------------------- #
@@ -875,6 +1037,17 @@ def verify() -> int:
     errors: list[str] = []
 
     expected = [("art/icon-transitos.png", 512, 512, True)]
+    for density, px in LEGACY_LAUNCHER_PX.items():
+        layer = _dp(ADAPTIVE_LAYER_DP, density)
+        splash = _dp(SPLASH_LAYER_DP, density)
+        brand = _dp(BRAND_LOGO_DP, density)
+        expected += [
+            (f"app/src/main/res/mipmap-{density}/ic_launcher.png", px, px, True),
+            (f"app/src/main/res/mipmap-{density}/ic_launcher_round.png", px, px, False),
+            (f"app/src/main/res/drawable-{density}/ic_launcher_foreground.png", layer, layer, False),
+            (f"app/src/main/res/drawable-{density}/ic_splash_logo.png", splash, splash, False),
+            (f"core-ui/src/main/res/drawable-{density}/ic_brand_logo.png", brand, brand, True),
+        ]
     for locale in LOCALES:
         suffix = LOCALE_SUFFIX[locale]
         expected.append((f"art/feature-graphic{suffix}.png", 1024, 500, True))
@@ -946,7 +1119,8 @@ def verify() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--graphics", action="store_true", help="icon, feature/promo graphics and descriptions")
+    parser.add_argument("--graphics", action="store_true", help="Play icon, Android icons, feature/promo graphics and descriptions")
+    parser.add_argument("--android-icons", action="store_true", help="Android launcher, adaptive, splash and brand icons only")
     parser.add_argument("--screenshots", action="store_true", help="framed screenshots only")
     parser.add_argument("--check", action="store_true", help="verify existing outputs")
     args = parser.parse_args()
@@ -955,8 +1129,12 @@ def main() -> int:
         return verify()
 
     require_tools()
-    do_all = not (args.graphics or args.screenshots)
+    do_all = not (args.graphics or args.screenshots or args.android_icons)
     data = {loc: json.loads((I18N / f"{loc}.json").read_text(encoding="utf-8")) for loc in LOCALES}
+
+    if do_all or args.graphics or args.android_icons:
+        print("android icons ...")
+        build_android_icons()
 
     if do_all or args.graphics:
         print("icon ...")

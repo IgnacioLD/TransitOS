@@ -6,4 +6,15 @@
       enableEdgeToEdge() + Compose handle the actual system-bar styling.
     -->
     <style name="Theme.TransitOS" parent="Theme.AppCompat.Light.NoActionBar" />
+
+    <!--
+      Cold-start splash: the train mark over the brand teal. There is also a
+      values-night override that swaps in the deep gradient stop, so the
+      starting window is coherent in light and dark/AMOLED system themes.
+    -->
+    <style name="Theme.TransitOS.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.TransitOS</item>
+    </style>
 </resources>

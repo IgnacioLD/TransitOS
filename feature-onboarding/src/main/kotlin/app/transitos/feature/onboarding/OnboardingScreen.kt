@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glossostudio.transitos.core.design.theme.LocalSpacing
 import com.glossostudio.transitos.core.design.theme.PillShape
+import com.glossostudio.transitos.core.ui.BrandLogo
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -179,6 +180,12 @@ private fun OnboardingPageContent(page: OnboardingPage) {
 
 @Composable
 private fun OnboardingIllustration(illustration: OnboardingIllustration) {
+    // The welcome page leads with the real brand mark; the rest keep the
+    // lighter icon-in-a-circle treatment.
+    if (illustration == OnboardingIllustration.WELCOME) {
+        BrandLogo(size = 128.dp, cornerRadius = 30.dp)
+        return
+    }
     val (icon, container, content) = illustrationColors(illustration)
     Box(
         modifier = Modifier
