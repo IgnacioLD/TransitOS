@@ -55,4 +55,9 @@
     <string name="planner_departs_at">Departs %1$s</string>
     <string name="planner_arrives_at">Arrives %1$s</string>
     <string name="planner_duration_minutes">%1$d min</string>
+    <string name="planner_share_journey">Share trip</string>
+    <string name="planner_share_lines">Lines: %1$s</string>
+    <string name="planner_share_body">Trip on Metrovalencia\n%1$s → %2$s\n%3$s\nPlanned with TransitOS: %4$s</string>
+    <string name="planner_hint_title">Plan your trip</string>
+    <string name="planner_hint_body">Pick origin and destination, and adjust the date or time. We\'ll show you the lines, transfers and total time.</string>
 </resources>

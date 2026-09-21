@@ -7,4 +7,6 @@
     <string name="search_no_match">No stations match \"%1$s\".</string>
     <string name="search_placeholder">Station, line or destination</string>
     <string name="search_clear_cd">Clear search</string>
+    <string name="search_hint_title">Find and save stops</string>
+    <string name="search_hint_body">Type a station name and tap the star to add it to your favourites and see its arrivals on Home.</string>
 </resources>

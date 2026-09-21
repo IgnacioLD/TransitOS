@@ -8,6 +8,8 @@ import com.glossostudio.transitos.core.model.SavedRoute
 import com.glossostudio.transitos.core.model.Stop
 import com.glossostudio.transitos.core.model.TransportMode
 import com.glossostudio.transitos.core.repository.FavoritesRepository
+import com.glossostudio.transitos.core.repository.HintKeys
+import com.glossostudio.transitos.core.repository.HintsPreference
 import com.glossostudio.transitos.core.repository.RouteFavoritesRepository
 import com.glossostudio.transitos.core.repository.TransitRepository
 import com.google.common.truth.Truth.assertThat
@@ -49,6 +51,7 @@ class HomeViewModelTest {
             repository = repository,
             favorites = FakeFavoritesRepository(),
             routeFavorites = FakeRouteFavoritesRepository(),
+            hintsPreference = FakeHintsPreference(),
         )
         // Keep the WhileSubscribed stateIn hot so it mirrors production, where
         // the screen always has an active collector.
@@ -113,5 +116,22 @@ class HomeViewModelTest {
         override suspend fun saveRoute(route: SavedRoute) = Unit
         override suspend fun removeRoute(routeId: String) = Unit
         override suspend fun renameRoute(routeId: String, label: String) = Unit
+    }
+
+    private class FakeHintsPreference : HintsPreference {
+        private val seen = mutableSetOf<String>()
+        override fun observeSeen(key: String): Flow<Boolean> = flowOf(key in seen)
+        override fun isSeen(key: String): Boolean = key in seen
+        override suspend fun markSeen(key: String) {
+            seen += key
+        }
+
+        override suspend fun markAllSeen() {
+            seen += HintKeys.all
+        }
+
+        override suspend fun resetAll() {
+            seen.clear()
+        }
     }
 }

@@ -13,18 +13,21 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glossostudio.transitos.core.design.theme.TransitOSTheme
 import com.glossostudio.transitos.core.repository.ThemeMode
 import com.glossostudio.transitos.core.repository.ThemePreference
+import com.glossostudio.transitos.review.ActivityProvider
 import org.koin.android.ext.android.inject
 import org.koin.androidx.compose.KoinAndroidContext
 
 class MainActivity : AppCompatActivity() {
 
     private val themePreference: ThemePreference by inject()
+    private val activityProvider: ActivityProvider by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Apply the system bar style before the first frame so the very first
         // launch is already edge-to-edge with correct icon contrast.
         applySystemBarStyle(themePreference.current())
         super.onCreate(savedInstanceState)
+        activityProvider.set(this)
 
         setContent {
             // A single collection of the theme preference drives both the
@@ -40,6 +43,11 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        activityProvider.set(null)
+        super.onDestroy()
     }
 
     private fun applySystemBarStyle(mode: ThemeMode) {

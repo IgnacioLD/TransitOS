@@ -7,6 +7,7 @@ import com.glossostudio.transitos.core.data.SharedPrefsLanguagePreference
 import com.glossostudio.transitos.core.data.di.coreDataModule
 import com.glossostudio.transitos.core.network.di.networkModule
 import com.glossostudio.transitos.feature.home.di.homeModule
+import com.glossostudio.transitos.feature.onboarding.di.onboardingModule
 import com.glossostudio.transitos.feature.planner.di.plannerModule
 import com.glossostudio.transitos.feature.search.di.searchModule
 import com.glossostudio.transitos.feature.settings.di.settingsModule
@@ -38,7 +39,9 @@ class TransitOSApplication : Application() {
                 searchModule,
                 plannerModule,
                 settingsModule,
+                onboardingModule,
                 appMapModule,
+                appModule,
             )
         }
     }

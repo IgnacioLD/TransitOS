@@ -34,6 +34,7 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.SwapVert
@@ -79,6 +80,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -91,8 +93,11 @@ import com.glossostudio.transitos.core.model.Journey
 import com.glossostudio.transitos.core.model.JourneyLeg
 import com.glossostudio.transitos.core.model.Stop
 import com.glossostudio.transitos.core.ui.LineBadge
+import com.glossostudio.transitos.core.ui.HintCard
 import com.glossostudio.transitos.core.ui.R as coreUiR
+import com.glossostudio.transitos.core.ui.ShareDialog
 import com.glossostudio.transitos.core.ui.SkeletonBlock
+import com.glossostudio.transitos.core.ui.sharePlainText
 import com.glossostudio.transitos.core.util.stripDiacritics
 import com.glossostudio.transitos.feature.planner.R
 import kotlinx.datetime.Clock
@@ -113,9 +118,17 @@ fun PlannerRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val stops by viewModel.stops.collectAsStateWithLifecycle()
+    val showHint by viewModel.showHint.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val shareChooserTitle = stringResource(coreUiR.string.share_chooser_title)
+    val shareText = journeyShareText(state.selectedJourney)
+    var showShareDialog by rememberSaveable { mutableStateOf(false) }
     PlannerScreen(
         state = state,
         stops = stops,
+        showHint = showHint,
+        onDismissHint = viewModel::dismissHint,
+        onSkipHints = viewModel::skipHints,
         onOriginSelected = viewModel::setOrigin,
         onDestinationSelected = viewModel::setDestination,
         onDateSelected = viewModel::setDate,
@@ -126,7 +139,49 @@ fun PlannerRoute(
         onSaveRoute = viewModel::saveCurrentRoute,
         onRemoveRoute = viewModel::removeCurrentRoute,
         onSelectJourney = viewModel::selectJourney,
+        onShareJourney = { showShareDialog = true },
         modifier = modifier,
+    )
+
+    if (showShareDialog && shareText != null) {
+        ShareDialog(
+            title = stringResource(coreUiR.string.share_dialog_title),
+            message = shareText,
+            messageHint = stringResource(coreUiR.string.share_dialog_message),
+            shareLabel = stringResource(coreUiR.string.action_share),
+            cancelLabel = stringResource(coreUiR.string.action_cancel),
+            onDismiss = { showShareDialog = false },
+            onShare = { text ->
+                sharePlainText(context, text, shareChooserTitle)
+                showShareDialog = false
+            },
+        )
+    }
+}
+
+/**
+ * Builds the localised, human-readable summary of a journey for ACTION_SEND:
+ * lines, origin, destination, times and the app link.
+ */
+@Composable
+private fun journeyShareText(journey: Journey?): String? {
+    if (journey == null) return null
+    val lines = journey.legs.flatMap { it.lineNames }.distinct().joinToString(", ")
+    val departure = journey.departureTime?.let { stringResource(R.string.planner_departs_at, it) }
+    val arrival = journey.arrivalTime?.let { stringResource(R.string.planner_arrives_at, it) }
+    val times = listOfNotNull(departure, arrival).joinToString(" · ")
+    val lineLabel = if (lines.isNotEmpty()) {
+        stringResource(R.string.planner_share_lines, lines)
+    } else {
+        null
+    }
+    val details = listOfNotNull(lineLabel, times.takeIf { it.isNotEmpty() }).joinToString("\n")
+    return stringResource(
+        R.string.planner_share_body,
+        journey.legs.first().originName,
+        journey.legs.last().destinationName,
+        details,
+        com.glossostudio.transitos.core.ui.PLAY_STORE_URL,
     )
 }
 
@@ -159,6 +214,10 @@ internal fun PlannerScreen(
     onSaveRoute: () -> Unit = {},
     onRemoveRoute: () -> Unit = {},
     onSelectJourney: (Int) -> Unit = {},
+    onShareJourney: () -> Unit = {},
+    showHint: Boolean = false,
+    onDismissHint: () -> Unit = {},
+    onSkipHints: () -> Unit = {},
 ) {
     val spacing = LocalSpacing.current
     var picking by rememberSaveable { mutableStateOf<PickingTarget?>(null) }
@@ -204,6 +263,20 @@ internal fun PlannerScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(spacing.lg),
         ) {
+            if (showHint) {
+                item {
+                    HintCard(
+                        title = stringResource(R.string.planner_hint_title),
+                        text = stringResource(R.string.planner_hint_body),
+                        icon = Icons.Outlined.SwapVert,
+                        dismissLabel = stringResource(coreUiR.string.hint_dismiss),
+                        skipLabel = stringResource(coreUiR.string.hint_skip),
+                        onDismiss = onDismissHint,
+                        onSkip = onSkipHints,
+                    )
+                }
+            }
+
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
                     Text(
@@ -299,6 +372,7 @@ internal fun PlannerScreen(
             onSaveRoute = onSaveRoute,
             onRemoveRoute = onRemoveRoute,
             onSelectJourney = onSelectJourney,
+            onShareJourney = onShareJourney,
         )
     }
 
@@ -611,6 +685,7 @@ private fun ResultBottomSheet(
     onSaveRoute: () -> Unit,
     onRemoveRoute: () -> Unit,
     onSelectJourney: (Int) -> Unit,
+    onShareJourney: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val spacing = LocalSpacing.current
@@ -649,6 +724,7 @@ private fun ResultBottomSheet(
                                 isSaved = state.isSaved,
                                 onSave = onSaveRoute,
                                 onRemove = onRemoveRoute,
+                                onShare = onShareJourney,
                             )
                             SheetTimeline(journey = journey)
                             SheetStats(journey = journey)
@@ -702,6 +778,7 @@ private fun SheetHeaderRow(
     isSaved: Boolean,
     onSave: () -> Unit,
     onRemove: () -> Unit,
+    onShare: () -> Unit,
 ) {
     val spacing = LocalSpacing.current
     Row(
@@ -743,20 +820,34 @@ private fun SheetHeaderRow(
                 }
             }
         }
-        FilledTonalIconButton(
-            onClick = if (isSaved) onRemove else onSave,
-            colors = IconButtonDefaults.filledTonalIconButtonColors(
-                containerColor = if (isSaved) MaterialTheme.colorScheme.tertiaryContainer
-                else MaterialTheme.colorScheme.surfaceContainerHigh,
-                contentColor = if (isSaved) MaterialTheme.colorScheme.onTertiaryContainer
-                else MaterialTheme.colorScheme.onSurfaceVariant,
-            ),
-        ) {
-            Icon(
-                imageVector = if (isSaved) Icons.Outlined.Star else Icons.Outlined.StarBorder,
-                contentDescription = if (isSaved) stringResource(R.string.planner_route_saved)
-                else stringResource(R.string.planner_save_route),
-            )
+        Row(horizontalArrangement = Arrangement.spacedBy(spacing.sm)) {
+            FilledTonalIconButton(
+                onClick = onShare,
+                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Share,
+                    contentDescription = stringResource(R.string.planner_share_journey),
+                )
+            }
+            FilledTonalIconButton(
+                onClick = if (isSaved) onRemove else onSave,
+                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = if (isSaved) MaterialTheme.colorScheme.tertiaryContainer
+                    else MaterialTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = if (isSaved) MaterialTheme.colorScheme.onTertiaryContainer
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
+            ) {
+                Icon(
+                    imageVector = if (isSaved) Icons.Outlined.Star else Icons.Outlined.StarBorder,
+                    contentDescription = if (isSaved) stringResource(R.string.planner_route_saved)
+                    else stringResource(R.string.planner_save_route),
+                )
+            }
         }
     }
 }

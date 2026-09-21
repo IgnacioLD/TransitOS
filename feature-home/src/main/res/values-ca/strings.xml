@@ -13,4 +13,8 @@
     <string name="home_rename_route">Canviar nom</string>
     <string name="home_rename_route_title">Nom de la ruta</string>
     <string name="home_rename_hint">Casa, Feina…</string>
+    <string name="home_share_route">Compartir ruta</string>
+    <string name="home_share_route_body">Ruta en Metrovalencia: %1$s → %2$s\nPlanifica-la amb TransitOS: %3$s</string>
+    <string name="home_hint_title">Les teues parades, d\'un colp d\'ull</string>
+    <string name="home_hint_body">Ací voràs les pròximes arribades dels teus preferits i els avisos del servei. Toca Buscar per a afegir la teua primera parada.</string>
 </resources>
