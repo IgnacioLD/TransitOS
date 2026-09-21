@@ -13,21 +13,32 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
+import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Thin Ktor wrapper around the public FGV endpoints TransitOS consumes.
  *
- * No retry, no caching, no error mapping at this layer, that is the repository's
- * job. The only responsibility here is to issue the request and decode the JSON
- * into DTOs. A single shared [HttpClient] is injected from `:core-network`'s
- * Koin module so connection pooling, JSON policy and timeouts stay consistent.
+ * No generic retry, no caching, no error mapping at this layer, that is the
+ * repository's job. The one exception is the FGV session bootstrap for live
+ * arrivals (see [getArrivals]): the session is an HTTP-transport concern and
+ * belongs next to the endpoints that need it. A single shared [HttpClient] is
+ * injected from `:core-network`'s Koin module so connection pooling, cookie
+ * storage, JSON policy and timeouts stay consistent.
  */
 class MetrovalenciaApi(
     private val client: HttpClient,
     private val config: MetrovalenciaConfig,
 ) {
+    private val sessionMutex = Mutex()
+    @Volatile
+    private var sessionEstablished = false
+
     suspend fun getStations(): List<FgvStationDto> =
         client.get("${config.fullBaseUrl}estaciones") {
             headerAcceptJson()
@@ -41,11 +52,56 @@ class MetrovalenciaApi(
     /**
      * @param estacionIdFgv the `estacion_id_FGV` value, not FGV's internal id.
      * The repository is responsible for using the right one.
+     *
+     * FGV now requires a session before serving live arrivals: without the
+     * `fgv_api_session`/`XSRF-TOKEN` cookies set by a catalogue call, this
+     * endpoint answers HTTP 404. The shared client's [HttpCookies] plugin keeps
+     * whatever session we obtain, so [ensureSession] primes once and the poll
+     * loop reuses it. If the request still fails (expired session), we reset the
+     * flag, prime again and retry exactly once.
      */
-    suspend fun getArrivals(estacionIdFgv: Long): FgvArrivalResponseDto =
-        client.get("${config.fullBaseUrl}horarios-prevision-3/$estacionIdFgv") {
+    suspend fun getArrivals(estacionIdFgv: Long): FgvArrivalResponseDto {
+        ensureSession()
+        return try {
+            fetchArrivals(estacionIdFgv)
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (_: Exception) {
+            resetSession()
+            ensureSession()
+            fetchArrivals(estacionIdFgv)
+        }
+    }
+
+    /**
+     * Establishes the FGV session by hitting a public catalogue endpoint
+     * (`estaciones`), which sets the session cookies. Idempotent and cheap after
+     * the first call: the flag avoids priming on every arrival poll.
+     */
+    private suspend fun ensureSession() {
+        if (sessionEstablished) return
+        sessionMutex.withLock {
+            if (sessionEstablished) return
+            client.get("${config.fullBaseUrl}estaciones") {
+                headerAcceptJson()
+            }.body<List<FgvStationDto>>()
+            sessionEstablished = true
+        }
+    }
+
+    private fun resetSession() {
+        sessionEstablished = false
+    }
+
+    private suspend fun fetchArrivals(estacionIdFgv: Long): FgvArrivalResponseDto {
+        val response: HttpResponse = client.get("${config.fullBaseUrl}horarios-prevision-3/$estacionIdFgv") {
             headerAcceptJson()
-        }.body()
+        }
+        if (!response.status.isSuccess()) {
+            error("FGV horarios-prevision-3 returned HTTP ${response.status}")
+        }
+        return response.body()
+    }
 
     suspend fun getIncidencias(): FgvIncidenciasResponseDto =
         client.get("${config.fullBaseUrl}incidencias") {
