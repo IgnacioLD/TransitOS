@@ -9,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glossostudio.transitos.core.design.theme.TransitOSTheme
 import com.glossostudio.transitos.core.repository.ThemeMode
@@ -24,8 +25,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Apply the system bar style before the first frame so the very first
-        // launch is already edge-to-edge with correct icon contrast.
-        applySystemBarStyle(themePreference.current())
+        // launch is already edge-to-edge with correct icon contrast. The splash
+        // background itself is resolved from the system light/dark theme via
+        // the values-night variant of Theme.TransitOS.Splash.
+        val themeMode = themePreference.current()
+        installSplashScreen()
+        applySystemBarStyle(themeMode)
         super.onCreate(savedInstanceState)
         activityProvider.set(this)
 
@@ -33,11 +38,11 @@ class MainActivity : AppCompatActivity() {
             // A single collection of the theme preference drives both the
             // palette and the system bar icons, so the flow is never collected
             // twice.
-            val themeMode by themePreference.flow.collectAsStateWithLifecycle(
-                initialValue = themePreference.current(),
+            val currentMode by themePreference.flow.collectAsStateWithLifecycle(
+                initialValue = themeMode,
             )
-            LaunchedEffect(themeMode) { applySystemBarStyle(themeMode) }
-            TransitOSTheme(themeMode = themeMode) {
+            LaunchedEffect(currentMode) { applySystemBarStyle(currentMode) }
+            TransitOSTheme(themeMode = currentMode) {
                 KoinAndroidContext {
                     TransitOSApp()
                 }

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Monochrome launcher layer for themed icons (Android 13+). A single solid
+  silhouette of the TransitOS tram: the windshield and the two headlights are
+  even-odd holes so the system tint reads the face of the train. Geometry is
+  the same as the coloured mark, so themed and full-colour icons match.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <group
+        android:scaleX="0.2121"
+        android:scaleY="0.2121"
+        android:pivotX="256"
+        android:pivotY="262"
+        android:translateX="-202"
+        android:translateY="-208">
+
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M120,196 Q120,120 200,120 H312 Q392,120 392,196 V352 Q392,404 340,404 H172 Q120,404 120,352 Z M184,172 H328 A34,34 0 0 1 362,206 V270 A34,34 0 0 1 328,304 H184 A34,34 0 0 1 150,270 V206 A34,34 0 0 1 184,172 Z M184,344 m-19,0 a19,19 0 1,0 38,0 a19,19 0 1,0 -38,0 Z M328,344 m-19,0 a19,19 0 1,0 38,0 a19,19 0 1,0 -38,0 Z" />
+
+    </group>
+
+</vector>

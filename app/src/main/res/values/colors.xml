@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#FF006A6A</color>
+    <!-- Brand teal: the mid stop of the logo gradient, used as the adaptive
+         icon background and the light splash background. -->
+    <color name="ic_launcher_background">#FF00696B</color>
+
+    <!-- Splash background: brand teal in the light system theme, the deep
+         gradient stop in the values-night override used by dark and AMOLED. -->
+    <color name="splash_background">#FF00696B</color>
+    <color name="splash_background_dark">#FF013B3D</color>
 </resources>

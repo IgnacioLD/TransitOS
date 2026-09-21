@@ -65,6 +65,43 @@ release notes 500).
 - **Raw captures**: `screenshots/raw/<device>/<locale>/NN-<screen>.png`, written
   by `capture-screenshots.py`.
 
+## Android app icons
+
+`icon-transitos.svg` is also the single source for every icon the app itself
+uses, so the launcher, the splash, the in-app brand mark and the Play listing
+can never drift apart. `generate.py` rasterizes it (gradient, blur and drop
+shadow included, which a VectorDrawable would not reproduce faithfully) into:
+
+| Output | Where | Notes |
+| --- | --- | --- |
+| `mipmap-<density>/ic_launcher.png` | `app/src/main/res` | Legacy square, 48/72/96/144/192 px |
+| `mipmap-<density>/ic_launcher_round.png` | `app/src/main/res` | Legacy round (circular alpha mask) |
+| `drawable-<density>/ic_launcher_foreground.png` | `app/src/main/res` | Adaptive foreground, 108 dp, tram inside the 66 dp safe zone |
+| `drawable-<density>/ic_splash_logo.png` | `app/src/main/res` | Splash icon, 288 dp canvas |
+| `drawable-<density>/ic_brand_logo.png` | `core-ui/src/main/res` | In-app `BrandLogo` composable |
+
+Two files are hand-authored and **not** overwritten by the generator:
+
+- `app/src/main/res/drawable/ic_launcher_monochrome.xml` - the themed-icon
+  silhouette (windshield and headlights are even-odd holes).
+- `app/src/main/res/mipmap-anydpi-v26/ic_launcher{,_round}.xml` - the adaptive
+  icon wiring: background `@color/ic_launcher_background` (brand teal
+  `#00696B`, also set in `app/src/main/res/values/colors.xml`), the PNG
+  foreground and the monochrome layer.
+
+Regenerate them with:
+
+```bash
+python3 art/generate.py --android-icons   # Android icons only
+python3 art/generate.py --graphics        # Play icon + Android icons + feature/promo + copy
+python3 art/generate.py --check           # validate every generated asset
+```
+
+The train is rendered on a transparent canvas whose viewBox is offset so the
+tram's bbox centre lands exactly in the middle; that is what lets the adaptive
+foreground and the splash logo be centred with a plain ImageMagick `-extent`.
+
+
 ## Requirements
 
 - `rsvg-convert` and ImageMagick (`magick`) on `PATH`.

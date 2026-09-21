@@ -81,11 +81,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glossostudio.transitos.core.design.theme.LocalSpacing
 import com.glossostudio.transitos.core.repository.ThemeMode
+import com.glossostudio.transitos.core.ui.BrandLogo
 import com.glossostudio.transitos.core.ui.PLAY_STORE_URL
 import com.glossostudio.transitos.core.ui.ShareDialog
 import com.glossostudio.transitos.core.ui.sharePlainText
@@ -667,7 +669,14 @@ private fun AboutSection(onOpenLicense: () -> Unit) {
         SectionTitle(Icons.Outlined.Code, stringResource(R.string.about_title))
         SettingsCard {
             Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    BrandLogo(size = 72.dp, cornerRadius = 20.dp)
+                    Spacer(Modifier.height(spacing.md))
                     Text(
                         text = stringResource(R.string.settings_app_name),
                         style = MaterialTheme.typography.titleMedium,
@@ -683,6 +692,7 @@ private fun AboutSection(onOpenLicense: () -> Unit) {
                         text = stringResource(R.string.about_description),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
                     )
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))

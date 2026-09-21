@@ -23,11 +23,9 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.DirectionsTransit
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
@@ -71,6 +69,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glossostudio.transitos.core.design.theme.LocalSpacing
 import com.glossostudio.transitos.core.model.Arrival
 import com.glossostudio.transitos.core.ui.AlertsSection
+import com.glossostudio.transitos.core.ui.BrandLogo
 import com.glossostudio.transitos.core.ui.DepartureBoard
 import com.glossostudio.transitos.core.ui.EmptyState
 import com.glossostudio.transitos.core.ui.ErrorState
@@ -249,20 +248,7 @@ private fun HomeTopBar(
 
 @Composable
 private fun BrandMark() {
-    Box(
-        modifier = Modifier
-            .size(36.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.primary),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.DirectionsTransit,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier.size(21.dp),
-        )
-    }
+    BrandLogo(size = 36.dp, cornerRadius = 12.dp)
 }
 
 @Composable
