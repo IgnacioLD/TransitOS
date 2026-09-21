@@ -6,6 +6,7 @@ import com.glossostudio.transitos.core.provider.ProviderRegistry
 import com.glossostudio.transitos.core.provider.ProviderSettingsRepository
 import com.glossostudio.transitos.core.repository.HintsPreference
 import com.glossostudio.transitos.core.repository.LanguagePreference
+import com.glossostudio.transitos.core.repository.LiveTrainsPreference
 import com.glossostudio.transitos.core.repository.ThemeMode
 import com.glossostudio.transitos.core.repository.ThemePreference
 import com.glossostudio.transitos.core.repository.TransferBufferPreference
@@ -23,6 +24,7 @@ class SettingsViewModel(
     private val transferBufferPreference: TransferBufferPreference,
     private val appReviewer: AppReviewer,
     private val hintsPreference: HintsPreference,
+    private val liveTrainsPreference: LiveTrainsPreference,
 ) : ViewModel() {
 
     val themeMode: StateFlow<ThemeMode> =
@@ -38,6 +40,19 @@ class SettingsViewModel(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = transferBufferPreference.current(),
         )
+
+    val liveTrainsEnabled: StateFlow<Boolean> =
+        liveTrainsPreference.flow.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = liveTrainsPreference.current(),
+        )
+
+    fun setLiveTrainsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            liveTrainsPreference.set(enabled)
+        }
+    }
 
     val currentLanguage: String get() = languagePreference.current
 

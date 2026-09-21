@@ -18,4 +18,6 @@
     <string name="map_pdf_download">Descargar plano</string>
     <string name="map_pdf_saved">Plano guardado en Descargas</string>
     <string name="map_pdf_save_error">Error al guardar el plano</string>
+    <string name="map_trains_cd">Trenes en tiempo real (experimental)</string>
+    <string name="map_trains_experimental">Experimental: posiciones aproximadas, no GPS real</string>
 </resources>
