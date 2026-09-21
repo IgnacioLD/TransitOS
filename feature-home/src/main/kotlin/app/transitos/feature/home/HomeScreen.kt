@@ -39,7 +39,6 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -47,6 +46,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -108,13 +108,11 @@ internal fun HomeScreen(
     onRenameRoute: (routeId: String, label: String) -> Unit = { _, _ -> },
     onRefresh: () -> Unit = {},
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val alertCount = (state as? HomeUiState.Ready)?.alerts?.size ?: 0
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
         topBar = {
             HomeTopBar(
-                alertCount = alertCount,
                 scrollBehavior = scrollBehavior,
                 onNavigateToSettings = onNavigateToSettings,
             )
@@ -159,25 +157,26 @@ internal fun HomeScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeTopBar(
-    alertCount: Int,
     scrollBehavior: TopAppBarScrollBehavior,
     onNavigateToSettings: () -> Unit,
 ) {
-    LargeTopAppBar(
+    // Single-row title only. The bar must stay within one line height so its
+    // opaque background always covers its full height while collapsed and the
+    // list can never show through behind the title.
+    TopAppBar(
         title = {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    BrandMark()
-                    Text(
-                        text = stringResource(R.string.home_app_name),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-                AlertStatusPill(alertCount = alertCount)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                BrandMark()
+                Text(
+                    text = stringResource(R.string.home_app_name),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         },
         actions = {
@@ -194,9 +193,10 @@ private fun HomeTopBar(
                 )
             }
         },
-        colors = TopAppBarDefaults.largeTopAppBarColors(
+        colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surface,
             scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
         ),
         scrollBehavior = scrollBehavior,
     )
@@ -221,10 +221,11 @@ private fun BrandMark() {
 }
 
 @Composable
-private fun AlertStatusPill(alertCount: Int) {
+private fun AlertStatusPill(alertCount: Int, modifier: Modifier = Modifier) {
     if (alertCount == 0) {
         StatusPill(
             text = stringResource(R.string.home_no_alerts),
+            modifier = modifier,
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             leading = {
@@ -243,6 +244,7 @@ private fun AlertStatusPill(alertCount: Int) {
         }
         StatusPill(
             text = text,
+            modifier = modifier,
             containerColor = MaterialTheme.colorScheme.errorContainer,
             contentColor = MaterialTheme.colorScheme.onErrorContainer,
             leading = {
@@ -279,6 +281,22 @@ private fun HomeContent(
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
         horizontalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            // A lazy-grid item pins the cross-axis width, so the pill is wrapped
+            // in a Row to let it hug its content instead of stretching.
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = spacing.screenGutter,
+                        end = spacing.screenGutter,
+                        top = spacing.sm,
+                    ),
+            ) {
+                AlertStatusPill(alertCount = state.alerts.size)
+            }
+        }
+
         if (state.savedRoutes.isNotEmpty()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 SectionHeader(text = savedRoutesTitle)

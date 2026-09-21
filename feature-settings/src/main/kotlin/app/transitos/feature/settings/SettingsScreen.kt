@@ -178,7 +178,7 @@ private fun SectionTitle(icon: ImageVector, title: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier.padding(start = 4.dp, bottom = 2.dp),
+        modifier = Modifier.padding(bottom = 2.dp),
     ) {
         Icon(
             imageVector = icon,
@@ -428,7 +428,6 @@ private fun AboutSection() {
             text = stringResource(R.string.about_disclaimer),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 4.dp),
         )
     }
 }
