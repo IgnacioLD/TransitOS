@@ -4,14 +4,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -58,7 +61,7 @@ fun ErrorState(
     ) {
         Box(
             modifier = Modifier
-                .size(88.dp)
+                .size(104.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.errorContainer),
             contentAlignment = Alignment.Center,
@@ -67,12 +70,12 @@ fun ErrorState(
                 imageVector = presentation.icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onErrorContainer,
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(46.dp),
             )
         }
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = spacing.lg),
@@ -89,6 +92,12 @@ fun ErrorState(
                 onClick = onRetry,
                 modifier = Modifier.padding(top = spacing.xl),
             ) {
+                Icon(
+                    imageVector = Icons.Outlined.Refresh,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.width(spacing.sm))
                 Text(stringResource(R.string.action_retry))
             }
         }

@@ -40,6 +40,8 @@
     <string name="time_hours_ago">hace %1$d h</string>
 
     <!-- Favorite stop card -->
+    <string name="board_next_departure">Próxima salida</string>
+    <string name="board_minutes_short">%1$d min</string>
     <string name="card_updated_prefix">Actualizado %1$s</string>
     <string name="arrival_unconfirmed_title">Próximo tren sin confirmar</string>
     <string name="arrival_unconfirmed_subtitle">Usa el Planificador para ver horarios programados</string>

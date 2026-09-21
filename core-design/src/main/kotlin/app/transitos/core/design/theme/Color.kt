@@ -207,3 +207,20 @@ val AmoledColors = DarkColors.copy(
     surfaceDim = Color(0xFF000000),
     surfaceBright = Color(0xFF2A2A2A),
 )
+
+/**
+ * Brand colours for signature surfaces that must look identical across light,
+ * dark and AMOLED, chiefly the home departure board. The gradient stays dark
+ * enough that plain white text clears WCAG AA on every stop of the ramp.
+ */
+object BrandColors {
+    val HeroGradientTop = Color(0xFF0C6E6D)
+    val HeroGradientBottom = Color(0xFF003B3B)
+
+    /** Warm amber used on the hero for "live" and highlight accents. */
+    val HeroAccent = Color(0xFFF5C55A)
+
+    /** Foreground that stays legible on the hero gradient. */
+    val OnHero = Color(0xFFFFFFFF)
+    val OnHeroMuted = Color(0xCCFFFFFF)
+}

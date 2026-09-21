@@ -5,22 +5,26 @@ import androidx.compose.material3.Shapes
 import androidx.compose.ui.unit.dp
 
 /**
- * Per-role corner radii. Soft and generous, which is most of how the "calm,
- * spacious" brief reads visually. The jump from `medium` (cards) to `large`
- * (sheets, hero surfaces) is deliberate: content feels touchable, overlays
- * feel weightier.
+ * Per-role corner radii, leaning into Material 3 Expressive: softer and more
+ * generous than the baseline so content reads as tactile and modern.
  *
- * [pill] is not part of the Material scale but is used constantly for chips,
- * status pills and line badges, so it lives here instead of being re-derived
- * with `CircleShape`/`RoundedCornerShape(50)` in every call site.
+ * The jump from `medium` (rows, inputs) to `large` (cards) to `extraLarge`
+ * (hero surfaces, sheets) is deliberate, it stages the hierarchy so the eye
+ * can tell a container from a control.
  */
 val TransitOSShapes = Shapes(
-    extraSmall = RoundedCornerShape(6.dp),
-    small = RoundedCornerShape(10.dp),
-    medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(22.dp),
-    extraLarge = RoundedCornerShape(28.dp),
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(18.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(32.dp),
 )
 
 /** Fully rounded shape for chips, badges and status pills. */
 val PillShape = RoundedCornerShape(percent = 50)
+
+/** Signature shape for hero surfaces such as the home departure board. */
+val HeroShape = RoundedCornerShape(32.dp)
+
+/** Shape for the smaller nested panels that sit inside a hero or a card. */
+val PanelShape = RoundedCornerShape(20.dp)
