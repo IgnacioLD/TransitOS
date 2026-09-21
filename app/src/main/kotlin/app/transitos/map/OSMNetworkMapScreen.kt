@@ -90,6 +90,9 @@ import com.glossostudio.transitos.core.ui.StatusPill
 import com.glossostudio.transitos.core.ui.R as coreUiR
 import org.koin.androidx.compose.koinViewModel
 import org.osmdroid.config.Configuration
+import org.osmdroid.events.MapListener
+import org.osmdroid.events.ScrollEvent
+import org.osmdroid.events.ZoomEvent
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
@@ -103,6 +106,9 @@ private data class StationInfo(
     val lines: List<String>,
     val position: GeoPoint,
 )
+
+/** Zoom level at or above which station markers are worth drawing. */
+private const val MARKER_ZOOM = 13.0
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -130,6 +136,9 @@ fun OSMNetworkMapRoute(
     var showLocation by remember { mutableStateOf(false) }
     var locationOverlay by remember { mutableStateOf<MyLocationNewOverlay?>(null) }
     var userLocation by remember { mutableStateOf<GeoPoint?>(null) }
+    // Station markers only make sense once the map is zoomed in; at overview
+    // zoom they overlap into an unreadable blob, so the map shows just lines.
+    var markersVisible by remember { mutableStateOf(false) }
 
     val nearestStation = remember(userLocation) {
         userLocation?.let { loc ->
@@ -186,8 +195,8 @@ fun OSMNetworkMapRoute(
         }
     }
 
-    LaunchedEffect(mapView, focusedLine) {
-        rebuildOverlays(mapView, focusedLine, alertedLineNames) { info ->
+    LaunchedEffect(mapView, focusedLine, markersVisible) {
+        rebuildOverlays(mapView, focusedLine, alertedLineNames, markersVisible) { info ->
             selectedStation = info
             mapView?.let { map ->
                 if (map.zoomLevelDouble < 15) {
@@ -343,6 +352,16 @@ fun OSMNetworkMapRoute(
                         val locOverlay = MyLocationNewOverlay(GpsMyLocationProvider(ctx), this)
                         overlays.add(locOverlay)
                         locationOverlay = locOverlay
+
+                        addMapListener(object : MapListener {
+                            override fun onScroll(event: ScrollEvent?): Boolean = false
+
+                            override fun onZoom(event: ZoomEvent?): Boolean {
+                                val visible = zoomLevelDouble >= MARKER_ZOOM
+                                if (visible != markersVisible) markersVisible = visible
+                                return false
+                            }
+                        })
 
                         mapView = this
                     }
@@ -621,6 +640,7 @@ private fun rebuildOverlays(
     map: MapView?,
     focusedLine: String?,
     alertedLineNames: Set<String>,
+    showMarkers: Boolean,
     onStationTap: (StationInfo) -> Unit,
 ) {
     val m = map ?: return
@@ -656,7 +676,7 @@ private fun rebuildOverlays(
             })
         }
 
-        line.stations.forEach { (name, _) ->
+        if (showMarkers) line.stations.forEach { (name, _) ->
             val point = stationPoints[name] ?: return@forEach
             val linesForStation = stationLines[name] ?: emptyList()
             val stationOnFocused = isAnyFocused && focusedLine in linesForStation
@@ -699,7 +719,7 @@ private fun rebuildOverlays(
 
 private fun createLineCircleMarker(res: Resources, color: Int, density: Float, lineNumbers: List<String>, lineColors: List<Int>): BitmapDrawable {
     val multiLine = lineNumbers.size > 1
-    val size = (28 * density).toInt()
+    val size = (24 * density).toInt()
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     val cx = size / 2f
