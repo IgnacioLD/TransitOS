@@ -6,6 +6,7 @@ import com.glossostudio.transitos.provider.metrovalencia.dto.FgvHorariosResponse
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvIncidenciasResponseDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvLineDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvPlanificadorResponseDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvSincronizacionResponseDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvStationDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -46,6 +47,16 @@ class MetrovalenciaApi(
 
     suspend fun getLines(): List<FgvLineDto> =
         client.get("${config.fullBaseUrl}lineas") {
+            headerAcceptJson()
+        }.body()
+
+    /**
+     * The heavy catalogue bundle (lineas + estaciones + track shapes). Only the
+     * map needs it, so the repository keeps it behind a lazily-shared flow and
+     * refreshes it at the slow catalogue cadence.
+     */
+    suspend fun getSincronizacion(): FgvSincronizacionResponseDto =
+        client.get("${config.fullBaseUrl}sincronizacion") {
             headerAcceptJson()
         }.body()
 

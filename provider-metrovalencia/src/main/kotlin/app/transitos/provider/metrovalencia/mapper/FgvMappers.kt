@@ -2,9 +2,11 @@ package com.glossostudio.transitos.provider.metrovalencia.mapper
 
 import com.glossostudio.transitos.core.model.Alert
 import com.glossostudio.transitos.core.model.Arrival
+import com.glossostudio.transitos.core.model.GeoCoordinate
 import com.glossostudio.transitos.core.model.Journey
 import com.glossostudio.transitos.core.model.JourneyLeg
 import com.glossostudio.transitos.core.model.Line
+import com.glossostudio.transitos.core.model.LineGeometry
 import com.glossostudio.transitos.core.model.Stop
 import com.glossostudio.transitos.core.model.TransportMode
 import com.glossostudio.transitos.provider.metrovalencia.MetrovalenciaConfig
@@ -14,6 +16,7 @@ import com.glossostudio.transitos.provider.metrovalencia.dto.FgvLineDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvPasoDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvPlanificadorDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvPrevisionDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvSincronizacionResponseDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvStationDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvTrainDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvTransbordoDto
@@ -43,6 +46,53 @@ internal fun FgvLineDto.toLine(): Line = Line(
     color = color?.let(::parseArgbHexOrNull),
     textColor = null,
 )
+
+/**
+ * Rebuilds each line's drawable shape from FGV's offline bundle.
+ *
+ * The authoritative geometry is `puntos` filtered by the line's `forma_id` and
+ * ordered by `orden` - **not** the line's `stops` CSV, which is not always in
+ * travel order (branch lines such as L4 enumerate terminals first). The stops
+ * catalogue is only used as a fallback when a line has no shape points.
+ *
+ * Lines with fewer than two usable coordinates are dropped: they cannot be
+ * drawn and a map is better off falling back to bundled data.
+ */
+internal fun FgvSincronizacionResponseDto.toLineGeometries(): List<LineGeometry> {
+    val stationById = data.estaciones
+        .filter { it.latitud != null && it.longitud != null }
+        .associateBy { it.estacionIdFgv }
+    val shapeByForma = data.puntos
+        .filter { it.formaIdFgv != null && it.latitud != null && it.longitud != null }
+        .groupBy { it.formaIdFgv }
+
+    return data.lineas.mapNotNull { line ->
+        val stopIds = line.stops
+            ?.split(',')
+            ?.mapNotNull { it.trim().toLongOrNull() }
+            .orEmpty()
+        val shape = shapeByForma[line.formaId]
+            ?.sortedBy { it.orden }
+            ?.map { GeoCoordinate(it.latitud!!, it.longitud!!) }
+            .orEmpty()
+        val points = shape.ifEmpty {
+            stopIds.mapNotNull { stationById[it] }
+                .map { GeoCoordinate(it.latitud!!, it.longitud!!) }
+        }
+        if (points.size < 2) return@mapNotNull null
+
+        val isTram = line.tipo == TRAM_TIPO
+        LineGeometry(
+            lineId = LINE_ID_PREFIX + line.lineaIdFgv,
+            shortName = line.nombreCorto,
+            color = line.color?.let(::parseArgbHexOrNull),
+            mode = if (isTram) TransportMode.TRAM else TransportMode.METRO,
+            isTram = isTram,
+            points = points,
+            stationIds = stopIds.map { STOP_ID_PREFIX + it },
+        )
+    }
+}
 
 /**
  * Expands one prevision (a line + its upcoming trains at this stop) into one
@@ -262,3 +312,6 @@ internal fun LocalDate.formatAsFgvFecha(): String {
 private const val STOP_ID_PREFIX = "mv:"
 private const val LINE_ID_PREFIX = "mv:"
 private const val ALERT_ID_PREFIX = "mv:"
+
+/** FGV's `tipo` for tram/light-rail lines; metro lines use `"1"`. */
+private const val TRAM_TIPO = "0"
