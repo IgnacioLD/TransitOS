@@ -66,7 +66,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glossostudio.transitos.core.design.theme.LocalSpacing
+import com.glossostudio.transitos.core.model.Arrival
 import com.glossostudio.transitos.core.ui.AlertsSection
+import com.glossostudio.transitos.core.ui.DepartureBoard
 import com.glossostudio.transitos.core.ui.EmptyState
 import com.glossostudio.transitos.core.ui.ErrorState
 import com.glossostudio.transitos.core.ui.FavoriteStopCard
@@ -206,8 +208,8 @@ private fun HomeTopBar(
 private fun BrandMark() {
     Box(
         modifier = Modifier
-            .size(34.dp)
-            .clip(RoundedCornerShape(11.dp))
+            .size(36.dp)
+            .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.primary),
         contentAlignment = Alignment.Center,
     ) {
@@ -215,7 +217,7 @@ private fun BrandMark() {
             imageVector = Icons.Outlined.DirectionsTransit,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier.size(20.dp),
+            modifier = Modifier.size(21.dp),
         )
     }
 }
@@ -268,16 +270,28 @@ private fun HomeContent(
     val spacing = LocalSpacing.current
     val savedRoutesTitle = stringResource(R.string.home_saved_routes)
     val favoritesTitle = stringResource(R.string.home_favorites)
+    val moreStopsTitle = stringResource(R.string.home_more_stops)
     val noFavoritesTitle = stringResource(R.string.home_no_favorites_title)
     val noFavoritesSubtitle = stringResource(R.string.home_no_favorites_subtitle)
     val searchAction = stringResource(R.string.home_search_stations)
 
+    // The soonest upcoming departure across every favourite becomes the hero.
+    val heroPair: Pair<FavoriteArrivals, Arrival>? = remember(state.favorites) {
+        state.favorites
+            .mapNotNull { favorite ->
+                favorite.arrivals
+                    .minByOrNull { it.minutesAway ?: Int.MAX_VALUE }
+                    ?.let { favorite to it }
+            }
+            .minByOrNull { (_, arrival) -> arrival.minutesAway ?: Int.MAX_VALUE }
+    }
+    val heroStopId = heroPair?.first?.stop?.id
+    val otherFavorites = state.favorites.filter { it.stop.id != heroStopId }
+
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 340.dp),
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            bottom = spacing.xxl,
-        ),
+        contentPadding = PaddingValues(bottom = spacing.xxl),
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
         horizontalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
@@ -297,11 +311,28 @@ private fun HomeContent(
             }
         }
 
+        if (heroPair != null) {
+            val (favorite, next) = heroPair
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                DepartureBoard(
+                    stopName = favorite.stop.name,
+                    next = next,
+                    upcoming = favorite.arrivals.filter { it != next },
+                    lastUpdatedMs = favorite.lastUpdatedMs,
+                    modifier = Modifier.padding(
+                        start = spacing.screenGutter,
+                        end = spacing.screenGutter,
+                        top = spacing.xs,
+                    ),
+                )
+            }
+        }
+
         if (state.savedRoutes.isNotEmpty()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 SectionHeader(text = savedRoutesTitle)
             }
-            items(state.savedRoutes, key = { it.id }, span = { GridItemSpan(1) }) { route ->
+            items(state.savedRoutes, key = { it.id }) { route ->
                 SavedRouteCard(
                     route = route,
                     onClick = { onNavigateToPlanner(route.originStopId, route.destinationStopId) },
@@ -309,16 +340,12 @@ private fun HomeContent(
                     modifier = Modifier.padding(horizontal = spacing.screenGutter),
                 )
             }
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Spacer(Modifier.height(spacing.sm))
-            }
-        }
-
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            SectionHeader(text = favoritesTitle)
         }
 
         if (state.isLoading) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                SectionHeader(text = favoritesTitle)
+            }
             items(listOf(0, 1), key = { "skeleton-$it" }) {
                 FavoriteStopCardSkeleton(
                     modifier = Modifier.padding(horizontal = spacing.screenGutter),
@@ -326,8 +353,10 @@ private fun HomeContent(
             }
         } else if (state.favorites.isEmpty()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
+                SectionHeader(text = favoritesTitle)
+            }
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 EmptyState(
-                    icon = Icons.Outlined.Search,
                     title = noFavoritesTitle,
                     subtitle = noFavoritesSubtitle,
                     modifier = Modifier.fillMaxWidth(),
@@ -344,8 +373,11 @@ private fun HomeContent(
                     },
                 )
             }
-        } else {
-            items(state.favorites, key = { it.stop.id }) { favorite ->
+        } else if (otherFavorites.isNotEmpty()) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                SectionHeader(text = if (heroPair != null) moreStopsTitle else favoritesTitle)
+            }
+            items(otherFavorites, key = { it.stop.id }) { favorite ->
                 FavoriteStopCard(
                     stop = favorite.stop,
                     arrivals = favorite.arrivals,

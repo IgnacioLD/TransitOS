@@ -1,5 +1,6 @@
 package com.glossostudio.transitos.feature.search
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.LocationOn
@@ -39,6 +42,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -47,6 +53,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glossostudio.transitos.core.design.theme.LocalSpacing
+import com.glossostudio.transitos.core.design.theme.Motion
 import com.glossostudio.transitos.core.design.theme.PillShape
 import com.glossostudio.transitos.core.model.Stop
 import com.glossostudio.transitos.core.ui.EmptyState
@@ -126,7 +133,6 @@ internal fun SearchScreen(
             when {
                 allStopsSize == 0 -> SearchSkeleton()
                 filteredStops.isEmpty() -> EmptyState(
-                    icon = Icons.Outlined.Search,
                     title = stringResource(R.string.search_no_results),
                     subtitle = if (query.isBlank()) stringResource(R.string.search_loading)
                     else stringResource(R.string.search_no_match, query),
@@ -158,7 +164,7 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = MaterialTheme.colorScheme.primary,
             )
         },
         trailingIcon = {
@@ -175,10 +181,8 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
         singleLine = true,
         shape = PillShape,
         textStyle = MaterialTheme.typography.bodyLarge,
-        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(imeAction = ImeAction.Search),
-        keyboardActions = androidx.compose.foundation.text.KeyboardActions(
-            onSearch = { keyboard?.hide() },
-        ),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
         colors = TextFieldDefaults.colors(
             focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -249,14 +253,27 @@ private fun StopsList(
 
 @Composable
 private fun LetterHeader(letter: String, modifier: Modifier = Modifier) {
-    Text(
-        text = letter,
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
+    Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(top = 12.dp, bottom = 4.dp),
-    )
+            .padding(top = 14.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(26.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = letter,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        }
+    }
 }
 
 @Composable
@@ -266,11 +283,24 @@ private fun StopRow(
     onToggleFavorite: () -> Unit,
 ) {
     val spacing = LocalSpacing.current
+    val haptics = LocalHapticFeedback.current
+    val starScale by animateFloatAsState(
+        targetValue = if (isFavorite) 1.15f else 1f,
+        animationSpec = Motion.springy(),
+        label = "star-scale",
+    )
     Surface(
-        onClick = onToggleFavorite,
+        onClick = {
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            onToggleFavorite()
+        },
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        color = if (isFavorite) {
+            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.35f)
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerLow
+        },
     ) {
         Row(
             modifier = Modifier
@@ -281,8 +311,8 @@ private fun StopRow(
         ) {
             Box(
                 modifier = Modifier
-                    .size(38.dp)
-                    .clip(CircleShape)
+                    .size(40.dp)
+                    .clip(MaterialTheme.shapes.medium)
                     .background(
                         if (isFavorite) MaterialTheme.colorScheme.tertiaryContainer
                         else MaterialTheme.colorScheme.secondaryContainer,
@@ -294,7 +324,7 @@ private fun StopRow(
                     contentDescription = null,
                     tint = if (isFavorite) MaterialTheme.colorScheme.onTertiaryContainer
                     else MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(21.dp),
                 )
             }
             Text(
@@ -311,6 +341,10 @@ private fun StopRow(
                     imageVector = if (isFavorite) Icons.Outlined.Star else Icons.Outlined.StarBorder,
                     contentDescription = if (isFavorite) stringResource(coreUiR.string.cd_remove_favorite) else stringResource(coreUiR.string.cd_add_favorite),
                     tint = if (isFavorite) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.outline,
+                    modifier = Modifier.graphicsLayer {
+                        scaleX = starScale
+                        scaleY = starScale
+                    },
                 )
             }
         }
@@ -329,7 +363,7 @@ private fun SearchSkeleton() {
         repeat(8) {
             SkeletonBlock(
                 modifier = Modifier.fillMaxWidth(),
-                height = 56.dp,
+                height = 64.dp,
                 shape = MaterialTheme.shapes.large,
             )
         }
