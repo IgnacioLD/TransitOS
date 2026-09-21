@@ -44,7 +44,7 @@ nobody, and respects your privacy.
 <p align="center">
   <img src="./art/screenshots/framed/01-home.png" width="200">
   <img src="./art/screenshots/framed/03-search.png" width="200">
-  <img src="./art/screenshots/framed/04-route.png" width="200">
+  <img src="./art/screenshots/framed/04-planner.png" width="200">
   <img src="./art/screenshots/framed/05-settings.png" width="200">
   <img src="./art/screenshots/framed/06-map.png" width="200">
 </p>
@@ -58,7 +58,9 @@ Pre-built APKs are available on the
 
 ## Build
 
-Requires **JDK 17** and **Android SDK 35** (Platform 35 + Build Tools).
+Requires **JDK 17**, **Android SDK 36** (Platform 36 + Build Tools 36), **AGP 8.9.1**
+and **Gradle 8.11.1** (or newer). The app targets `compileSdk` / `targetSdk` 36
+(Android 16) with `minSdk` 26.
 
 ```bash
 # Debug APK
@@ -66,9 +68,13 @@ Requires **JDK 17** and **Android SDK 35** (Platform 35 + Build Tools).
 
 # Release APK (needs a signing keystore, see below)
 ./gradlew :app:assembleRelease
+
+# Release App Bundle for Google Play (signed)
+./gradlew :app:bundleRelease
 ```
 
-The debug APK lands in `app/build/outputs/apk/debug/`.
+The debug APK lands in `app/build/outputs/apk/debug/`, and the release bundle in
+`app/build/outputs/bundle/release/app-release.aab`.
 
 ### Signing a release build
 

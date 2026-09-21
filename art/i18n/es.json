@@ -1,0 +1,143 @@
+{
+  "locale": "es",
+  "play_locale": "es-ES",
+  "app_name": "TransitOS",
+  "tagline": "El transporte público, más fácil",
+  "trust": [
+    "Gratis",
+    "Código abierto",
+    "Sin rastreo"
+  ],
+  "feature_graphic": {
+    "features": [
+      {
+        "title": "Planificador en tiempo real",
+        "subtitle": "Horarios exactos y colores oficiales"
+      },
+      {
+        "title": "Privacidad ante todo",
+        "subtitle": "Sin anuncios ni rastreo, los datos en tu móvil"
+      },
+      {
+        "title": "Toda Metrovalencia",
+        "subtitle": "10 líneas, avisos en vivo y rutas guardadas"
+      }
+    ],
+    "card": {
+      "kicker": "PRÓXIMA SALIDA",
+      "live": "En vivo",
+      "stop": "Benimaclet",
+      "destination": "Aeroport",
+      "minutes": "1",
+      "unit": "min",
+      "chips": [
+        "L9   5 min",
+        "L6   8 min"
+      ]
+    }
+  },
+  "promo": {
+    "line": "Transporte público"
+  },
+  "captions": {
+    "home": {
+      "headline": [
+        "Tu próximo tren,",
+        "de un vistazo"
+      ],
+      "sub": [
+        "Llegadas en vivo de",
+        "tus paradas favoritas"
+      ]
+    },
+    "alerts": {
+      "headline": [
+        "Entérate antes",
+        "de salir"
+      ],
+      "sub": [
+        "Avisos de servicio en",
+        "tiempo real para cada línea"
+      ]
+    },
+    "search": {
+      "headline": [
+        "Encuentra cualquier",
+        "estación"
+      ],
+      "sub": [
+        "Busca entre las 144",
+        "paradas de la red"
+      ]
+    },
+    "planner": {
+      "headline": [
+        "Planifica todo",
+        "el viaje"
+      ],
+      "sub": [
+        "Rutas, transbordos y",
+        "colores oficiales"
+      ]
+    },
+    "settings": {
+      "headline": [
+        "Hazla tuya",
+        ""
+      ],
+      "sub": [
+        "Temas, idioma y",
+        "margen de transbordo"
+      ]
+    },
+    "map": {
+      "headline": [
+        "Explora",
+        "la red"
+      ],
+      "sub": [
+        "Todas las líneas y",
+        "estaciones en el mapa"
+      ]
+    },
+    "dark": {
+      "headline": [
+        "Cómodo",
+        "de noche"
+      ],
+      "sub": [
+        "Un tema oscuro y tranquilo",
+        "para viajar de noche"
+      ]
+    },
+    "amoled": {
+      "headline": [
+        "Negro puro",
+        "AMOLED"
+      ],
+      "sub": [
+        "El negro real ahorra batería",
+        "en pantallas OLED"
+      ]
+    }
+  },
+  "short_description": "Horarios de metro y tranvía, llegadas en vivo y planificador en Valencia.",
+  "full_description": "TransitOS es una app de transporte público gratuita para moverte en metro y tranvía. Consulta horarios y llegadas en tiempo real, planifica tus viajes con transbordos y sigue el mapa de la red: todo lo que necesitas para moverte por Valencia con Metrovalencia, sin anuncios y sin rastreo.\n\nLLEGADAS Y HORARIOS EN TIEMPO REAL\n\nGuarda tus paradas de metro y tranvía favoritas y consulta las próximas llegadas de un vistazo. Cada salida muestra la línea, el destino y los minutos que faltan, actualizados en directo. Ideal para el día a día y para no perder el último tren.\n\nPLANIFICADOR DE VIAJES CON TRANSBORDOS\n\nPlanifica cualquier trayecto por la red de metro y tranvía. Busca un origen y un destino y TransitOS encuentra las mejores rutas, con cada transbordo, las líneas que debes tomar, el tiempo a pie y la duración total del viaje. Elige salir ahora o llegar a una hora concreta y configura un margen de transbordo para que solo te proponga enlaces que puedas coger con tranquilidad.\n\nMAPA DE LA RED DE METROVALENCIA\n\nExplora el mapa completo de la red de Metrovalencia, con todas las líneas en sus colores oficiales y cada estación y conexión. Haz zoom, comprueba dónde tienes que cambiar de línea y descarga el plano PDF oficial para consultarlo sin conexión.\n\nAVISOS DE SERVICIO\n\nLas incidencias, los retrasos y las obras programadas aparecen antes de que salgas, para que puedas elegir una ruta alternativa en lugar de enterarte en la estación.\n\nFAVORITOS Y RUTAS GUARDADAS\n\nMarca con una estrella las paradas que usas cada día y guarda tus trayectos habituales, de casa al trabajo o al aeropuerto, con una etiqueta propia para acceder con un solo toque.\n\nMODO OSCURO Y AMOLED\n\nTemas del sistema, claro, oscuro y negro puro AMOLED, cómodos para la vista de noche y más eficientes con la batería en pantallas OLED.\n\nPRIVACIDAD POR DISEÑO\n\nTransitOS es privada por defecto. Sin anuncios, sin rastreo, sin analítica y sin cuenta. Los datos de tu ubicación se quedan en tu dispositivo y nunca se envían a ningún sitio. La aplicación solo se conecta a la API pública del operador de transporte por HTTPS, directamente desde tu móvil.\n\nMULTIIDIOMA\n\nDisponible en inglés, español y valenciano, con el idioma que elijas aplicado al instante.\n\nCÓDIGO ABIERTO\n\nTransitOS es software libre bajo la licencia AGPL-3.0. El código fuente completo está en github.com/IgnacioLD/TransitOS, y se agradecen las contribuciones, los informes de errores y las traducciones.\n\nPensada primero para Metrovalencia (FGV), la red de metro y tranvía de Valencia, y diseñada para crecer como app de transporte público multioperador: próximamente más ciudades y operadores.\n\nTransitOS es un proyecto independiente y no está afiliado ni respaldado por Metrovalencia ni por FGV.",
+  "triptych": {
+    "headline": [
+      "Todo,",
+      "en un solo sitio"
+    ],
+    "sub": [
+      "Llegadas, planificador",
+      "y mapa de la red"
+    ],
+    "labels": [
+      "Llegadas",
+      "Planificar",
+      "Red"
+    ]
+  },
+  "release_notes": "Esta actualización trae el rediseño Material 3: una nueva pantalla de inicio con salidas en vivo, un planificador con línea de tiempo más claro, búsqueda y ajustes renovados, temas oscuro y AMOLED, y soporte completo del valenciano. Además, correcciones y mejoras de acabado.",
+  "store_title": "TransitOS: Transporte Público"
+}

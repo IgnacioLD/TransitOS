@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="{{W}}" height="{{H}}" viewBox="0 0 {{W}} {{H}}">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.72" y2="1">
+      <stop offset="0%" stop-color="#0B5F5D"/>
+      <stop offset="50%" stop-color="#063634"/>
+      <stop offset="100%" stop-color="#02191A"/>
+    </linearGradient>
+    <radialGradient id="glowTeal" cx="0.88" cy="0.06" r="0.72">
+      <stop offset="0%" stop-color="#3ED3C7" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#3ED3C7" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowAmber" cx="0.05" cy="1.02" r="0.6">
+      <stop offset="0%" stop-color="#F5C55A" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#F5C55A" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="panelGlow" cx="0.5" cy="{{PANEL_GLOW_CY}}" r="0.6">
+      <stop offset="0%" stop-color="#2FD0C4" stop-opacity="0.20"/>
+      <stop offset="100%" stop-color="#2FD0C4" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="topLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#F5C55A"/>
+      <stop offset="45%" stop-color="#3ED3C7"/>
+      <stop offset="100%" stop-color="#3ED3C7" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" result="n"/>
+      <feColorMatrix in="n" type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.045"/></feComponentTransfer>
+    </filter>
+  </defs>
+
+  <rect width="{{W}}" height="{{H}}" fill="url(#bg)"/>
+  <rect width="{{W}}" height="{{H}}" fill="url(#glowTeal)"/>
+  <rect width="{{W}}" height="{{H}}" fill="url(#glowAmber)"/>
+  <rect width="{{W}}" height="{{H}}" fill="url(#panelGlow)"/>
+
+  <!-- Schematic metro texture -->
+  <g fill="none" stroke="#FFFFFF" stroke-opacity="0.06" stroke-linecap="round" stroke-linejoin="round" stroke-width="{{MOTIF_SW}}">
+    <path d="{{MOTIF1}}"/>
+    <path d="{{MOTIF2}}"/>
+    <path d="{{MOTIF3}}"/>
+  </g>
+  <g fill="#FFFFFF" fill-opacity="0.09">
+    {{MOTIF_DOTS}}
+  </g>
+
+  <rect width="{{W}}" height="{{TOP_LINE_H}}" fill="url(#topLine)"/>
+
+  <!-- Header -->
+  <rect x="{{CAP_X}}" y="{{EYEBROW_Y}}" width="{{EYEBROW_W}}" height="{{EYEBROW_H}}" rx="{{EYEBROW_R}}" fill="{{ACCENT}}"/>
+  <text x="{{CAP_X}}" y="{{CAP_Y1}}" font-family="Helvetica Neue, Arial, sans-serif" font-size="{{HEADLINE_SIZE}}" font-weight="700" fill="#FFFFFF" letter-spacing="-0.6">{{HEADLINE1}}</text>
+  <text x="{{CAP_X}}" y="{{CAP_Y2}}" font-family="Helvetica Neue, Arial, sans-serif" font-size="{{HEADLINE_SIZE}}" font-weight="700" fill="#FFFFFF" letter-spacing="-0.6">{{HEADLINE2}}</text>
+  <text x="{{CAP_X}}" y="{{SUB_Y1}}" font-family="Helvetica Neue, Arial, sans-serif" font-size="{{SUB_SIZE}}" font-weight="400" fill="#9FE0DA">{{SUB1}}</text>
+  <text x="{{CAP_X}}" y="{{SUB_Y2}}" font-family="Helvetica Neue, Arial, sans-serif" font-size="{{SUB_SIZE}}" font-weight="400" fill="#9FE0DA">{{SUB2}}</text>
+
+  <!-- Route connecting the three panels -->
+  <line x1="{{ROUTE_X1}}" y1="{{ROUTE_Y}}" x2="{{ROUTE_X3}}" y2="{{ROUTE_Y}}" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="{{ROUTE_SW}}" stroke-linecap="round"/>
+
+  <!-- Three panels -->
+  {{BEZEL1}}
+  {{BEZEL2}}
+  {{BEZEL3}}
+  <circle cx="{{LABEL_X1}}" cy="{{ROUTE_Y}}" r="{{DOT_R}}" fill="#0A403E" stroke="#F5C55A" stroke-width="{{DOT_SW}}"/>
+  <circle cx="{{LABEL_X2}}" cy="{{ROUTE_Y}}" r="{{DOT_R}}" fill="#0A403E" stroke="#6FD3C7" stroke-width="{{DOT_SW}}"/>
+  <circle cx="{{LABEL_X3}}" cy="{{ROUTE_Y}}" r="{{DOT_R}}" fill="#0A403E" stroke="#BFE9E5" stroke-width="{{DOT_SW}}"/>
+
+  <text x="{{LABEL_X1}}" y="{{LABEL_Y}}" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="{{LABEL_SIZE}}" font-weight="700" fill="#FFFFFF">{{LABEL1}}</text>
+  <text x="{{LABEL_X2}}" y="{{LABEL_Y}}" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="{{LABEL_SIZE}}" font-weight="700" fill="#FFFFFF">{{LABEL2}}</text>
+  <text x="{{LABEL_X3}}" y="{{LABEL_Y}}" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="{{LABEL_SIZE}}" font-weight="700" fill="#FFFFFF">{{LABEL3}}</text>
+
+  <!-- Footer -->
+  {{LOGO}}
+  <text x="{{FOOT_TEXT_X}}" y="{{FOOT_BASELINE}}" font-family="Helvetica Neue, Arial, sans-serif" font-size="{{FOOTER_SIZE}}" font-weight="700" fill="#FFFFFF">{{APP_NAME}}</text>
+  <text x="{{FOOT_TAG_X}}" y="{{FOOT_BASELINE}}" text-anchor="end" font-family="Helvetica Neue, Arial, sans-serif" font-size="{{FOOTER_SIZE}}" font-weight="400" fill="#FFFFFF" fill-opacity="0.5">{{TAGLINE}}</text>
+
+  <rect width="{{W}}" height="{{H}}" filter="url(#grain)" opacity="0.5"/>
+</svg>

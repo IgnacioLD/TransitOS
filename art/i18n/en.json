@@ -1,0 +1,143 @@
+{
+  "locale": "en",
+  "play_locale": "en-US",
+  "app_name": "TransitOS",
+  "tagline": "Public transport, made simple",
+  "trust": [
+    "Free",
+    "Open source",
+    "No tracking"
+  ],
+  "feature_graphic": {
+    "features": [
+      {
+        "title": "Real-time planner",
+        "subtitle": "Exact times and official line colours"
+      },
+      {
+        "title": "Privacy first",
+        "subtitle": "No ads, no tracking, data stays on device"
+      },
+      {
+        "title": "All of Metrovalencia",
+        "subtitle": "10 lines, live alerts and saved routes"
+      }
+    ],
+    "card": {
+      "kicker": "NEXT DEPARTURE",
+      "live": "Live",
+      "stop": "Benimaclet",
+      "destination": "Aeroport",
+      "minutes": "1",
+      "unit": "min",
+      "chips": [
+        "L9   5 min",
+        "L6   8 min"
+      ]
+    }
+  },
+  "promo": {
+    "line": "Public transport"
+  },
+  "captions": {
+    "home": {
+      "headline": [
+        "Your next train,",
+        "at a glance"
+      ],
+      "sub": [
+        "Live arrivals from your",
+        "favourite stops"
+      ]
+    },
+    "alerts": {
+      "headline": [
+        "Know before",
+        "you go"
+      ],
+      "sub": [
+        "Real-time service alerts",
+        "for every line"
+      ]
+    },
+    "search": {
+      "headline": [
+        "Find any",
+        "station"
+      ],
+      "sub": [
+        "Search all 144 stops",
+        "in the network"
+      ]
+    },
+    "planner": {
+      "headline": [
+        "Plan the",
+        "whole journey"
+      ],
+      "sub": [
+        "Routes, transfers and",
+        "official line colours"
+      ]
+    },
+    "settings": {
+      "headline": [
+        "Make it",
+        "yours"
+      ],
+      "sub": [
+        "Themes, language and",
+        "transfer buffer"
+      ]
+    },
+    "map": {
+      "headline": [
+        "Explore",
+        "the network"
+      ],
+      "sub": [
+        "Every line and station",
+        "on the live map"
+      ]
+    },
+    "dark": {
+      "headline": [
+        "Easy on",
+        "the eyes"
+      ],
+      "sub": [
+        "A calm dark theme",
+        "for travelling at night"
+      ]
+    },
+    "amoled": {
+      "headline": [
+        "Pure black",
+        "AMOLED"
+      ],
+      "sub": [
+        "True black saves battery",
+        "on OLED displays"
+      ]
+    }
+  },
+  "short_description": "Metro and tram times, live arrivals and a journey planner in Valencia.",
+  "full_description": "TransitOS is a free public transport app for real-time metro and tram travel. Check live schedules and arrivals, plan a journey with transfers, and follow the whole network map: everything you need to move around Valencia with Metrovalencia, without ads and without tracking.\n\nLIVE ARRIVALS AND SCHEDULES\n\nSave your favourite metro and tram stops and see the next arrivals at a glance. Each departure shows the line, the destination and how many minutes are left, updated live. Perfect for the daily commute and for checking the last train of the day.\n\nJOURNEY PLANNER WITH TRANSFERS\n\nPlan any trip across the metro and tram network. Search an origin and a destination and TransitOS finds the best routes, with every transfer, the lines to take, the walking time and the full journey duration. Choose to leave now or to arrive by a specific time, and set a minimum transfer buffer so you only get connections you can comfortably make.\n\nMETROVALENCIA NETWORK MAP\n\nExplore the full Metrovalencia network map, with all lines in their official colours and every station and connection. Zoom in, check where you need to change lines, and download the official PDF map for offline use.\n\nSERVICE ALERTS\n\nDisruptions, delays and planned works are shown before you leave, so you can pick an alternative route instead of finding out at the station.\n\nFAVOURITES AND SAVED ROUTES\n\nStar the stops you use every day and save your regular journeys, from home to work or to the airport, with a custom label for one-tap access.\n\nDARK MODE AND AMOLED\n\nSystem, light, dark and AMOLED pure-black themes, easy on the eyes at night and lighter on your battery on OLED screens.\n\nPRIVACY BY DESIGN\n\nTransitOS is private by default. No ads, no tracking, no analytics and no account. Your location data stays on your device and is never sent anywhere. The app talks only to the public transport operator's public API over HTTPS, straight from your phone.\n\nMULTILINGUAL\n\nAvailable in English, Spanish and Valencian, with the language you choose applied instantly.\n\nOPEN SOURCE\n\nTransitOS is free and open source under the AGPL-3.0 licence. The full source code is at github.com/IgnacioLD/TransitOS, and contributions, bug reports and translations are welcome.\n\nBuilt first for Metrovalencia (FGV), the metro and tram network of Valencia, and designed to grow into a multi-operator public transport app: more cities and operators are on the way.\n\nTransitOS is an independent project and is not affiliated with or endorsed by Metrovalencia or FGV.",
+  "triptych": {
+    "headline": [
+      "Everything,",
+      "in one place"
+    ],
+    "sub": [
+      "Arrivals, journey planning",
+      "and the whole network"
+    ],
+    "labels": [
+      "Arrivals",
+      "Plan",
+      "Network"
+    ]
+  },
+  "release_notes": "This update brings the refreshed Material 3 design: a new home with live departures, a rebuilt journey planner with a clear timeline, a redesigned search and settings, dark and AMOLED themes, and full Valencian support. Smaller fixes and polish throughout.",
+  "store_title": "TransitOS: Public Transport"
+}

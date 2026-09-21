@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="120" viewBox="0 0 180 120">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.85" y2="1">
+      <stop offset="0%" stop-color="#0B5F5D"/>
+      <stop offset="55%" stop-color="#053230"/>
+      <stop offset="100%" stop-color="#02191A"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.02" r="0.85">
+      <stop offset="0%" stop-color="#3ED3C7" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#3ED3C7" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="iconBg" x1="0" y1="0" x2="0.8" y2="1">
+      <stop offset="0%" stop-color="#17A09A"/>
+      <stop offset="100%" stop-color="#00504F"/>
+    </linearGradient>
+    <linearGradient id="topLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#F5C55A"/>
+      <stop offset="60%" stop-color="#3ED3C7"/>
+      <stop offset="100%" stop-color="#3ED3C7" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="180" height="120" fill="url(#bg)"/>
+  <rect width="180" height="120" fill="url(#glow)"/>
+
+  <!-- Schematic metro lines, kept clear of the centered copy -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+    <path d="M -10 116 H 120" stroke="#FFD100" stroke-width="3"/>
+    <path d="M 30 122 H 190" stroke="#E60096" stroke-width="3"/>
+    <path d="M 168 102 L 190 120" stroke="#009B48" stroke-width="3"/>
+    <path d="M 12 102 L -10 120" stroke="#DD052C" stroke-width="3"/>
+  </g>
+  <g>
+    <circle cx="60" cy="116" r="4" fill="#0B4846" stroke="#FFD100" stroke-width="2.2"/>
+    <circle cx="140" cy="122" r="4" fill="#0B4846" stroke="#E60096" stroke-width="2.2"/>
+  </g>
+
+  <rect width="180" height="3" fill="url(#topLine)"/>
+
+  <rect x="67" y="12" width="46" height="46" rx="13" fill="#00100F" opacity="0.35"/>
+  {{LOGO}}
+  <text x="90" y="82" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="21" font-weight="800" fill="#FFFFFF" letter-spacing="-0.4">{{APP_NAME}}</text>
+  <text x="90" y="101" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="10.5" font-weight="600" fill="#F5C55A">{{PROMO_LINE}}</text>
+</svg>
