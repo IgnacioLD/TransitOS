@@ -65,7 +65,4 @@
     <string name="license_title">Licencia</string>
     <string name="license_summary">TransitOS es software libre, distribuido bajo la GNU Affero General Public License v3.0 (AGPL-3.0). Incluye datos de horarios y servicio de FGV / Metrovalencia. A continuación se muestra el texto legal completo de la licencia, en inglés.</string>
     <string name="legal_open_in_browser">Abrir en el navegador</string>
-    <string name="settings_experimental">Experimental</string>
-    <string name="settings_live_trains">Ver trenes en el mapa</string>
-    <string name="settings_live_trains_desc">Anima trenes sobre las líneas. Es una simulación aproximada basada en los horarios, no posiciones GPS reales.</string>
 </resources>

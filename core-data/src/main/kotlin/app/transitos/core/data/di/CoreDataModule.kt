@@ -2,7 +2,6 @@ package com.glossostudio.transitos.core.data.di
 
 import com.glossostudio.transitos.core.data.DataStoreFavoritesRepository
 import com.glossostudio.transitos.core.data.DataStoreHintsPreference
-import com.glossostudio.transitos.core.data.DataStoreLiveTrainsPreference
 import com.glossostudio.transitos.core.data.DataStoreOnboardingPreference
 import com.glossostudio.transitos.core.data.DataStoreProviderSettingsRepository
 import com.glossostudio.transitos.core.data.DataStoreReviewPreference
@@ -15,7 +14,6 @@ import com.glossostudio.transitos.core.provider.ProviderSettingsRepository
 import com.glossostudio.transitos.core.repository.FavoritesRepository
 import com.glossostudio.transitos.core.repository.HintsPreference
 import com.glossostudio.transitos.core.repository.LanguagePreference
-import com.glossostudio.transitos.core.repository.LiveTrainsPreference
 import com.glossostudio.transitos.core.repository.OnboardingPreference
 import com.glossostudio.transitos.core.repository.ReviewPreference
 import com.glossostudio.transitos.core.repository.RouteFavoritesRepository
@@ -33,7 +31,6 @@ val coreDataModule = module {
     single<LanguagePreference> { get<SharedPrefsLanguagePreference>() }
     single<ThemePreference> { DataStoreThemePreference(androidContext()) }
     single<TransferBufferPreference> { DataStoreTransferBufferPreference(androidContext()) }
-    single<LiveTrainsPreference> { DataStoreLiveTrainsPreference(androidContext()) }
     single<OnboardingPreference> { DataStoreOnboardingPreference(androidContext()) }
     single<ReviewPreference> { DataStoreReviewPreference(androidContext()) }
     single<HintsPreference> { DataStoreHintsPreference(androidContext()) }

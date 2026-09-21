@@ -148,21 +148,6 @@ so re-opening the map does not re-download it. The bundled hardcoded geometry in
 `app/.../MetrovalenciaMapData.kt` is kept **only** as an offline fallback for
 when the bundle cannot be fetched.
 
-### Vehicle positions, not available
-
-There is **no public feed of vehicle positions**. Probed on 2026-09-21, every
-plausible path returned 404 (`vehiculos`, `posiciones`, `trenes`, `flota`,
-`gps`, and combinations), and `/sincronizacion` carries no coordinates for
-vehicles (its `puntos` are track shapes, not live positions). The official app
-shows arrivals, not a live vehicle map. The `horarios-prevision-3` trains do
-not include `latitude`/`longitude` (both observed `null`).
-
-The map's "show trains" mode is therefore a **simulation**: markers are spaced
-by a nominal headway and driven at a nominal commercial speed along the
-published line geometry. It is opt-in, and the UI labels it experimental and
-approximate (Settings switch plus an on-map banner). It must never be
-presented as real-time GPS.
-
 ### Live-arrivals shape (observed live)
 
 ```json

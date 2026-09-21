@@ -49,7 +49,6 @@ import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.NearMe
 import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material.icons.outlined.Train
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -106,9 +105,6 @@ import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 /** Zoom level at or above which station markers are worth drawing. */
 private const val MARKER_ZOOM = 13.0
 
-/** How often the approximate train positions are recomputed and redrawn. */
-private const val TRAIN_TICK_MS = 400L
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OSMNetworkMapRoute(
@@ -128,16 +124,13 @@ fun OSMNetworkMapRoute(
     val network by viewModel.network.collectAsStateWithLifecycle()
     val alerts by viewModel.alerts.collectAsStateWithLifecycle()
     val alertedLineNames = remember(alerts) { viewModel.alertedLineNames }
-    val liveTrainsEnabled by viewModel.liveTrainsEnabled.collectAsStateWithLifecycle()
 
     var mapView by remember { mutableStateOf<MapView?>(null) }
     var focusedLine by remember { mutableStateOf<String?>(null) }
     var selectedStation by remember { mutableStateOf<MapStation?>(null) }
     var showLocation by remember { mutableStateOf(false) }
     var locationOverlay by remember { mutableStateOf<MyLocationNewOverlay?>(null) }
-    var trainOverlay by remember { mutableStateOf<LiveTrainsOverlay?>(null) }
     var userLocation by remember { mutableStateOf<GeoPoint?>(null) }
-    val trainSimulator = remember(network.lines) { TrainSimulator(network.lines) }
     // Station markers only make sense once the map is zoomed in; at overview
     // zoom they overlap into an unreadable blob, so the map shows just lines.
     var markersVisible by remember { mutableStateOf(false) }
@@ -197,15 +190,8 @@ fun OSMNetworkMapRoute(
         }
     }
 
-    LaunchedEffect(mapView, network, focusedLine, markersVisible, trainOverlay) {
-        rebuildOverlays(
-            map = mapView,
-            network = network,
-            focusedLine = focusedLine,
-            alertedLineNames = alertedLineNames,
-            showMarkers = markersVisible,
-            trainOverlay = trainOverlay,
-        ) { info ->
+    LaunchedEffect(mapView, network, focusedLine, markersVisible) {
+        rebuildOverlays(mapView, network, focusedLine, alertedLineNames, markersVisible) { info ->
             selectedStation = info
             mapView?.let { map ->
                 if (map.zoomLevelDouble < 15) {
@@ -215,24 +201,6 @@ fun OSMNetworkMapRoute(
                     map.controller.animateTo(info.position)
                 }
             }
-        }
-    }
-
-    // Approximate train movement. The simulation is advanced from a wall clock
-    // so it stays smooth and deterministic without holding per-train state.
-    LaunchedEffect(liveTrainsEnabled, trainOverlay, trainSimulator, mapView) {
-        val overlay = trainOverlay ?: return@LaunchedEffect
-        val map = mapView ?: return@LaunchedEffect
-        if (!liveTrainsEnabled) {
-            overlay.markers = emptyList()
-            map.invalidate()
-            return@LaunchedEffect
-        }
-        while (true) {
-            val clockSeconds = System.currentTimeMillis() / 1000.0
-            overlay.markers = trainSimulator.markersAt(clockSeconds)
-            map.invalidate()
-            kotlinx.coroutines.delay(TRAIN_TICK_MS)
         }
     }
 
@@ -378,10 +346,6 @@ fun OSMNetworkMapRoute(
                         overlays.add(locOverlay)
                         locationOverlay = locOverlay
 
-                        val trains = LiveTrainsOverlay()
-                        overlays.add(trains)
-                        trainOverlay = trains
-
                         addMapListener(object : MapListener {
                             override fun onScroll(event: ScrollEvent?): Boolean = false
 
@@ -397,31 +361,6 @@ fun OSMNetworkMapRoute(
                 },
                 modifier = Modifier.fillMaxSize(),
             )
-
-            FilledTonalIconButton(
-                onClick = { viewModel.setLiveTrainsEnabled(!liveTrainsEnabled) },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 80.dp)
-                    .size(52.dp),
-                colors = IconButtonDefaults.filledTonalIconButtonColors(
-                    containerColor = if (liveTrainsEnabled) {
-                        MaterialTheme.colorScheme.tertiaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.surfaceContainerHigh
-                    },
-                    contentColor = if (liveTrainsEnabled) {
-                        MaterialTheme.colorScheme.onTertiaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                ),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Train,
-                    contentDescription = stringResource(R.string.map_trains_cd),
-                )
-            }
 
             FilledTonalIconButton(
                 onClick = onLocationClick,
@@ -444,94 +383,52 @@ fun OSMNetworkMapRoute(
                 )
             }
 
-            Column(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                if (liveTrainsEnabled) {
-                    LiveTrainsExperimentalBanner()
-                }
-
-                nearestStation?.let { (station, distance, pos) ->
-                    Surface(
-                        modifier = Modifier
-                            .clickable {
-                                selectedStation = station
-                                mapView?.let { map ->
-                                    if (map.zoomLevelDouble < 15) {
-                                        map.controller.setZoom(15.5)
-                                        map.controller.animateTo(pos)
-                                    } else {
-                                        map.controller.animateTo(pos)
-                                    }
+            nearestStation?.let { (station, distance, pos) ->
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 8.dp)
+                        .clickable {
+                            selectedStation = station
+                            mapView?.let { map ->
+                                if (map.zoomLevelDouble < 15) {
+                                    map.controller.setZoom(15.5)
+                                    map.controller.animateTo(pos)
+                                } else {
+                                    map.controller.animateTo(pos)
                                 }
-                            },
-                        shape = RoundedCornerShape(20.dp),
-                        color = MaterialTheme.colorScheme.surface,
-                        tonalElevation = 3.dp,
-                        shadowElevation = 4.dp,
+                            }
+                        },
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 3.dp,
+                    shadowElevation = 4.dp,
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            Icon(
-                                Icons.Outlined.NearMe,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                            Text(
-                                text = station.name,
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Text(
-                                text = if (distance < 1000) "${distance.toInt()} m"
-                                else "${"%.1f".format(distance / 1000)} km",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+                        Icon(
+                            Icons.Outlined.NearMe,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                        Text(
+                            text = station.name,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            text = if (distance < 1000) "${distance.toInt()} m"
+                            else "${"%.1f".format(distance / 1000)} km",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             }
-        }
-    }
-}
-
-/**
- * The honest disclaimer for the simulated trains. Shown whenever they are on,
- * so the user never mistakes the animation for a real GPS feed.
- */
-@Composable
-private fun LiveTrainsExperimentalBanner() {
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.tertiaryContainer,
-        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-        tonalElevation = 3.dp,
-        shadowElevation = 4.dp,
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Warning,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-            )
-            Text(
-                text = stringResource(R.string.map_trains_experimental),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Medium,
-            )
         }
     }
 }
@@ -732,7 +629,6 @@ private fun rebuildOverlays(
     focusedLine: String?,
     alertedLineNames: Set<String>,
     showMarkers: Boolean,
-    trainOverlay: LiveTrainsOverlay?,
     onStationTap: (MapStation) -> Unit,
 ) {
     val m = map ?: return
@@ -800,9 +696,6 @@ private fun rebuildOverlays(
             })
         }
     }
-
-    // Drawn last so trains always sit above the lines and station markers.
-    trainOverlay?.let { m.overlays.add(it) }
 
     m.invalidate()
 }
