@@ -31,6 +31,8 @@ import androidx.compose.material.icons.outlined.DirectionsTransit
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -60,6 +62,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -74,8 +77,12 @@ import com.glossostudio.transitos.core.ui.ErrorState
 import com.glossostudio.transitos.core.ui.FavoriteStopCard
 import com.glossostudio.transitos.core.ui.FavoriteStopCardSkeleton
 import com.glossostudio.transitos.core.ui.FavoritesSkeleton
+import com.glossostudio.transitos.core.ui.HintCard
 import com.glossostudio.transitos.core.ui.SectionHeader
+import com.glossostudio.transitos.core.ui.ShareDialog
 import com.glossostudio.transitos.core.ui.StatusPill
+import com.glossostudio.transitos.core.ui.PLAY_STORE_URL
+import com.glossostudio.transitos.core.ui.sharePlainText
 import com.glossostudio.transitos.core.ui.R as coreUiR
 import org.koin.androidx.compose.koinViewModel
 
@@ -88,15 +95,43 @@ fun HomeRoute(
     onNavigateToSearch: () -> Unit = {},
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val showHint by viewModel.showHint.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val chooserTitle = stringResource(coreUiR.string.share_chooser_title)
+    var shareRoute by remember { mutableStateOf<SavedRouteInfo?>(null) }
     HomeScreen(
         state = state,
+        showHint = showHint,
+        onDismissHint = viewModel::dismissHint,
+        onSkipHints = viewModel::skipHints,
         onNavigateToPlanner = onNavigateToPlanner,
         onNavigateToSettings = onNavigateToSettings,
         onNavigateToSearch = onNavigateToSearch,
         onRenameRoute = viewModel::renameRoute,
+        onShareSavedRoute = { shareRoute = it },
         onRefresh = viewModel::refresh,
         modifier = modifier,
     )
+
+    shareRoute?.let { route ->
+        ShareDialog(
+            title = stringResource(coreUiR.string.share_dialog_title),
+            message = context.getString(
+                R.string.home_share_route_body,
+                route.originName,
+                route.destinationName,
+                PLAY_STORE_URL,
+            ),
+            messageHint = stringResource(coreUiR.string.share_dialog_message),
+            shareLabel = stringResource(coreUiR.string.action_share),
+            cancelLabel = stringResource(coreUiR.string.action_cancel),
+            onDismiss = { shareRoute = null },
+            onShare = { text ->
+                sharePlainText(context, text, chooserTitle)
+                shareRoute = null
+            },
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -104,10 +139,14 @@ fun HomeRoute(
 internal fun HomeScreen(
     state: HomeUiState,
     modifier: Modifier = Modifier,
+    showHint: Boolean = false,
+    onDismissHint: () -> Unit = {},
+    onSkipHints: () -> Unit = {},
     onNavigateToPlanner: (originStopId: String, destinationStopId: String) -> Unit = { _, _ -> },
     onNavigateToSettings: () -> Unit = {},
     onNavigateToSearch: () -> Unit = {},
     onRenameRoute: (routeId: String, label: String) -> Unit = { _, _ -> },
+    onShareSavedRoute: (SavedRouteInfo) -> Unit = {},
     onRefresh: () -> Unit = {},
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -144,9 +183,13 @@ internal fun HomeScreen(
                         ) {
                             HomeContent(
                                 state = current,
+                                showHint = showHint,
+                                onDismissHint = onDismissHint,
+                                onSkipHints = onSkipHints,
                                 onNavigateToPlanner = onNavigateToPlanner,
                                 onNavigateToSearch = onNavigateToSearch,
                                 onRenameRoute = onRenameRoute,
+                                onShareSavedRoute = onShareSavedRoute,
                             )
                         }
                     }
@@ -263,9 +306,13 @@ private fun AlertStatusPill(alertCount: Int, modifier: Modifier = Modifier) {
 @Composable
 private fun HomeContent(
     state: HomeUiState.Ready,
+    showHint: Boolean,
+    onDismissHint: () -> Unit,
+    onSkipHints: () -> Unit,
     onNavigateToPlanner: (originStopId: String, destinationStopId: String) -> Unit = { _, _ -> },
     onNavigateToSearch: () -> Unit = {},
     onRenameRoute: (routeId: String, label: String) -> Unit = { _, _ -> },
+    onShareSavedRoute: (SavedRouteInfo) -> Unit = {},
 ) {
     val spacing = LocalSpacing.current
     val savedRoutesTitle = stringResource(R.string.home_saved_routes)
@@ -295,6 +342,25 @@ private fun HomeContent(
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
         horizontalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
+        if (showHint) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                HintCard(
+                    title = stringResource(R.string.home_hint_title),
+                    text = stringResource(R.string.home_hint_body),
+                    icon = Icons.Outlined.Star,
+                    dismissLabel = stringResource(coreUiR.string.hint_dismiss),
+                    skipLabel = stringResource(coreUiR.string.hint_skip),
+                    onDismiss = onDismissHint,
+                    onSkip = onSkipHints,
+                    modifier = Modifier.padding(
+                        start = spacing.screenGutter,
+                        end = spacing.screenGutter,
+                        top = spacing.xs,
+                    ),
+                )
+            }
+        }
+
         item(span = { GridItemSpan(maxLineSpan) }) {
             // A lazy-grid item pins the cross-axis width, so the pill is wrapped
             // in a Row to let it hug its content instead of stretching.
@@ -337,6 +403,7 @@ private fun HomeContent(
                     route = route,
                     onClick = { onNavigateToPlanner(route.originStopId, route.destinationStopId) },
                     onRename = { label -> onRenameRoute(route.id, label) },
+                    onShare = { onShareSavedRoute(route) },
                     modifier = Modifier.padding(horizontal = spacing.screenGutter),
                 )
             }
@@ -405,6 +472,7 @@ private fun SavedRouteCard(
     route: SavedRouteInfo,
     onClick: () -> Unit,
     onRename: (String) -> Unit,
+    onShare: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var showRenameDialog by remember { mutableStateOf(false) }
@@ -464,6 +532,14 @@ private fun SavedRouteCard(
                         modifier = Modifier.weight(1f, fill = false),
                     )
                 }
+            }
+            IconButton(onClick = onShare) {
+                Icon(
+                    imageVector = Icons.Outlined.Share,
+                    contentDescription = stringResource(R.string.home_share_route),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp),
+                )
             }
             IconButton(onClick = { showRenameDialog = true }) {
                 Icon(

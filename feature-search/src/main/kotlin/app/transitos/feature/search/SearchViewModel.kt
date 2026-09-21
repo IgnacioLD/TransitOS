@@ -3,6 +3,8 @@ package com.glossostudio.transitos.feature.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.glossostudio.transitos.core.repository.FavoritesRepository
+import com.glossostudio.transitos.core.repository.HintKeys
+import com.glossostudio.transitos.core.repository.HintsPreference
 import com.glossostudio.transitos.core.repository.TransitRepository
 import com.glossostudio.transitos.core.util.stripDiacritics
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -12,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -19,6 +22,7 @@ import kotlinx.coroutines.launch
 class SearchViewModel(
     private val repository: TransitRepository,
     private val favorites: FavoritesRepository,
+    private val hintsPreference: HintsPreference,
 ) : ViewModel() {
 
     private val _query = MutableStateFlow("")
@@ -43,6 +47,22 @@ class SearchViewModel(
 
     fun onQueryChange(newQuery: String) {
         _query.value = newQuery
+    }
+
+    val showHint: StateFlow<Boolean> = hintsPreference.observeSeen(HintKeys.SEARCH)
+        .map { !it }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = !hintsPreference.isSeen(HintKeys.SEARCH),
+        )
+
+    fun dismissHint() {
+        viewModelScope.launch { hintsPreference.markSeen(HintKeys.SEARCH) }
+    }
+
+    fun skipHints() {
+        viewModelScope.launch { hintsPreference.markAllSeen() }
     }
 
     fun toggleFavorite(stopId: String) {

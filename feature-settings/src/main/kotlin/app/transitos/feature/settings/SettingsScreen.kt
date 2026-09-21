@@ -1,7 +1,9 @@
 package com.glossostudio.transitos.feature.settings
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
@@ -25,16 +27,29 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
+import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Contrast
 import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.DirectionsTransit
+import androidx.compose.material.icons.outlined.Feedback
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LightMode
+import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.SettingsBrightness
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -46,11 +61,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,16 +86,35 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glossostudio.transitos.core.design.theme.LocalSpacing
 import com.glossostudio.transitos.core.repository.ThemeMode
+import com.glossostudio.transitos.core.ui.PLAY_STORE_URL
+import com.glossostudio.transitos.core.ui.ShareDialog
+import com.glossostudio.transitos.core.ui.sharePlainText
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SettingsRoute(
     onBack: () -> Unit,
+    onReplayOnboarding: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val transferBuffer by viewModel.transferBufferMinutes.collectAsStateWithLifecycle()
+    val ratingThanks by viewModel.ratingThanks.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val versionName = rememberVersionName()
+    val shareChooserTitle = stringResource(
+        com.glossostudio.transitos.core.ui.R.string.share_chooser_title,
+    )
+    val feedbackSubject = stringResource(R.string.settings_feedback_subject)
+    val feedbackBody = stringResource(
+        R.string.settings_feedback_body,
+        versionName,
+        Build.MODEL,
+        Build.VERSION.RELEASE,
+    )
+    var showShareDialog by rememberSaveable { mutableStateOf(false) }
+
     SettingsScreen(
         onBack = onBack,
         currentLanguage = viewModel.currentLanguage,
@@ -90,8 +128,46 @@ fun SettingsRoute(
         onThemeChange = viewModel::setThemeMode,
         transferBufferMinutes = transferBuffer,
         onTransferBufferChange = viewModel::setTransferBufferMinutes,
+        onReplayOnboarding = onReplayOnboarding,
+        onShowHintsAgain = viewModel::resetHints,
+        onRateApp = viewModel::requestReview,
+        onShareApp = { showShareDialog = true },
+        onSendFeedback = { sendFeedback(context, feedbackSubject, feedbackBody) },
         modifier = modifier,
     )
+
+    if (showShareDialog) {
+        ShareDialog(
+            title = stringResource(com.glossostudio.transitos.core.ui.R.string.share_dialog_title),
+            message = stringResource(
+                com.glossostudio.transitos.core.ui.R.string.share_app_text,
+                PLAY_STORE_URL,
+            ),
+            messageHint = stringResource(com.glossostudio.transitos.core.ui.R.string.share_dialog_message),
+            shareLabel = stringResource(com.glossostudio.transitos.core.ui.R.string.action_share),
+            cancelLabel = stringResource(com.glossostudio.transitos.core.ui.R.string.action_cancel),
+            onDismiss = { showShareDialog = false },
+            onShare = { text ->
+                sharePlainText(context, text, shareChooserTitle)
+                showShareDialog = false
+            },
+        )
+    }
+
+    // A dialog, not a snackbar: when Play has to fall back to the store the app
+    // is backgrounded, and the thank-you must still be there on return.
+    if (ratingThanks) {
+        AlertDialog(
+            onDismissRequest = viewModel::consumeRatingThanks,
+            title = { Text(stringResource(R.string.settings_rate_thanks_title)) },
+            text = { Text(stringResource(R.string.settings_rate_thanks)) },
+            confirmButton = {
+                TextButton(onClick = viewModel::consumeRatingThanks) {
+                    Text(stringResource(com.glossostudio.transitos.core.ui.R.string.action_accept))
+                }
+            },
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -105,6 +181,11 @@ internal fun SettingsScreen(
     transferBufferMinutes: Int,
     onTransferBufferChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    onReplayOnboarding: () -> Unit = {},
+    onShowHintsAgain: () -> Unit = {},
+    onRateApp: () -> Unit = {},
+    onShareApp: () -> Unit = {},
+    onSendFeedback: () -> Unit = {},
 ) {
     val spacing = LocalSpacing.current
     Scaffold(
@@ -158,6 +239,16 @@ internal fun SettingsScreen(
                 minutes = transferBufferMinutes,
                 onChange = onTransferBufferChange,
             )
+
+            AppActionsSection(
+                onShowHintsAgain = onShowHintsAgain,
+                onReplayOnboarding = onReplayOnboarding,
+                onRateApp = onRateApp,
+                onShareApp = onShareApp,
+                onSendFeedback = onSendFeedback,
+            )
+
+            PrivacySection()
 
             AboutSection()
 
@@ -454,10 +545,126 @@ private fun TransferBufferSection(
 }
 
 @Composable
+private fun AppActionsSection(
+    onShowHintsAgain: () -> Unit,
+    onReplayOnboarding: () -> Unit,
+    onRateApp: () -> Unit,
+    onShareApp: () -> Unit,
+    onSendFeedback: () -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        SectionTitle(Icons.Outlined.DirectionsTransit, stringResource(R.string.settings_app_section))
+        SettingsCard {
+            Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                SettingsRow(
+                    icon = Icons.Outlined.Lightbulb,
+                    title = stringResource(R.string.settings_show_hints),
+                    subtitle = stringResource(R.string.settings_show_hints_desc),
+                    onClick = onShowHintsAgain,
+                )
+                SettingsRow(
+                    icon = Icons.Outlined.Refresh,
+                    title = stringResource(R.string.settings_replay_onboarding),
+                    subtitle = stringResource(R.string.settings_replay_onboarding_desc),
+                    onClick = onReplayOnboarding,
+                    trailingIcon = Icons.AutoMirrored.Outlined.ArrowForward,
+                )
+                SettingsRow(
+                    icon = Icons.Outlined.Star,
+                    title = stringResource(R.string.settings_rate_app),
+                    subtitle = stringResource(R.string.settings_rate_app_desc),
+                    onClick = onRateApp,
+                )
+                SettingsRow(
+                    icon = Icons.Outlined.Share,
+                    title = stringResource(R.string.settings_share_app),
+                    subtitle = stringResource(R.string.settings_share_app_desc),
+                    onClick = onShareApp,
+                )
+                SettingsRow(
+                    icon = Icons.Outlined.Feedback,
+                    title = stringResource(R.string.settings_feedback),
+                    subtitle = stringResource(R.string.settings_feedback_desc),
+                    onClick = onSendFeedback,
+                    trailingIcon = Icons.AutoMirrored.Outlined.OpenInNew,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PrivacySection() {
+    val context = LocalContext.current
+    Column(modifier = Modifier.fillMaxWidth()) {
+        SectionTitle(Icons.Outlined.Lock, stringResource(R.string.settings_privacy))
+        SettingsCard {
+            Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                PrivacyPoint(
+                    icon = Icons.Outlined.Block,
+                    text = stringResource(R.string.settings_privacy_no_ads),
+                )
+                PrivacyPoint(
+                    icon = Icons.Outlined.VisibilityOff,
+                    text = stringResource(R.string.settings_privacy_no_tracking),
+                )
+                PrivacyPoint(
+                    icon = Icons.Outlined.LocationOn,
+                    text = stringResource(R.string.settings_privacy_location),
+                )
+                PrivacyPoint(
+                    icon = Icons.Outlined.Lock,
+                    text = stringResource(R.string.settings_privacy_no_data),
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+                SettingsRow(
+                    icon = Icons.Outlined.Description,
+                    title = stringResource(R.string.settings_privacy_policy),
+                    subtitle = stringResource(R.string.about_privacy_desc),
+                    onClick = {
+                        runCatching {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_URL)))
+                        }
+                    },
+                    trailingIcon = Icons.AutoMirrored.Outlined.OpenInNew,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PrivacyPoint(icon: ImageVector, text: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp),
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+@Composable
 private fun AboutSection() {
     val spacing = LocalSpacing.current
     val context = LocalContext.current
     val versionName = rememberVersionName()
+
+    fun open(url: String) {
+        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         SectionTitle(Icons.Outlined.Code, stringResource(R.string.about_title))
@@ -474,25 +681,32 @@ private fun AboutSection() {
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    Spacer(Modifier.height(spacing.sm))
+                    Text(
+                        text = stringResource(R.string.about_description),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
-                AboutRow(
-                    icon = Icons.Outlined.Lock,
-                    title = stringResource(R.string.about_privacy),
-                    subtitle = stringResource(R.string.about_privacy_desc),
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/IgnacioLD/TransitOS/blob/main/PRIVACY.md"))
-                        context.startActivity(intent)
-                    },
-                )
-                AboutRow(
+                SettingsRow(
                     icon = Icons.Outlined.Code,
                     title = stringResource(R.string.about_source),
-                    subtitle = "AGPL-3.0",
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/IgnacioLD/TransitOS"))
-                        context.startActivity(intent)
-                    },
+                    subtitle = stringResource(R.string.about_source_desc),
+                    onClick = { open(REPO_URL) },
+                    trailingIcon = Icons.AutoMirrored.Outlined.OpenInNew,
+                )
+                SettingsRow(
+                    icon = Icons.Outlined.Description,
+                    title = stringResource(R.string.about_license),
+                    subtitle = stringResource(R.string.about_license_desc),
+                    onClick = { open(LICENSE_URL) },
+                    trailingIcon = Icons.AutoMirrored.Outlined.OpenInNew,
+                )
+                SettingsRow(
+                    icon = Icons.Outlined.Info,
+                    title = stringResource(R.string.about_credits),
+                    subtitle = stringResource(R.string.about_credits_desc),
                 )
             }
         }
@@ -516,14 +730,16 @@ private fun rememberVersionName(): String {
 }
 
 @Composable
-private fun AboutRow(
+private fun SettingsRow(
     icon: ImageVector,
     title: String,
     subtitle: String,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)? = null,
+    trailingIcon: ImageVector? = null,
 ) {
     Surface(
-        onClick = onClick,
+        onClick = onClick ?: {},
+        enabled = onClick != null,
         color = Color.Transparent,
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -561,12 +777,40 @@ private fun AboutRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Icon(
-                imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(18.dp),
-            )
+            if (trailingIcon != null) {
+                Icon(
+                    imageVector = trailingIcon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
         }
+    }
+}
+
+private const val REPO_URL = "https://github.com/IgnacioLD/TransitOS"
+private const val PRIVACY_URL = "https://github.com/IgnacioLD/TransitOS/blob/main/PRIVACY.md"
+private const val LICENSE_URL = "https://github.com/IgnacioLD/TransitOS/blob/main/LICENSE"
+private const val ISSUES_URL = "https://github.com/IgnacioLD/TransitOS/issues/new"
+private const val SUPPORT_EMAIL = "nadeloyeda@gmail.com"
+
+/**
+ * Opens the user's email app with the feedback prefilled. If no email handler
+ * exists, falls back to the repository's issue tracker. Never throws.
+ */
+private fun sendFeedback(context: Context, subject: String, body: String) {
+    val mailto = Uri.parse("mailto:$SUPPORT_EMAIL").buildUpon()
+        .appendQueryParameter("subject", subject)
+        .appendQueryParameter("body", body)
+        .build()
+    val email = Intent(Intent.ACTION_SENDTO, mailto)
+    val issues = Intent(Intent.ACTION_VIEW, Uri.parse(ISSUES_URL))
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    val canEmail = email.resolveActivity(context.packageManager) != null
+    runCatching {
+        context.startActivity(if (canEmail) email else issues)
+    }.recoverCatching {
+        context.startActivity(issues)
     }
 }

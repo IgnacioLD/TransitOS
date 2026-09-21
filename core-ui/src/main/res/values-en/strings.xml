@@ -4,8 +4,20 @@
     <string name="action_accept">Accept</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_next">Next</string>
+    <string name="action_back">Back</string>
     <string name="action_plan">Plan</string>
     <string name="action_retry">Try again</string>
+    <string name="action_share">Share</string>
+
+    <!-- Sharing -->
+    <string name="share_chooser_title">Share with</string>
+    <string name="share_app_text">TransitOS, the real-time public transport planner for Metrovalencia. Free, ad-free and tracking-free: %1$s</string>
+    <string name="share_dialog_title">Share</string>
+    <string name="share_dialog_message">Message</string>
+
+    <!-- Contextual hints -->
+    <string name="hint_dismiss">Got it</string>
+    <string name="hint_skip">Skip all</string>
 
     <!-- Content descriptions -->
     <string name="cd_back">Back</string>

@@ -4,9 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.glossostudio.transitos.core.model.SavedRoute
 import com.glossostudio.transitos.core.model.Stop
+import com.glossostudio.transitos.core.repository.HintKeys
+import com.glossostudio.transitos.core.repository.HintsPreference
+import com.glossostudio.transitos.core.repository.ReviewPreference
 import com.glossostudio.transitos.core.repository.RouteFavoritesRepository
 import com.glossostudio.transitos.core.repository.TransitRepository
 import com.glossostudio.transitos.core.repository.TransferBufferPreference
+import com.glossostudio.transitos.core.review.AppReviewer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +29,9 @@ class PlannerViewModel(
     private val repository: TransitRepository,
     private val routeFavorites: RouteFavoritesRepository,
     private val transferBufferPreference: TransferBufferPreference,
+    private val appReviewer: AppReviewer,
+    private val reviewPreference: ReviewPreference,
+    private val hintsPreference: HintsPreference,
 ) : ViewModel() {
 
     private val timeZone: TimeZone = TimeZone.currentSystemDefault()
@@ -117,6 +124,22 @@ class PlannerViewModel(
                     isSaved = routeId in savedRouteIds.value,
                 )
             }
+            if (result.getOrDefault(emptyList()).isNotEmpty()) {
+                maybeRequestReview()
+            }
+        }
+    }
+
+    /**
+     * A successfully planned trip is the app at its best, so it is the natural
+     * moment to invite a rating. Shown once ever, and only if Play can provide
+     * the dialog (never opens the store on its own).
+     */
+    private fun maybeRequestReview() {
+        if (reviewPreference.hasBeenRequested()) return
+        viewModelScope.launch {
+            reviewPreference.markRequested()
+            appReviewer.requestReviewQuietly()
         }
     }
 
@@ -140,6 +163,22 @@ class PlannerViewModel(
             routeFavorites.removeRoute(routeId)
             _state.update { it.copy(isSaved = false) }
         }
+    }
+
+    val showHint: StateFlow<Boolean> = hintsPreference.observeSeen(HintKeys.PLANNER)
+        .map { !it }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = !hintsPreference.isSeen(HintKeys.PLANNER),
+        )
+
+    fun dismissHint() {
+        viewModelScope.launch { hintsPreference.markSeen(HintKeys.PLANNER) }
+    }
+
+    fun skipHints() {
+        viewModelScope.launch { hintsPreference.markAllSeen() }
     }
 
     private companion object {

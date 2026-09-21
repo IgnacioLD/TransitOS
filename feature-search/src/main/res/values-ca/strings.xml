@@ -7,4 +7,6 @@
     <string name="search_no_match">No hi ha estacions que coincidisquen amb «%1$s».</string>
     <string name="search_placeholder">Estació, línia o destí</string>
     <string name="search_clear_cd">Esborrar la busca</string>
+    <string name="search_hint_title">Busca i guarda parades</string>
+    <string name="search_hint_body">Escriu el nom d\'una estació i toca l\'estrela per a afegir-la a preferits i vore les seues arribades a Inici.</string>
 </resources>

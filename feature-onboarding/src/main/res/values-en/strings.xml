@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_start">Get started</string>
+    <string name="onboarding_progress_cd">Step %1$d of %2$d</string>
+
+    <string name="onboarding_welcome_title">Welcome to TransitOS</string>
+    <string name="onboarding_welcome_body">Your real-time public transport planner for Metrovalencia. Fast, clean and tracking-free.</string>
+
+    <string name="onboarding_overview_title">What does the app do?</string>
+    <string name="onboarding_overview_body">Check arrivals, plan trips and follow the service status of all 10 metro and tram lines.</string>
+
+    <string name="onboarding_realtime_title">Real-time planner</string>
+    <string name="onboarding_realtime_body">Pick origin and destination, leave now or arrive by a given time, and see which lines to take, where to change and how long it takes. Real schedules from FGV\'s API.</string>
+
+    <string name="onboarding_favorites_title">Favourites and alerts</string>
+    <string name="onboarding_favorites_body">Save your usual stops and routes, give them a name and get service alerts before you leave.</string>
+
+    <string name="onboarding_map_title">Network map</string>
+    <string name="onboarding_map_body">Explore the full Metrovalencia network, zoom into stations and open the PDF map.</string>
+
+    <string name="onboarding_location_title">Why does it ask for location?</string>
+    <string name="onboarding_location_body">Only to show your position on the map and find the closest stops. Your location never leaves your device.</string>
+</resources>

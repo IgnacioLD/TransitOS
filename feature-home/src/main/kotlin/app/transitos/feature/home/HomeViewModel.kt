@@ -3,6 +3,8 @@ package com.glossostudio.transitos.feature.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.glossostudio.transitos.core.repository.FavoritesRepository
+import com.glossostudio.transitos.core.repository.HintKeys
+import com.glossostudio.transitos.core.repository.HintsPreference
 import com.glossostudio.transitos.core.repository.RouteFavoritesRepository
 import com.glossostudio.transitos.core.repository.TransitRepository
 import com.glossostudio.transitos.core.result.AppError
@@ -28,6 +30,7 @@ class HomeViewModel(
     private val repository: TransitRepository,
     private val favorites: FavoritesRepository,
     private val routeFavorites: RouteFavoritesRepository,
+    private val hintsPreference: HintsPreference,
 ) : ViewModel() {
 
     /**
@@ -135,6 +138,22 @@ class HomeViewModel(
         viewModelScope.launch {
             routeFavorites.renameRoute(routeId, label)
         }
+    }
+
+    val showHint: StateFlow<Boolean> = hintsPreference.observeSeen(HintKeys.HOME)
+        .map { !it }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = !hintsPreference.isSeen(HintKeys.HOME),
+        )
+
+    fun dismissHint() {
+        viewModelScope.launch { hintsPreference.markSeen(HintKeys.HOME) }
+    }
+
+    fun skipHints() {
+        viewModelScope.launch { hintsPreference.markAllSeen() }
     }
 
     private companion object {

@@ -4,8 +4,20 @@
     <string name="action_accept">Aceptar</string>
     <string name="action_cancel">Cancelar</string>
     <string name="action_next">Siguiente</string>
+    <string name="action_back">Atrás</string>
     <string name="action_plan">Planificar</string>
     <string name="action_retry">Reintentar</string>
+    <string name="action_share">Compartir</string>
+
+    <!-- Sharing -->
+    <string name="share_chooser_title">Compartir con</string>
+    <string name="share_app_text">TransitOS, el planificador de transporte público en tiempo real para Metrovalencia. Gratis, sin anuncios y sin rastreo: %1$s</string>
+    <string name="share_dialog_title">Compartir</string>
+    <string name="share_dialog_message">Mensaje</string>
+
+    <!-- Contextual hints -->
+    <string name="hint_dismiss">Entendido</string>
+    <string name="hint_skip">Saltar todo</string>
 
     <!-- Content descriptions -->
     <string name="cd_back">Volver</string>

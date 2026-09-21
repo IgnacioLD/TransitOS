@@ -13,4 +13,8 @@
     <string name="home_rename_route">Rename route</string>
     <string name="home_rename_route_title">Route name</string>
     <string name="home_rename_hint">Home, Work…</string>
+    <string name="home_share_route">Share route</string>
+    <string name="home_share_route_body">Route on Metrovalencia: %1$s → %2$s\nPlan it with TransitOS: %3$s</string>
+    <string name="home_hint_title">Your stops at a glance</string>
+    <string name="home_hint_body">Here you\'ll see upcoming arrivals for your favourites and service alerts. Tap Search to add your first stop.</string>
 </resources>

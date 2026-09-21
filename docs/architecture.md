@@ -68,6 +68,7 @@ Rules:
  +-- :feature-search        -> :core, :core-data, :core-design, :core-ui
  +-- :feature-planner       -> :core, :core-data, :core-design, :core-ui
  +-- :feature-settings      -> :core, :core-data, :core-design, :core-ui
+ +-- :feature-onboarding    -> :core, :core-data, :core-design, :core-ui
  +-- :provider-metrovalencia -> :core, :core-network
 
 :core               (pure Kotlin/JVM, no Android)

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_skip">Saltar</string>
+    <string name="onboarding_start">Empezar</string>
+    <string name="onboarding_progress_cd">Paso %1$d de %2$d</string>
+
+    <string name="onboarding_welcome_title">Bienvenido a TransitOS</string>
+    <string name="onboarding_welcome_body">Tu planificador de transporte público en tiempo real para Metrovalencia. Rápido, limpio y sin rastreo.</string>
+
+    <string name="onboarding_overview_title">¿Qué hace la app?</string>
+    <string name="onboarding_overview_body">Consulta llegadas, planifica viajes y sigue el estado del servicio de las 10 líneas de metro y tranvía.</string>
+
+    <string name="onboarding_realtime_title">Planificador en tiempo real</string>
+    <string name="onboarding_realtime_body">Elige origen y destino, sal ahora o llega a una hora concreta, y mira qué líneas tomar, dónde cambiar y cuánto tardas. Horarios reales del API de FGV.</string>
+
+    <string name="onboarding_favorites_title">Favoritos y avisos</string>
+    <string name="onboarding_favorites_body">Guarda tus paradas y rutas habituales, ponles un nombre y recibe los avisos de servicio antes de salir.</string>
+
+    <string name="onboarding_map_title">Mapa de la red</string>
+    <string name="onboarding_map_body">Explora la red completa de Metrovalencia, acerca el zoom en las estaciones y consulta el plano en PDF.</string>
+
+    <string name="onboarding_location_title">¿Por qué pide ubicación?</string>
+    <string name="onboarding_location_body">Solo para mostrarte tu posición en el mapa y encontrar las paradas más cercanas. Tu ubicación nunca sale de tu dispositivo.</string>
+</resources>

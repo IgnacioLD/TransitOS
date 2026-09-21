@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_skip">Saltar</string>
+    <string name="onboarding_start">Començar</string>
+    <string name="onboarding_progress_cd">Pas %1$d de %2$d</string>
+
+    <string name="onboarding_welcome_title">Benvingut a TransitOS</string>
+    <string name="onboarding_welcome_body">El teu planificador de transport públic en temps real per a Metrovalencia. Ràpid, net i sense rastreig.</string>
+
+    <string name="onboarding_overview_title">Què fa l\'aplicació?</string>
+    <string name="onboarding_overview_body">Consulta arribades, planifica viatges i seguix l\'estat del servei de les 10 línies de metro i tramvia.</string>
+
+    <string name="onboarding_realtime_title">Planificador en temps real</string>
+    <string name="onboarding_realtime_body">Tria origen i destinació, ix ara o arriba a una hora concreta, i mira quines línies agafar, on canviar i quant tardes. Horaris reals de l\'API de FGV.</string>
+
+    <string name="onboarding_favorites_title">Favorits i avisos</string>
+    <string name="onboarding_favorites_body">Guarda les parades i rutes habituals, posa\'ls un nom i rep els avisos de servei abans d\'eixir.</string>
+
+    <string name="onboarding_map_title">Mapa de la xarxa</string>
+    <string name="onboarding_map_body">Explora la xarxa completa de Metrovalencia, acosta el zoom en les estacions i consulta el pla en PDF.</string>
+
+    <string name="onboarding_location_title">Per què demana ubicació?</string>
+    <string name="onboarding_location_body">Només per a mostrar-te la teua posició al mapa i trobar les parades més pròximes. La teua ubicació mai no ix del teu dispositiu.</string>
+</resources>

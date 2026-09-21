@@ -55,4 +55,9 @@
     <string name="planner_departs_at">Sale %1$s</string>
     <string name="planner_arrives_at">Llega %1$s</string>
     <string name="planner_duration_minutes">%1$d min</string>
+    <string name="planner_share_journey">Compartir viaje</string>
+    <string name="planner_share_lines">Líneas: %1$s</string>
+    <string name="planner_share_body">Viaje en Metrovalencia\n%1$s → %2$s\n%3$s\nPlanificado con TransitOS: %4$s</string>
+    <string name="planner_hint_title">Planifica tu viaje</string>
+    <string name="planner_hint_body">Elige origen y destino, y ajusta la fecha u hora. Te mostraremos las líneas, los transbordos y el tiempo total.</string>
 </resources>

@@ -57,6 +57,7 @@ import com.glossostudio.transitos.core.design.theme.Motion
 import com.glossostudio.transitos.core.design.theme.PillShape
 import com.glossostudio.transitos.core.model.Stop
 import com.glossostudio.transitos.core.ui.EmptyState
+import com.glossostudio.transitos.core.ui.HintCard
 import com.glossostudio.transitos.core.ui.R as coreUiR
 import com.glossostudio.transitos.core.ui.SkeletonBlock
 import com.glossostudio.transitos.core.util.stripDiacritics
@@ -72,12 +73,16 @@ fun SearchRoute(
     val filteredStops by viewModel.filteredStops.collectAsStateWithLifecycle()
     val favoriteIds by viewModel.favoriteIds.collectAsStateWithLifecycle()
     val allStops by viewModel.allStops.collectAsStateWithLifecycle()
+    val showHint by viewModel.showHint.collectAsStateWithLifecycle()
 
     SearchScreen(
         query = query,
         filteredStops = filteredStops,
         favoriteIds = favoriteIds,
         allStopsSize = allStops.size,
+        showHint = showHint,
+        onDismissHint = viewModel::dismissHint,
+        onSkipHints = viewModel::skipHints,
         onQueryChange = viewModel::onQueryChange,
         onToggleFavorite = viewModel::toggleFavorite,
         modifier = modifier,
@@ -94,7 +99,11 @@ internal fun SearchScreen(
     onQueryChange: (String) -> Unit,
     onToggleFavorite: (String) -> Unit,
     modifier: Modifier = Modifier,
+    showHint: Boolean = false,
+    onDismissHint: () -> Unit = {},
+    onSkipHints: () -> Unit = {},
 ) {
+    val spacing = LocalSpacing.current
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         // The host Scaffold already insets content for the system bars and the
@@ -129,6 +138,22 @@ internal fun SearchScreen(
                 .padding(padding),
         ) {
             SearchField(query = query, onQueryChange = onQueryChange)
+
+            if (showHint) {
+                HintCard(
+                    title = stringResource(R.string.search_hint_title),
+                    text = stringResource(R.string.search_hint_body),
+                    icon = Icons.Outlined.Star,
+                    dismissLabel = stringResource(coreUiR.string.hint_dismiss),
+                    skipLabel = stringResource(coreUiR.string.hint_skip),
+                    onDismiss = onDismissHint,
+                    onSkip = onSkipHints,
+                    modifier = Modifier.padding(
+                        horizontal = spacing.screenGutter,
+                        vertical = spacing.sm,
+                    ),
+                )
+            }
 
             when {
                 allStopsSize == 0 -> SearchSkeleton()

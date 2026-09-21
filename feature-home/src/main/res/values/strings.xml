@@ -14,4 +14,8 @@
     <string name="home_rename_route">Renombrar ruta</string>
     <string name="home_rename_route_title">Nombre de la ruta</string>
     <string name="home_rename_hint">Casa, Trabajo…</string>
+    <string name="home_share_route">Compartir ruta</string>
+    <string name="home_share_route_body">Ruta en Metrovalencia: %1$s → %2$s\nPlanifícala con TransitOS: %3$s</string>
+    <string name="home_hint_title">Tus paradas, de un vistazo</string>
+    <string name="home_hint_body">Aquí verás las próximas llegadas de tus favoritos y los avisos del servicio. Toca Buscar para añadir tu primera parada.</string>
 </resources>
