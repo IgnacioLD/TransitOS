@@ -46,4 +46,22 @@
     <string name="settings_transfer_buffer">Transfer buffer</string>
     <string name="settings_transfer_buffer_desc">Minimum wait minutes between transfers. Less buffer means tighter connections.</string>
     <string name="settings_transfer_buffer_value">%1$d min</string>
+    <string name="privacy_policy_title">Privacy policy</string>
+    <string name="privacy_last_updated">Last updated: July 24, 2026</string>
+    <string name="privacy_intro">TransitOS does not collect, store, or transmit any personal data.</string>
+    <string name="privacy_collect_title">What we collect</string>
+    <string name="privacy_collect_body">Nothing. TransitOS has no analytics, no telemetry, no advertising SDKs, and no tracking.</string>
+    <string name="privacy_sources_title">Data sources</string>
+    <string name="privacy_sources_body">TransitOS fetches real-time transit data (arrival times, service alerts) directly from public APIs operated by Ferrocarrils de la Generalitat Valenciana (FGV). These requests are made directly from your device to FGV\'s servers. No intermediate server is used.</string>
+    <string name="privacy_permissions_title">Permissions</string>
+    <string name="privacy_permission_internet">Internet</string>
+    <string name="privacy_permission_internet_reason">To fetch transit data from FGV\'s public API</string>
+    <string name="privacy_permission_location">Location</string>
+    <string name="privacy_permission_location_reason">To show your position on the map and find nearby stations</string>
+    <string name="privacy_location_note">Location data is never stored, transmitted, or shared. It is used only to display the blue dot on the map while the app is open.</string>
+    <string name="privacy_open_source_title">Open source</string>
+    <string name="privacy_open_source_body">TransitOS is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). Source code is available at github.com/IgnacioLD/TransitOS.</string>
+    <string name="license_title">License</string>
+    <string name="license_summary">TransitOS is free software, released under the GNU Affero General Public License v3.0 (AGPL-3.0). It includes schedule and service data from FGV / Metrovalencia. The full legal license text is shown below in English.</string>
+    <string name="legal_open_in_browser">Open in browser</string>
 </resources>

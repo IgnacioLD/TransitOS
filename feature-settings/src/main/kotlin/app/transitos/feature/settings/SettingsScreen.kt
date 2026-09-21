@@ -95,6 +95,8 @@ import org.koin.androidx.compose.koinViewModel
 fun SettingsRoute(
     onBack: () -> Unit,
     onReplayOnboarding: () -> Unit = {},
+    onOpenPrivacyPolicy: () -> Unit = {},
+    onOpenLicense: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
@@ -133,6 +135,8 @@ fun SettingsRoute(
         onRateApp = viewModel::requestReview,
         onShareApp = { showShareDialog = true },
         onSendFeedback = { sendFeedback(context, feedbackSubject, feedbackBody) },
+        onOpenPrivacyPolicy = onOpenPrivacyPolicy,
+        onOpenLicense = onOpenLicense,
         modifier = modifier,
     )
 
@@ -186,6 +190,8 @@ internal fun SettingsScreen(
     onRateApp: () -> Unit = {},
     onShareApp: () -> Unit = {},
     onSendFeedback: () -> Unit = {},
+    onOpenPrivacyPolicy: () -> Unit = {},
+    onOpenLicense: () -> Unit = {},
 ) {
     val spacing = LocalSpacing.current
     Scaffold(
@@ -248,9 +254,9 @@ internal fun SettingsScreen(
                 onSendFeedback = onSendFeedback,
             )
 
-            PrivacySection()
+            PrivacySection(onOpenPrivacyPolicy = onOpenPrivacyPolicy)
 
-            AboutSection()
+            AboutSection(onOpenLicense = onOpenLicense)
 
             Spacer(Modifier.height(spacing.xxl))
         }
@@ -594,8 +600,7 @@ private fun AppActionsSection(
 }
 
 @Composable
-private fun PrivacySection() {
-    val context = LocalContext.current
+private fun PrivacySection(onOpenPrivacyPolicy: () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
         SectionTitle(Icons.Outlined.Lock, stringResource(R.string.settings_privacy))
         SettingsCard {
@@ -621,12 +626,8 @@ private fun PrivacySection() {
                     icon = Icons.Outlined.Description,
                     title = stringResource(R.string.settings_privacy_policy),
                     subtitle = stringResource(R.string.about_privacy_desc),
-                    onClick = {
-                        runCatching {
-                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_URL)))
-                        }
-                    },
-                    trailingIcon = Icons.AutoMirrored.Outlined.OpenInNew,
+                    onClick = onOpenPrivacyPolicy,
+                    trailingIcon = Icons.AutoMirrored.Outlined.ArrowForward,
                 )
             }
         }
@@ -657,14 +658,10 @@ private fun PrivacyPoint(icon: ImageVector, text: String) {
 }
 
 @Composable
-private fun AboutSection() {
+private fun AboutSection(onOpenLicense: () -> Unit) {
     val spacing = LocalSpacing.current
     val context = LocalContext.current
     val versionName = rememberVersionName()
-
-    fun open(url: String) {
-        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
-    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         SectionTitle(Icons.Outlined.Code, stringResource(R.string.about_title))
@@ -693,15 +690,15 @@ private fun AboutSection() {
                     icon = Icons.Outlined.Code,
                     title = stringResource(R.string.about_source),
                     subtitle = stringResource(R.string.about_source_desc),
-                    onClick = { open(REPO_URL) },
+                    onClick = { openUrlInBrowser(context, AboutLinks.REPO_URL) },
                     trailingIcon = Icons.AutoMirrored.Outlined.OpenInNew,
                 )
                 SettingsRow(
                     icon = Icons.Outlined.Description,
                     title = stringResource(R.string.about_license),
                     subtitle = stringResource(R.string.about_license_desc),
-                    onClick = { open(LICENSE_URL) },
-                    trailingIcon = Icons.AutoMirrored.Outlined.OpenInNew,
+                    onClick = onOpenLicense,
+                    trailingIcon = Icons.AutoMirrored.Outlined.ArrowForward,
                 )
                 SettingsRow(
                     icon = Icons.Outlined.Info,
@@ -789,23 +786,17 @@ private fun SettingsRow(
     }
 }
 
-private const val REPO_URL = "https://github.com/IgnacioLD/TransitOS"
-private const val PRIVACY_URL = "https://github.com/IgnacioLD/TransitOS/blob/main/PRIVACY.md"
-private const val LICENSE_URL = "https://github.com/IgnacioLD/TransitOS/blob/main/LICENSE"
-private const val ISSUES_URL = "https://github.com/IgnacioLD/TransitOS/issues/new"
-private const val SUPPORT_EMAIL = "nadeloyeda@gmail.com"
-
 /**
  * Opens the user's email app with the feedback prefilled. If no email handler
  * exists, falls back to the repository's issue tracker. Never throws.
  */
 private fun sendFeedback(context: Context, subject: String, body: String) {
-    val mailto = Uri.parse("mailto:$SUPPORT_EMAIL").buildUpon()
+    val mailto = Uri.parse("mailto:${AboutLinks.SUPPORT_EMAIL}").buildUpon()
         .appendQueryParameter("subject", subject)
         .appendQueryParameter("body", body)
         .build()
     val email = Intent(Intent.ACTION_SENDTO, mailto)
-    val issues = Intent(Intent.ACTION_VIEW, Uri.parse(ISSUES_URL))
+    val issues = Intent(Intent.ACTION_VIEW, Uri.parse(AboutLinks.ISSUES_URL))
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     val canEmail = email.resolveActivity(context.packageManager) != null
     runCatching {

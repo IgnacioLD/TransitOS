@@ -46,4 +46,22 @@
     <string name="settings_transfer_buffer">Marge de transbord</string>
     <string name="settings_transfer_buffer_desc">Minuts mínims d\'espera entre transbords. Amb menys marge tindras què anar de pressa.</string>
     <string name="settings_transfer_buffer_value">%1$d min</string>
+    <string name="privacy_policy_title">Política de privacitat</string>
+    <string name="privacy_last_updated">Última actualització: 24 de juliol de 2026</string>
+    <string name="privacy_intro">TransitOS no recopila, emmagatzema ni transmet cap dada personal.</string>
+    <string name="privacy_collect_title">Què recollim</string>
+    <string name="privacy_collect_body">Res. TransitOS no té analítica, ni telemetria, ni SDKs de publicitat, ni rastreig.</string>
+    <string name="privacy_sources_title">Fonts de dades</string>
+    <string name="privacy_sources_body">TransitOS obté dades de transport en temps real (horaris d\'arribada, avisos de servei) directament de les API públiques de Ferrocarrils de la Generalitat Valenciana (FGV). Estes peticions es fan directament des del teu dispositiu als servidors de FGV. No s\'utilitza cap servidor intermediari.</string>
+    <string name="privacy_permissions_title">Permisos</string>
+    <string name="privacy_permission_internet">Internet</string>
+    <string name="privacy_permission_internet_reason">Per obtindre dades de transport de l\'API pública de FGV</string>
+    <string name="privacy_permission_location">Ubicació</string>
+    <string name="privacy_permission_location_reason">Per mostrar la teua posició al mapa i trobar estacions properes</string>
+    <string name="privacy_location_note">Les dades d\'ubicació mai no s\'emmagatzemen, transmeten ni comparteixen. Només s\'utilitzen per mostrar el punt blau al mapa mentre l\'aplicació està oberta.</string>
+    <string name="privacy_open_source_title">Codi obert</string>
+    <string name="privacy_open_source_body">TransitOS es distribueix sota la GNU Affero General Public License v3.0 (AGPL-3.0). El codi font està disponible a github.com/IgnacioLD/TransitOS.</string>
+    <string name="license_title">Llicència</string>
+    <string name="license_summary">TransitOS és programari lliure, distribuït sota la GNU Affero General Public License v3.0 (AGPL-3.0). Inclou dades d\'horaris i servei de FGV / Metrovalencia. A continuació es mostra el text legal complet de la llicència, en anglès.</string>
+    <string name="legal_open_in_browser">Obri al navegador</string>
 </resources>

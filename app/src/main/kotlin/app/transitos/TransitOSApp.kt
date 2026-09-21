@@ -24,6 +24,8 @@ import com.glossostudio.transitos.feature.onboarding.OnboardingRoute
 import com.glossostudio.transitos.feature.planner.PlannerRoute
 import com.glossostudio.transitos.feature.planner.PrefilledPlannerRoute
 import com.glossostudio.transitos.feature.search.SearchRoute
+import com.glossostudio.transitos.feature.settings.LicenseRoute
+import com.glossostudio.transitos.feature.settings.PrivacyPolicyRoute
 import com.glossostudio.transitos.feature.settings.SettingsRoute
 import com.glossostudio.transitos.map.NetworkMapRoute
 import com.glossostudio.transitos.map.OSMNetworkMapRoute
@@ -32,6 +34,9 @@ import com.glossostudio.transitos.navigation.TransitOSBottomBar
 import org.koin.androidx.compose.koinViewModel
 
 private const val ONBOARDING_ROUTE = "onboarding"
+private const val SETTINGS_ROUTE = "settings"
+private const val PRIVACY_ROUTE = "settings/privacy"
+private const val LICENSE_ROUTE = "settings/license"
 
 @Composable
 fun TransitOSApp(
@@ -109,7 +114,7 @@ private fun TransitOSNavHost(
                 onNavigateToPlanner = { originId, destId ->
                     navController.navigate("planner/$originId/$destId")
                 },
-                onNavigateToSettings = { navController.navigate("settings") },
+                onNavigateToSettings = { navController.navigate(SETTINGS_ROUTE) },
                 onNavigateToSearch = {
                     navController.navigateToTopLevelDestination(TopLevelDestination.SEARCH.route)
                 },
@@ -138,11 +143,19 @@ private fun TransitOSNavHost(
         composable("map/pdf") {
             NetworkMapRoute(onBack = { navController.popBackStack() })
         }
-        composable("settings") {
+        composable(SETTINGS_ROUTE) {
             SettingsRoute(
                 onBack = { navController.popBackStack() },
                 onReplayOnboarding = { navController.navigate(ONBOARDING_ROUTE) },
+                onOpenPrivacyPolicy = { navController.navigate(PRIVACY_ROUTE) },
+                onOpenLicense = { navController.navigate(LICENSE_ROUTE) },
             )
+        }
+        composable(PRIVACY_ROUTE) {
+            PrivacyPolicyRoute(onBack = { navController.popBackStack() })
+        }
+        composable(LICENSE_ROUTE) {
+            LicenseRoute(onBack = { navController.popBackStack() })
         }
     }
 }
