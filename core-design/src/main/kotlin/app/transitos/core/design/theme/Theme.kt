@@ -11,12 +11,14 @@ import androidx.compose.ui.platform.LocalContext
 import com.glossostudio.transitos.core.repository.ThemeMode
 
 /**
- * Root theme of the app. Honours Android 12+ dynamic colour when available so
- * TransitOS feels native on every device, and falls back to the brand teal
- * palette elsewhere.
+ * Root theme of the app.
  *
- * Pass [themeMode] to respect a user preference (SYSTEM / LIGHT / DARK / AMOLED).
- * AMOLED forces pure-black surfaces and skips dynamic colour so pixels switch off.
+ * By default the app uses the TransitOS brand palette so it looks the same on
+ * every device. Pass [dynamicColor] = true to opt into Android 12+ wallpaper
+ * colour instead. AMOLED always forces the pure-black palette and never uses
+ * dynamic colour, because "true black" is the whole point of that mode.
+ *
+ * Pass [themeMode] to honour the user preference (SYSTEM / LIGHT / DARK / AMOLED).
  *
  * Custom tokens ([Spacing], [Elevation]) are provided via CompositionLocals so
  * feature code resolves them through `LocalSpacing.current` / `LocalElevation.current`
@@ -25,14 +27,15 @@ import com.glossostudio.transitos.core.repository.ThemeMode
 @Composable
 fun TransitOSTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
+    val supportsDynamic = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val colorScheme = when (themeMode) {
         ThemeMode.AMOLED -> AmoledColors
 
         ThemeMode.LIGHT -> {
-            if (dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (dynamicColor && supportsDynamic) {
                 dynamicLightColorScheme(LocalContext.current)
             } else {
                 LightColors
@@ -40,7 +43,7 @@ fun TransitOSTheme(
         }
 
         ThemeMode.DARK -> {
-            if (dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (dynamicColor && supportsDynamic) {
                 dynamicDarkColorScheme(LocalContext.current)
             } else {
                 DarkColors
@@ -50,7 +53,7 @@ fun TransitOSTheme(
         ThemeMode.SYSTEM -> {
             val dark = isSystemInDarkTheme()
             when {
-                dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+                dynamicColor && supportsDynamic -> {
                     if (dark) dynamicDarkColorScheme(LocalContext.current)
                     else dynamicLightColorScheme(LocalContext.current)
                 }
@@ -71,4 +74,12 @@ fun TransitOSTheme(
             content = content,
         )
     }
+}
+
+/** True when [themeMode] resolves to a dark palette (DARK or AMOLED). */
+@Composable
+fun ThemeMode.isDark(): Boolean = when (this) {
+    ThemeMode.DARK, ThemeMode.AMOLED -> true
+    ThemeMode.LIGHT -> false
+    ThemeMode.SYSTEM -> isSystemInDarkTheme()
 }

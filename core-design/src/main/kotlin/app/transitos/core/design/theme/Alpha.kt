@@ -20,11 +20,17 @@ object Alpha {
     /** Bottom-sheet scrim behind content. */
     const val SCRIM = 0.56f
 
-    /** Skeleton shimmer baseline; shimmer animation oscillates around this. */
-    const val SKELETON = 0.12f
+    /** Skeleton shimmer floor; the sweep oscillates up from this. */
+    const val SKELETON = 0.08f
+
+    /** Skeleton shimmer peak. */
+    const val SKELETON_HIGH = 0.16f
 
     /** Subtle hint of presence, used for non-interactive decorative text. */
     const val HINT = 0.72f
+
+    /** Hairline borders and dividers on tonally-elevated surfaces. */
+    const val HAIRLINE = 0.12f
 }
 
 /** Material 3 scrim colour used behind modal sheets and dialogs. */
