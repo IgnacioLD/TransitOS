@@ -13,10 +13,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,9 +24,9 @@ import com.glossostudio.transitos.core.design.theme.LocalSpacing
 
 /**
  * Skeleton loading for the Home screen: a column of card-shaped shimmer
- * placeholders. Reads as "something is coming", not "the app is broken".
- *
- * Use during the initial state (before the first emission of [com.glossostudio.transitos.feature.home.HomeUiState.Ready]).
+ * placeholders. Reads as "something is coming", not "the app is broken", and
+ * occupies the same footprint as the real cards so nothing jumps when data
+ * lands.
  */
 @Composable
 fun FavoritesSkeleton(
@@ -45,10 +44,9 @@ fun FavoritesSkeleton(
         verticalArrangement = Arrangement.spacedBy(spacing.cardGap),
     ) {
         items(placeholders, key = { it }) {
-            Card(
-                shape = MaterialTheme.shapes.medium,
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.elevatedCardElevation(),
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
             ) {
                 Column(
                     modifier = Modifier
@@ -67,10 +65,10 @@ fun FavoritesSkeleton(
 }
 
 /**
- * A single favorite-stop card rendered as a shimmering skeleton. Mirrors the
+ * A single favorite-stop card rendered as shimmering placeholders. Mirrors the
  * layout of [FavoriteStopCard] (header + a few arrival rows) so the placeholder
- * occupies the same space the real card will, avoiding layout jump when data
- * arrives. Used by the Home screen while favorites resolve.
+ * occupies the same space the real card will. Used by the Home screen while
+ * favorites resolve.
  *
  * @param rowCount number of arrival-row placeholders to draw.
  */
@@ -80,12 +78,11 @@ fun FavoriteStopCardSkeleton(
     rowCount: Int = 3,
 ) {
     val spacing = LocalSpacing.current
-    val badgeShape = RoundedCornerShape(36.dp * 0.28f)
-    Card(
+    val badgeShape = RoundedCornerShape(38.dp * 0.30f)
+    Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.elevatedCardElevation(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Column(
             modifier = Modifier
@@ -93,7 +90,10 @@ fun FavoriteStopCardSkeleton(
                 .padding(horizontal = spacing.lg, vertical = spacing.md),
             verticalArrangement = Arrangement.spacedBy(spacing.sm),
         ) {
-            SkeletonBlock(modifier = Modifier.fillMaxWidth(0.5f), height = 22.dp)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(spacing.md)) {
+                SkeletonBlock(modifier = Modifier.size(36.dp), height = 36.dp, shape = RoundedCornerShape(18.dp))
+                SkeletonBlock(modifier = Modifier.fillMaxWidth(0.5f), height = 22.dp)
+            }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Spacer(Modifier.height(spacing.xs))
             repeat(rowCount) {
@@ -105,8 +105,8 @@ fun FavoriteStopCardSkeleton(
                     horizontalArrangement = Arrangement.spacedBy(spacing.md),
                 ) {
                     SkeletonBlock(
-                        modifier = Modifier.size(36.dp),
-                        height = 36.dp,
+                        modifier = Modifier.size(38.dp),
+                        height = 38.dp,
                         shape = badgeShape,
                     )
                     SkeletonBlock(

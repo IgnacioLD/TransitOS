@@ -1,14 +1,15 @@
 package com.glossostudio.transitos.core.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -20,22 +21,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import com.glossostudio.transitos.core.design.theme.LocalSpacing
 import com.glossostudio.transitos.core.model.Alert
 
 /**
- * Collapsible alerts block.
+ * Collapsible service-alerts block.
  *
- * When there are more than [previewCount] alerts (default 3), only the first
- * [previewCount] are rendered plus a "Ver las N líneas" toggle. This avoids
- * the wall-of-rows problem when an operator-wide incident flags every line
- * at once (e.g. FGV currently returns one alert per affected line, so a
- * network-wide event produces 10+ rows).
+ * When there are more than [previewCount] alerts, only the first [previewCount]
+ * are rendered plus a "Show all N lines" toggle. This avoids the wall-of-rows
+ * problem when an operator-wide incident flags every line at once.
  *
  * The header carries the live count so the user always knows the total even
  * when collapsed. Expansion state survives recomposition and config changes
- * via [rememberSaveable]; it resets if the alert set changes identity.
+ * via [rememberSaveable].
  */
 @Composable
 fun AlertsSection(
@@ -52,18 +51,21 @@ fun AlertsSection(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(bottom = spacing.md),
+            .padding(horizontal = spacing.screenGutter, vertical = spacing.xs),
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
-        SectionHeader(text = stringResource(R.string.alerts_section_title, alerts.size))
+        SectionHeader(
+            text = stringResource(R.string.alerts_section_title),
+            trailing = { CountBadge(count = alerts.size) },
+        )
 
-        // Stable keys so animated visibility doesn't fight the LazyColumn.
         alerts.take(visibleCount).forEach { alert ->
             AlertRow(
                 title = alert.title,
                 body = alert.body,
                 lineShortName = alert.lineShortName,
                 lineColor = alert.lineColor,
+                severity = alert.severity,
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -84,20 +86,24 @@ private fun ExpandToggle(
     totalCount: Int,
     onClick: () -> Unit,
 ) {
-    val label = if (expanded) {
-        stringResource(R.string.alerts_show_less)
-    } else {
-        stringResource(R.string.alerts_show_all, totalCount)
-    }
     TextButton(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                text = if (expanded) stringResource(R.string.alerts_show_less)
+                else stringResource(R.string.alerts_show_all, totalCount),
+                style = MaterialTheme.typography.labelLarge,
+            )
+            Icon(
+                imageVector = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+        }
     }
 }

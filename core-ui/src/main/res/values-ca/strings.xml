@@ -5,6 +5,7 @@
     <string name="action_cancel">Cancel·lar</string>
     <string name="action_next">Següent</string>
     <string name="action_plan">Planificar</string>
+    <string name="action_retry">Tornar a intentar</string>
 
     <!-- Content descriptions -->
     <string name="cd_back">Tornar</string>
@@ -54,7 +55,7 @@
     <string name="a11y_towards">cap a %1$s</string>
 
     <!-- Alerts -->
-    <string name="alerts_section_title">Avisos del servei · %1$d</string>
+    <string name="alerts_section_title">Avisos del servei</string>
     <string name="alerts_show_less">Veure menys</string>
     <string name="alerts_show_all">Veure les %1$d línies</string>
     <string name="alert_line_incident_title">Línia %1$s amb incidències</string>

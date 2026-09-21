@@ -1,21 +1,26 @@
 package com.glossostudio.transitos.core.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.WifiOff
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -24,14 +29,17 @@ import com.glossostudio.transitos.core.design.theme.LocalSpacing
 import com.glossostudio.transitos.core.result.AppError
 
 /**
- * Maps an [AppError] into a calm, centred, user-facing block. The UI never
- * shows raw exception text, every failure becomes one sentence the user can
- * act on, paired with an icon that signals the category at a glance.
+ * Maps an [AppError] into a calm, centred block. The UI never shows raw
+ * exception text: every failure becomes one sentence the user can act on,
+ * paired with an icon that signals the category at a glance.
+ *
+ * @param onRetry when provided, shows a "Try again" action under the copy.
  */
 @Composable
 fun ErrorState(
     error: AppError,
     modifier: Modifier = Modifier,
+    onRetry: (() -> Unit)? = null,
 ) {
     val presentation = error.toPresentation()
     val title = if (presentation.titleFormatArg != null) {
@@ -44,30 +52,46 @@ fun ErrorState(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(spacing.xxl),
+            .padding(horizontal = spacing.xxl, vertical = spacing.xl),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Icon(
-            imageVector = presentation.icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.outline,
-            modifier = Modifier.size(56.dp),
-        )
+        Box(
+            modifier = Modifier
+                .size(88.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.errorContainer),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = presentation.icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier.size(40.dp),
+            )
+        }
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = spacing.md),
+            modifier = Modifier.padding(top = spacing.lg),
         )
         Text(
             text = body,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = spacing.xs),
+            modifier = Modifier.padding(top = spacing.sm),
         )
+        if (onRetry != null) {
+            FilledTonalButton(
+                onClick = onRetry,
+                modifier = Modifier.padding(top = spacing.xl),
+            ) {
+                Text(stringResource(R.string.action_retry))
+            }
+        }
     }
 }
 

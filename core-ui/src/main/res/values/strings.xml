@@ -5,6 +5,7 @@
     <string name="action_cancel">Cancelar</string>
     <string name="action_next">Siguiente</string>
     <string name="action_plan">Planificar</string>
+    <string name="action_retry">Reintentar</string>
 
     <!-- Content descriptions -->
     <string name="cd_back">Volver</string>
@@ -54,7 +55,7 @@
     <string name="a11y_towards">hacia %1$s</string>
 
     <!-- Alerts -->
-    <string name="alerts_section_title">Avisos del servicio · %1$d</string>
+    <string name="alerts_section_title">Avisos del servicio</string>
     <string name="alerts_show_less">Ver menos</string>
     <string name="alerts_show_all">Ver las %1$d líneas</string>
     <string name="alert_line_incident_title">Línea %1$s con incidencias</string>
