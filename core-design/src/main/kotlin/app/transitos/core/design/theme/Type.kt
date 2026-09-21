@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.sp
  * rather than the default Material density.
  *
  * Numbers that move (arrival countdowns, timestamps) opt into tabular figures
- * via [tabularFigures] so they never jitter as digits change width.
+ * via [TabularFigures] so they never jitter as digits change width.
  *
  * The family is the platform default (Roboto on Android). Swapping in a brand
  * face is a one-line change to [Family].

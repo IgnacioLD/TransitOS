@@ -22,6 +22,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.glossostudio.transitos.core.design.theme.onColor
 
+/** Rounded-square corner radius as a fraction of the badge edge. */
+private const val CORNER_RADIUS_FRACTION = 0.30f
+
+/** Side padding as a fraction of the badge edge, keeps labels off the border. */
+private const val HORIZONTAL_PADDING_FRACTION = 0.12f
+
+/** Alpha of the white top-light gradient that gives the badge depth. */
+private const val GRADIENT_HIGHLIGHT_ALPHA = 0.14f
+
+/** Alpha of the hairline border drawn in the foreground colour. */
+private const val BORDER_ALPHA = 0.15f
+
+/** Labels longer than this are shrunk so they fit inside the badge. */
+private const val COMPACT_LABEL_LENGTH = 2
+
+/** Font size as a fraction of the badge edge, for short and long labels. */
+private const val COMPACT_LABEL_FONT_FRACTION = 0.34f
+private const val DEFAULT_LABEL_FONT_FRACTION = 0.42f
+
+private val DefaultBadgeSize = 40.dp
+private val BorderWidth = 1.dp
+
 /**
  * The coloured line identifier chip, `L3` on the line's brand colour.
  *
@@ -45,12 +67,12 @@ fun LineBadge(
     label: String,
     modifier: Modifier = Modifier,
     colorArgb: Long? = null,
-    size: Dp = 40.dp,
+    size: Dp = DefaultBadgeSize,
     contentDescription: String? = null,
 ) {
     val badgeColor = colorArgb?.let(::Color) ?: MaterialTheme.colorScheme.primary
     val foreground = onColor(badgeColor)
-    val shape = RoundedCornerShape(size * 0.30f)
+    val shape = RoundedCornerShape(size * CORNER_RADIUS_FRACTION)
 
     Box(
         modifier = modifier
@@ -60,13 +82,13 @@ fun LineBadge(
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color.White.copy(alpha = 0.14f),
+                        Color.White.copy(alpha = GRADIENT_HIGHLIGHT_ALPHA),
                         Color.Transparent,
                     ),
                 ),
             )
-            .border(width = 1.dp, color = foreground.copy(alpha = 0.15f), shape = shape)
-            .padding(horizontal = size * 0.12f)
+            .border(width = BorderWidth, color = foreground.copy(alpha = BORDER_ALPHA), shape = shape)
+            .padding(horizontal = size * HORIZONTAL_PADDING_FRACTION)
             .then(
                 if (contentDescription != null) {
                     Modifier.semantics { this.contentDescription = contentDescription }
@@ -80,10 +102,13 @@ fun LineBadge(
             text = label,
             color = foreground,
             style = MaterialTheme.typography.labelLarge,
-            fontSize = if (label.length > 2) (size.value * 0.34f).sp else (size.value * 0.42f).sp,
+            fontSize = if (label.length > COMPACT_LABEL_LENGTH) {
+                (size.value * COMPACT_LABEL_FONT_FRACTION).sp
+            } else {
+                (size.value * DEFAULT_LABEL_FONT_FRACTION).sp
+            },
             maxLines = 1,
             textAlign = TextAlign.Center,
         )
     }
 }
-

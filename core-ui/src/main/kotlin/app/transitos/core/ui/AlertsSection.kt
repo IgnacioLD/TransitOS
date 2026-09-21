@@ -88,9 +88,12 @@ private fun ExpandToggle(
     totalCount: Int,
     onClick: () -> Unit,
 ) {
+    val spacing = LocalSpacing.current
     TextButton(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = spacing.screenGutter),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

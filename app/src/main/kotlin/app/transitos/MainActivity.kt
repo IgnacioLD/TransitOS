@@ -7,15 +7,12 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.glossostudio.transitos.core.design.theme.TransitOSTheme
 import com.glossostudio.transitos.core.repository.ThemeMode
 import com.glossostudio.transitos.core.repository.ThemePreference
-import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.compose.KoinAndroidContext
 
@@ -24,22 +21,19 @@ class MainActivity : AppCompatActivity() {
     private val themePreference: ThemePreference by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Apply the system bar style before the first frame, then keep it in
-        // sync with the user's theme so status/navigation icons stay legible
-        // against whichever palette is selected, regardless of system dark mode.
+        // Apply the system bar style before the first frame so the very first
+        // launch is already edge-to-edge with correct icon contrast.
         applySystemBarStyle(themePreference.current())
         super.onCreate(savedInstanceState)
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                themePreference.flow.collect(::applySystemBarStyle)
-            }
-        }
-
         setContent {
+            // A single collection of the theme preference drives both the
+            // palette and the system bar icons, so the flow is never collected
+            // twice.
             val themeMode by themePreference.flow.collectAsStateWithLifecycle(
                 initialValue = themePreference.current(),
             )
+            LaunchedEffect(themeMode) { applySystemBarStyle(themeMode) }
             TransitOSTheme(themeMode = themeMode) {
                 KoinAndroidContext {
                     TransitOSApp()
