@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -50,8 +51,11 @@ import androidx.compose.material.icons.outlined.NearMe
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -79,9 +83,16 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glossostudio.transitos.R
 import com.glossostudio.transitos.core.model.Arrival
+import com.glossostudio.transitos.core.ui.AnimatedMinutes
+import com.glossostudio.transitos.core.ui.LineBadge
+import com.glossostudio.transitos.core.ui.RealtimeDot
+import com.glossostudio.transitos.core.ui.StatusPill
 import com.glossostudio.transitos.core.ui.R as coreUiR
 import org.koin.androidx.compose.koinViewModel
 import org.osmdroid.config.Configuration
+import org.osmdroid.events.MapListener
+import org.osmdroid.events.ScrollEvent
+import org.osmdroid.events.ZoomEvent
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
@@ -95,6 +106,9 @@ private data class StationInfo(
     val lines: List<String>,
     val position: GeoPoint,
 )
+
+/** Zoom level at or above which station markers are worth drawing. */
+private const val MARKER_ZOOM = 13.0
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -122,6 +136,9 @@ fun OSMNetworkMapRoute(
     var showLocation by remember { mutableStateOf(false) }
     var locationOverlay by remember { mutableStateOf<MyLocationNewOverlay?>(null) }
     var userLocation by remember { mutableStateOf<GeoPoint?>(null) }
+    // Station markers only make sense once the map is zoomed in; at overview
+    // zoom they overlap into an unreadable blob, so the map shows just lines.
+    var markersVisible by remember { mutableStateOf(false) }
 
     val nearestStation = remember(userLocation) {
         userLocation?.let { loc ->
@@ -161,8 +178,25 @@ fun OSMNetworkMapRoute(
         }
     }
 
-    LaunchedEffect(mapView, focusedLine) {
-        rebuildOverlays(mapView, focusedLine, alertedLineNames) { info ->
+    val onLocationClick: () -> Unit = {
+        if (showLocation) {
+            locationOverlay?.let { overlay ->
+                overlay.lastFix?.let { fix ->
+                    mapView?.controller?.animateTo(GeoPoint(fix))
+                }
+            }
+        } else {
+            locationPermissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                ),
+            )
+        }
+    }
+
+    LaunchedEffect(mapView, focusedLine, markersVisible) {
+        rebuildOverlays(mapView, focusedLine, alertedLineNames, markersVisible) { info ->
             selectedStation = info
             mapView?.let { map ->
                 if (map.zoomLevelDouble < 15) {
@@ -185,39 +219,24 @@ fun OSMNetworkMapRoute(
     }
 
     Scaffold(
+        // The host Scaffold already insets content for the system bars and the
+        // bottom navigation, so this nested Scaffold must not re-apply them.
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.map_title)) },
+                title = {
+                    Text(
+                        text = stringResource(R.string.map_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(coreUiR.string.cd_back))
                     }
                 },
                 actions = {
-                    IconButton(onClick = {
-                        if (showLocation) {
-                            locationOverlay?.let { overlay ->
-                                overlay.lastFix?.let { fix ->
-                                    mapView?.controller?.animateTo(GeoPoint(fix))
-                                }
-                            }
-                        } else {
-                            locationPermissionLauncher.launch(
-                                arrayOf(
-                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                                ),
-                            )
-                        }
-                    }) {
-                        Icon(
-                            imageVector = if (showLocation) Icons.Outlined.MyLocation
-                            else Icons.Outlined.LocationOff,
-                            contentDescription = null,
-                            tint = if (showLocation) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
                     IconButton(onClick = onOpenPdf) {
                         Icon(Icons.Outlined.Map, contentDescription = stringResource(R.string.map_pdf_cd))
                     }
@@ -247,59 +266,62 @@ fun OSMNetworkMapRoute(
 
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.surfaceContainer,
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                            .padding(horizontal = 8.dp, vertical = 6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        metroLines.forEach { line ->
-                            val isFocused = focusedLine == line.name
-                            val isDimmed = focusedLine != null && !isFocused
-                            val hasAlert = line.name.removePrefix("L") in
-                                alertedLineNames.map { it.removePrefix("L") }
+                    Column {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState())
+                                .padding(horizontal = 10.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            metroLines.forEach { line ->
+                                val isFocused = focusedLine == line.name
+                                val isDimmed = focusedLine != null && !isFocused
+                                val hasAlert = line.name.removePrefix("L") in
+                                    alertedLineNames.map { it.removePrefix("L") }
 
-                            Row(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isFocused) Color(line.color) else Color.Transparent)
-                                    .clickable { focusedLine = if (isFocused) null else line.name }
-                                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Box(
+                                Row(
                                     modifier = Modifier
-                                        .size(8.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                            if (isDimmed) Color(line.color).copy(alpha = 0.3f)
-                                            else Color(line.color)
-                                        ),
-                                )
-                                Spacer(Modifier.width(5.dp))
-                                Text(
-                                    line.name,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = if (isFocused) FontWeight.Bold else FontWeight.Medium,
-                                    color = when {
-                                        isFocused -> Color.White
-                                        isDimmed -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-                                        else -> MaterialTheme.colorScheme.onSurface
-                                    },
-                                )
-                                if (hasAlert) {
-                                    Spacer(Modifier.width(4.dp))
-                                    Icon(
-                                        Icons.Outlined.Warning,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(14.dp),
-                                        tint = if (isFocused) Color.White
-                                        else if (isDimmed) MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
-                                        else MaterialTheme.colorScheme.error,
+                                        .clip(MaterialTheme.shapes.small)
+                                        .background(if (isFocused) Color(line.color) else Color.Transparent)
+                                        .clickable { focusedLine = if (isFocused) null else line.name }
+                                        .padding(horizontal = 10.dp, vertical = 7.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                if (isDimmed) Color(line.color).copy(alpha = 0.3f)
+                                                else Color(line.color),
+                                            ),
                                     )
+                                    Spacer(Modifier.width(5.dp))
+                                    Text(
+                                        line.name,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = if (isFocused) FontWeight.Bold else FontWeight.Medium,
+                                        color = when {
+                                            isFocused -> Color.White
+                                            isDimmed -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                                            else -> MaterialTheme.colorScheme.onSurface
+                                        },
+                                    )
+                                    if (hasAlert) {
+                                        Spacer(Modifier.width(4.dp))
+                                        Icon(
+                                            Icons.Outlined.Warning,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(14.dp),
+                                            tint = if (isFocused) Color.White
+                                            else if (isDimmed) MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
+                                            else MaterialTheme.colorScheme.error,
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -331,11 +353,42 @@ fun OSMNetworkMapRoute(
                         overlays.add(locOverlay)
                         locationOverlay = locOverlay
 
+                        addMapListener(object : MapListener {
+                            override fun onScroll(event: ScrollEvent?): Boolean = false
+
+                            override fun onZoom(event: ZoomEvent?): Boolean {
+                                val visible = zoomLevelDouble >= MARKER_ZOOM
+                                if (visible != markersVisible) markersVisible = visible
+                                return false
+                            }
+                        })
+
                         mapView = this
                     }
                 },
                 modifier = Modifier.fillMaxSize(),
             )
+
+            FilledTonalIconButton(
+                onClick = onLocationClick,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = 16.dp)
+                    .size(52.dp),
+                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = if (showLocation) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                ),
+            ) {
+                Icon(
+                    imageVector = if (showLocation) Icons.Outlined.MyLocation else Icons.Outlined.LocationOff,
+                    contentDescription = stringResource(R.string.map_location_cd),
+                )
+            }
 
             nearestStation?.let { (name, distance, pos) ->
                 Surface(
@@ -419,12 +472,21 @@ private fun StationArrivalsPanel(
         modifier = Modifier
             .fillMaxWidth()
             .animateContentSize(),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 3.dp,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(bottom = 10.dp)
+                    .width(36.dp)
+                    .height(4.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.outlineVariant),
+            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -432,26 +494,18 @@ private fun StationArrivalsPanel(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         stationInfo.name,
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                     )
-                    Spacer(Modifier.height(4.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Spacer(Modifier.height(6.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         stationInfo.lines.forEach { lineName ->
                             val line = metroLines.find { it.name == lineName }
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(Color(line?.color ?: AndroidColor.GRAY))
-                                    .padding(horizontal = 8.dp, vertical = 2.dp),
-                            ) {
-                                Text(
-                                    lineName.removePrefix("L"),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                            }
+                            LineBadge(
+                                label = lineName.removePrefix("L"),
+                                colorArgb = line?.color?.toLong(),
+                                size = 26.dp,
+                            )
                         }
                     }
                 }
@@ -531,43 +585,54 @@ private fun SkeletonBox(modifier: Modifier, cornerRadius: Dp = 4.dp) {
 
 @Composable
 private fun ArrivalRowCompact(arrival: Arrival) {
-    val lineColor = arrival.lineColor?.let { Color(it) } ?: MaterialTheme.colorScheme.outline
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .size(24.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(lineColor),
-            contentAlignment = Alignment.Center,
-        ) {
+        LineBadge(
+            label = arrival.lineShortName ?: stringResource(coreUiR.string.arrival_no_line),
+            colorArgb = arrival.lineColor,
+            size = 28.dp,
+        )
+        Column(modifier = Modifier.weight(1f)) {
             Text(
-                arrival.lineShortName ?: "",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
+                text = arrival.destination,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (arrival.isRealTime) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    RealtimeDot(diameter = 6.dp)
+                    Text(
+                        text = stringResource(coreUiR.string.arrival_live),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+        val minutes = arrival.minutesAway
+        if (minutes != null && minutes > 0) {
+            AnimatedMinutes(
+                minutes = minutes,
+                numberStyle = MaterialTheme.typography.titleMedium,
+                unitStyle = MaterialTheme.typography.labelSmall,
+            )
+        } else {
+            StatusPill(
+                text = stringResource(coreUiR.string.arrival_boarding),
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
             )
         }
-        Text(
-            arrival.destination,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            text = if ((arrival.minutesAway ?: 1) <= 0) stringResource(coreUiR.string.arrival_boarding)
-                   else "${arrival.minutesAway} ${stringResource(coreUiR.string.unit_minutes)}",
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = if ((arrival.minutesAway ?: 99) <= 0) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface,
-        )
     }
 }
 
@@ -575,6 +640,7 @@ private fun rebuildOverlays(
     map: MapView?,
     focusedLine: String?,
     alertedLineNames: Set<String>,
+    showMarkers: Boolean,
     onStationTap: (StationInfo) -> Unit,
 ) {
     val m = map ?: return
@@ -610,7 +676,7 @@ private fun rebuildOverlays(
             })
         }
 
-        line.stations.forEach { (name, _) ->
+        if (showMarkers) line.stations.forEach { (name, _) ->
             val point = stationPoints[name] ?: return@forEach
             val linesForStation = stationLines[name] ?: emptyList()
             val stationOnFocused = isAnyFocused && focusedLine in linesForStation
@@ -653,7 +719,7 @@ private fun rebuildOverlays(
 
 private fun createLineCircleMarker(res: Resources, color: Int, density: Float, lineNumbers: List<String>, lineColors: List<Int>): BitmapDrawable {
     val multiLine = lineNumbers.size > 1
-    val size = (28 * density).toInt()
+    val size = (24 * density).toInt()
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     val cx = size / 2f

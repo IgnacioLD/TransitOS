@@ -3,20 +3,32 @@ package com.glossostudio.transitos.feature.settings
 import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.Contrast
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LightMode
@@ -29,16 +41,24 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -47,7 +67,6 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glossostudio.transitos.core.design.theme.LocalSpacing
 import com.glossostudio.transitos.core.repository.ThemeMode
-import com.glossostudio.transitos.core.ui.SectionHeader
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -87,10 +106,21 @@ internal fun SettingsScreen(
     onTransferBufferChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val spacing = LocalSpacing.current
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
+        // The host Scaffold already insets content for the system bars, so this
+        // nested Scaffold must not re-apply them.
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.settings_title)) },
+                title = {
+                    Text(
+                        text = stringResource(R.string.settings_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -110,40 +140,63 @@ internal fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = spacing.screenGutter),
+            verticalArrangement = Arrangement.spacedBy(spacing.lg),
         ) {
-            val spacing = LocalSpacing.current
-
             LanguageSection(
                 currentLanguage = currentLanguage,
                 onLanguageChange = onLanguageChange,
-                modifier = Modifier.padding(horizontal = spacing.screenGutter),
             )
-
-            Spacer(modifier = Modifier.height(spacing.lg))
 
             ThemeSection(
                 currentTheme = currentTheme,
                 onThemeChange = onThemeChange,
-                modifier = Modifier.padding(horizontal = spacing.screenGutter),
             )
-
-            Spacer(modifier = Modifier.height(spacing.lg))
 
             TransferBufferSection(
                 minutes = transferBufferMinutes,
                 onChange = onTransferBufferChange,
-                modifier = Modifier.padding(horizontal = spacing.screenGutter),
             )
 
-            Spacer(modifier = Modifier.height(spacing.lg))
+            AboutSection()
 
-            AboutSection(
-                modifier = Modifier.padding(horizontal = spacing.screenGutter),
-            )
-
-            Spacer(modifier = Modifier.height(spacing.xxl))
+            Spacer(Modifier.height(spacing.xxl))
         }
+    }
+}
+
+@Composable
+private fun SettingsCard(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        content = content,
+    )
+}
+
+@Composable
+private fun SectionTitle(icon: ImageVector, title: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier.padding(bottom = 2.dp),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(20.dp),
+        )
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
     }
 }
 
@@ -151,43 +204,28 @@ internal fun SettingsScreen(
 private fun LanguageSection(
     currentLanguage: String,
     onLanguageChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
 ) {
-    val spacing = LocalSpacing.current
-    Column(modifier = modifier.fillMaxWidth()) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Language,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = stringResource(R.string.settings_language),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
+    Column(modifier = Modifier.fillMaxWidth()) {
+        SectionTitle(Icons.Outlined.Language, stringResource(R.string.settings_language))
+        SettingsCard {
+            Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                LanguageOption(
+                    label = stringResource(com.glossostudio.transitos.core.ui.R.string.language_spanish),
+                    selected = currentLanguage == "es",
+                    onClick = { onLanguageChange("es") },
+                )
+                LanguageOption(
+                    label = stringResource(com.glossostudio.transitos.core.ui.R.string.language_valencian),
+                    selected = currentLanguage == "ca",
+                    onClick = { onLanguageChange("ca") },
+                )
+                LanguageOption(
+                    label = stringResource(com.glossostudio.transitos.core.ui.R.string.language_english),
+                    selected = currentLanguage == "en",
+                    onClick = { onLanguageChange("en") },
+                )
+            }
         }
-
-        Spacer(modifier = Modifier.height(spacing.xs))
-
-        LanguageOption(
-            label = stringResource(com.glossostudio.transitos.core.ui.R.string.language_spanish),
-            selected = currentLanguage == "es",
-            onClick = { onLanguageChange("es") },
-        )
-        LanguageOption(
-            label = stringResource(com.glossostudio.transitos.core.ui.R.string.language_valencian),
-            selected = currentLanguage == "ca",
-            onClick = { onLanguageChange("ca") },
-        )
-        LanguageOption(
-            label = stringResource(com.glossostudio.transitos.core.ui.R.string.language_english),
-            selected = currentLanguage == "en",
-            onClick = { onLanguageChange("en") },
-        )
     }
 }
 
@@ -202,16 +240,18 @@ private fun LanguageOption(
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.medium)
             .clickable { onClick() }
-            .padding(vertical = LocalSpacing.current.xs),
+            .padding(horizontal = 12.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RadioButton(
             selected = selected,
             onClick = onClick,
+            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary),
         )
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
             color = if (selected) MaterialTheme.colorScheme.primary
             else MaterialTheme.colorScheme.onSurface,
         )
@@ -222,88 +262,161 @@ private fun LanguageOption(
 private fun ThemeSection(
     currentTheme: ThemeMode,
     onThemeChange: (ThemeMode) -> Unit,
-    modifier: Modifier = Modifier,
 ) {
-    val spacing = LocalSpacing.current
-    Column(modifier = modifier.fillMaxWidth()) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.SettingsBrightness,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = stringResource(R.string.settings_theme),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
+    Column(modifier = Modifier.fillMaxWidth()) {
+        SectionTitle(Icons.Outlined.SettingsBrightness, stringResource(R.string.settings_theme))
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ThemeOption(
+                    icon = Icons.Outlined.SettingsBrightness,
+                    label = stringResource(R.string.theme_system),
+                    selected = currentTheme == ThemeMode.SYSTEM,
+                    onClick = { onThemeChange(ThemeMode.SYSTEM) },
+                    modifier = Modifier.weight(1f),
+                    swatch = { ThemeSwatch(ThemeMode.SYSTEM) },
+                )
+                ThemeOption(
+                    icon = Icons.Outlined.LightMode,
+                    label = stringResource(R.string.theme_light),
+                    selected = currentTheme == ThemeMode.LIGHT,
+                    onClick = { onThemeChange(ThemeMode.LIGHT) },
+                    modifier = Modifier.weight(1f),
+                    swatch = { ThemeSwatch(ThemeMode.LIGHT) },
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ThemeOption(
+                    icon = Icons.Outlined.DarkMode,
+                    label = stringResource(R.string.theme_dark),
+                    selected = currentTheme == ThemeMode.DARK,
+                    onClick = { onThemeChange(ThemeMode.DARK) },
+                    modifier = Modifier.weight(1f),
+                    swatch = { ThemeSwatch(ThemeMode.DARK) },
+                )
+                ThemeOption(
+                    icon = Icons.Outlined.Contrast,
+                    label = stringResource(R.string.theme_amoled),
+                    selected = currentTheme == ThemeMode.AMOLED,
+                    onClick = { onThemeChange(ThemeMode.AMOLED) },
+                    modifier = Modifier.weight(1f),
+                    swatch = { ThemeSwatch(ThemeMode.AMOLED) },
+                )
+            }
         }
-
-        Spacer(modifier = Modifier.height(spacing.xs))
-
-        ThemeOption(
-            icon = Icons.Outlined.SettingsBrightness,
-            label = stringResource(R.string.theme_system),
-            selected = currentTheme == ThemeMode.SYSTEM,
-            onClick = { onThemeChange(ThemeMode.SYSTEM) },
-        )
-        ThemeOption(
-            icon = Icons.Outlined.LightMode,
-            label = stringResource(R.string.theme_light),
-            selected = currentTheme == ThemeMode.LIGHT,
-            onClick = { onThemeChange(ThemeMode.LIGHT) },
-        )
-        ThemeOption(
-            icon = Icons.Outlined.DarkMode,
-            label = stringResource(R.string.theme_dark),
-            selected = currentTheme == ThemeMode.DARK,
-            onClick = { onThemeChange(ThemeMode.DARK) },
-        )
-        ThemeOption(
-            icon = Icons.Outlined.DarkMode,
-            label = stringResource(R.string.theme_amoled),
-            selected = currentTheme == ThemeMode.AMOLED,
-            onClick = { onThemeChange(ThemeMode.AMOLED) },
-        )
     }
 }
 
 @Composable
 private fun ThemeOption(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    swatch: (@Composable () -> Unit)? = null,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
-            .clickable { onClick() }
-            .padding(vertical = LocalSpacing.current.xs),
-        verticalAlignment = Alignment.CenterVertically,
+    val container = if (selected) MaterialTheme.colorScheme.primaryContainer
+    else MaterialTheme.colorScheme.surfaceContainerLow
+    val content = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
+    else MaterialTheme.colorScheme.onSurfaceVariant
+    Surface(
+        onClick = onClick,
+        modifier = modifier,
+        shape = MaterialTheme.shapes.large,
+        color = container,
+        border = if (selected) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null,
     ) {
-        RadioButton(
-            selected = selected,
-            onClick = onClick,
-        )
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = if (selected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = LocalSpacing.current.xs),
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            color = if (selected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(start = LocalSpacing.current.sm),
-        )
+        Box(modifier = Modifier.padding(14.dp)) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.Start,
+            ) {
+                if (swatch != null) {
+                    swatch()
+                } else {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = content,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = content,
+                    maxLines = 1,
+                )
+            }
+            if (selected) {
+                Icon(
+                    imageVector = Icons.Outlined.Check,
+                    contentDescription = null,
+                    tint = content,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(18.dp),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * A tiny mocked-up screen so each theme option previews what it actually does,
+ * rather than relying on an icon alone. [ThemeMode.SYSTEM] splits light/dark.
+ */
+@Composable
+private fun ThemeSwatch(mode: ThemeMode) {
+    val background = when (mode) {
+        ThemeMode.LIGHT -> Color(0xFFF4FBFA)
+        ThemeMode.DARK -> Color(0xFF0E1514)
+        ThemeMode.AMOLED -> Color.Black
+        ThemeMode.SYSTEM -> Color(0xFFF4FBFA)
+    }
+    val accent = when (mode) {
+        ThemeMode.LIGHT -> Color(0xFF00696B)
+        ThemeMode.DARK, ThemeMode.AMOLED -> Color(0xFF80D4D5)
+        ThemeMode.SYSTEM -> Color(0xFF00696B)
+    }
+    val card = when (mode) {
+        ThemeMode.LIGHT -> Color.White
+        ThemeMode.DARK -> Color(0xFF252B2B)
+        ThemeMode.AMOLED -> Color(0xFF1B1B1B)
+        ThemeMode.SYSTEM -> Color.White
+    }
+    val shape = RoundedCornerShape(12.dp)
+    Box(
+        modifier = Modifier
+            .size(width = 64.dp, height = 40.dp)
+            .clip(shape)
+            .background(background)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape),
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize().padding(7.dp)) {
+            val barHeight = size.height * 0.20f
+            drawRoundRect(
+                color = accent,
+                topLeft = Offset(0f, 0f),
+                size = Size(size.width * 0.5f, barHeight),
+                cornerRadius = CornerRadius(barHeight / 2f),
+            )
+            drawRoundRect(
+                color = card,
+                topLeft = Offset(0f, size.height * 0.42f),
+                size = Size(size.width, size.height * 0.58f),
+                cornerRadius = CornerRadius(4.dp.toPx()),
+            )
+        }
+        if (mode == ThemeMode.SYSTEM) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                drawRect(
+                    color = Color(0xFF0E1514),
+                    topLeft = Offset(size.width / 2f, 0f),
+                    size = Size(size.width / 2f, size.height),
+                )
+            }
+        }
     }
 }
 
@@ -311,101 +424,79 @@ private fun ThemeOption(
 private fun TransferBufferSection(
     minutes: Int,
     onChange: (Int) -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     val spacing = LocalSpacing.current
-    Column(modifier = modifier.fillMaxWidth()) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Schedule,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = stringResource(R.string.settings_transfer_buffer),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
+    Column(modifier = Modifier.fillMaxWidth()) {
+        SectionTitle(Icons.Outlined.Schedule, stringResource(R.string.settings_transfer_buffer))
+        SettingsCard {
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+                Text(
+                    text = stringResource(R.string.settings_transfer_buffer_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(spacing.sm))
+                Slider(
+                    value = minutes.toFloat(),
+                    onValueChange = { onChange(it.toInt()) },
+                    valueRange = 0f..15f,
+                    steps = 14,
+                )
+                Text(
+                    text = stringResource(R.string.settings_transfer_buffer_value, minutes),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
         }
-
-        Spacer(modifier = Modifier.height(spacing.xs))
-
-        Text(
-            text = stringResource(R.string.settings_transfer_buffer_desc),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        Spacer(modifier = Modifier.height(spacing.sm))
-
-        Slider(
-            value = minutes.toFloat(),
-            onValueChange = { onChange(it.toInt()) },
-            valueRange = 0f..15f,
-            steps = 14,
-        )
-
-        Text(
-            text = stringResource(R.string.settings_transfer_buffer_value, minutes),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.primary,
-        )
     }
 }
 
 @Composable
-private fun AboutSection(modifier: Modifier = Modifier) {
+private fun AboutSection() {
     val spacing = LocalSpacing.current
     val context = LocalContext.current
+    val versionName = rememberVersionName()
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        SectionHeader(stringResource(R.string.about_title))
-
-        Spacer(modifier = Modifier.height(spacing.xs))
-
-        Text(
-            text = "TransitOS",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Text(
-            text = stringResource(R.string.about_version, "1.0.2"),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        Spacer(modifier = Modifier.height(spacing.md))
-        HorizontalDivider()
-        Spacer(modifier = Modifier.height(spacing.md))
-
-        AboutRow(
-            icon = Icons.Outlined.Lock,
-            title = stringResource(R.string.about_privacy),
-            subtitle = stringResource(R.string.about_privacy_desc),
-            onClick = {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/IgnacioLD/TransitOS/blob/main/PRIVACY.md"))
-                context.startActivity(intent)
-            },
-        )
-
-        Spacer(modifier = Modifier.height(spacing.md))
-
-        AboutRow(
-            icon = Icons.Outlined.Code,
-            title = stringResource(R.string.about_source),
-            subtitle = "AGPL-3.0",
-            onClick = {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/IgnacioLD/TransitOS"))
-                context.startActivity(intent)
-            },
-        )
-
-        Spacer(modifier = Modifier.height(spacing.lg))
-
+    Column(modifier = Modifier.fillMaxWidth()) {
+        SectionTitle(Icons.Outlined.Code, stringResource(R.string.about_title))
+        SettingsCard {
+            Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
+                    Text(
+                        text = stringResource(R.string.settings_app_name),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = stringResource(R.string.about_version, versionName),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+                AboutRow(
+                    icon = Icons.Outlined.Lock,
+                    title = stringResource(R.string.about_privacy),
+                    subtitle = stringResource(R.string.about_privacy_desc),
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/IgnacioLD/TransitOS/blob/main/PRIVACY.md"))
+                        context.startActivity(intent)
+                    },
+                )
+                AboutRow(
+                    icon = Icons.Outlined.Code,
+                    title = stringResource(R.string.about_source),
+                    subtitle = "AGPL-3.0",
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/IgnacioLD/TransitOS"))
+                        context.startActivity(intent)
+                    },
+                )
+            }
+        }
+        Spacer(Modifier.height(spacing.sm))
         Text(
             text = stringResource(R.string.about_disclaimer),
             style = MaterialTheme.typography.bodySmall,
@@ -415,34 +506,53 @@ private fun AboutSection(modifier: Modifier = Modifier) {
 }
 
 @Composable
+private fun rememberVersionName(): String {
+    val context = LocalContext.current
+    return remember(context) {
+        runCatching {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        }.getOrNull().orEmpty()
+    }
+}
+
+@Composable
 private fun AboutRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     title: String,
     subtitle: String,
     onClick: () -> Unit,
 ) {
-    androidx.compose.material3.Surface(
+    Surface(
         onClick = onClick,
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surface,
+        color = Color.Transparent,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = LocalSpacing.current.md),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(LocalSpacing.current.md),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
@@ -451,6 +561,12 @@ private fun AboutRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp),
+            )
         }
     }
 }

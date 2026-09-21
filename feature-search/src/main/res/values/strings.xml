@@ -6,4 +6,5 @@
     <string name="search_no_results">Sin resultados</string>
     <string name="search_no_match">No hay estaciones que coincidan con «%1$s».</string>
     <string name="search_placeholder">Estación, línea o destino</string>
+    <string name="search_clear_cd">Borrar la búsqueda</string>
 </resources>

@@ -10,6 +10,7 @@
 
     <!-- Map -->
     <string name="map_title">Mapa</string>
+    <string name="map_location_cd">Mi ubicación</string>
     <string name="map_pdf_cd">Plano PDF</string>
     <string name="map_pdf_title">Plano PDF Metrovalencia</string>
     <string name="map_pdf_error">Error al cargar el plano PDF</string>
@@ -17,5 +18,4 @@
     <string name="map_pdf_download">Descargar plano</string>
     <string name="map_pdf_saved">Plano guardado en Descargas</string>
     <string name="map_pdf_save_error">Error al guardar el plano</string>
-    <string name="settings_cd">Ajustes</string>
 </resources>

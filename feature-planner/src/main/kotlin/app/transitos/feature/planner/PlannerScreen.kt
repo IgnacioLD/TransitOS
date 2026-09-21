@@ -1,26 +1,26 @@
 package com.glossostudio.transitos.feature.planner
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -29,6 +29,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Schedule
@@ -43,11 +44,13 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -64,6 +67,7 @@ import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -72,15 +76,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glossostudio.transitos.core.design.theme.LocalSpacing
+import com.glossostudio.transitos.core.design.theme.PillShape
 import com.glossostudio.transitos.core.model.Journey
 import com.glossostudio.transitos.core.model.JourneyLeg
 import com.glossostudio.transitos.core.model.Stop
+import com.glossostudio.transitos.core.ui.LineBadge
 import com.glossostudio.transitos.core.ui.R as coreUiR
 import com.glossostudio.transitos.core.ui.SkeletonBlock
 import com.glossostudio.transitos.core.util.stripDiacritics
@@ -155,7 +165,7 @@ internal fun PlannerScreen(
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
     var resultSheetVisible by rememberSaveable { mutableStateOf(false) }
-    var swapSpin by rememberSaveable { mutableStateOf(0) }
+    var swapSpin by rememberSaveable { mutableIntStateOf(0) }
 
     val timeZone = remember { TimeZone.currentSystemDefault() }
     val today = remember { Clock.System.todayIn(timeZone) }
@@ -175,25 +185,38 @@ internal fun PlannerScreen(
         label = "swap",
     )
 
-    Scaffold(modifier = modifier.fillMaxSize()) { padding ->
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
+        // The host Scaffold already insets content for the system bars and the
+        // bottom navigation, so this nested Scaffold must not re-apply them.
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        modifier = modifier.fillMaxSize(),
+    ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
             contentPadding = PaddingValues(
-                start = spacing.xl,
-                end = spacing.xl,
-                top = spacing.xl,
+                start = spacing.screenGutter,
+                end = spacing.screenGutter,
+                top = spacing.lg,
                 bottom = spacing.xxl,
             ),
             verticalArrangement = Arrangement.spacedBy(spacing.lg),
         ) {
             item {
-                Text(
-                    text = stringResource(R.string.planner_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+                    Text(
+                        text = stringResource(R.string.planner_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = stringResource(R.string.planner_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
             item {
@@ -232,20 +255,29 @@ internal fun PlannerScreen(
                             onSearch()
                             resultSheetVisible = true
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(54.dp),
                         enabled = !state.isPlanning,
+                        shape = PillShape,
                         contentPadding = PaddingValues(vertical = spacing.md),
                     ) {
                         if (state.isPlanning) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
                                 strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onPrimary,
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                         } else {
+                            Icon(
+                                imageVector = Icons.Outlined.Search,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                            )
+                            Spacer(Modifier.width(spacing.sm))
                             Text(
                                 stringResource(R.string.planner_search_route),
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleSmall,
                             )
                         }
                     }
@@ -369,54 +401,64 @@ private fun EndpointFields(
     swapRotation: Float,
 ) {
     val spacing = LocalSpacing.current
-    Column(
+    Surface(
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
-        EndpointCard(
-            stopName = origin?.name,
-            onClick = onPickOrigin,
-            dotColor = MaterialTheme.colorScheme.primary,
-        )
-        Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surface,
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        Row(
+            modifier = Modifier.padding(end = spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(
+            Column(modifier = Modifier.weight(1f)) {
+                EndpointRow(
+                    label = stringResource(R.string.planner_from),
+                    value = origin?.name,
+                    dotColor = MaterialTheme.colorScheme.primary,
+                    onClick = onPickOrigin,
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 52.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                )
+                EndpointRow(
+                    label = stringResource(R.string.planner_to),
+                    value = destination?.name,
+                    dotColor = MaterialTheme.colorScheme.tertiary,
+                    onClick = onPickDestination,
+                )
+            }
+            FilledTonalIconButton(
                 onClick = onSwap,
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(44.dp),
+                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                ),
             ) {
                 Icon(
                     imageVector = Icons.Outlined.SwapVert,
                     contentDescription = stringResource(R.string.planner_swap_cd),
-                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
-                        .size(18.dp)
+                        .size(22.dp)
                         .rotate(swapRotation),
                 )
             }
         }
-        EndpointCard(
-            stopName = destination?.name,
-            onClick = onPickDestination,
-            dotColor = MaterialTheme.colorScheme.tertiary,
-        )
     }
 }
 
 @Composable
-private fun EndpointCard(
-    stopName: String?,
-    onClick: () -> Unit,
+private fun EndpointRow(
+    label: String,
+    value: String?,
     dotColor: Color,
+    onClick: () -> Unit,
 ) {
     val spacing = LocalSpacing.current
     Surface(
         onClick = onClick,
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+        color = Color.Transparent,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
@@ -430,14 +472,22 @@ private fun EndpointCard(
                     .clip(CircleShape)
                     .background(dotColor),
             )
-            Text(
-                text = stopName ?: stringResource(R.string.planner_pick_station),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = if (stopName != null) FontWeight.Medium else FontWeight.Normal,
-                color = if (stopName == null) MaterialTheme.colorScheme.outline
-                else MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f),
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = value ?: stringResource(R.string.planner_pick_station),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = if (value != null) FontWeight.SemiBold else FontWeight.Normal,
+                    color = if (value == null) MaterialTheme.colorScheme.outline
+                    else MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }
@@ -533,6 +583,7 @@ private fun QuickPicks(
         Text(
             text = stringResource(R.string.planner_quick_picks),
             style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Row(
@@ -567,24 +618,15 @@ private fun ResultBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        dragHandle = null,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = spacing.xl)
-                .padding(top = spacing.md, bottom = spacing.xxl),
+                .padding(bottom = spacing.xxl),
             verticalArrangement = Arrangement.spacedBy(spacing.lg),
         ) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .width(32.dp)
-                    .height(4.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.outlineVariant),
-            )
-
             when {
                 state.isPlanning -> SheetSkeleton()
 
@@ -668,16 +710,24 @@ private fun SheetHeaderRow(
         verticalAlignment = Alignment.Top,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
-            Text(
-                text = "${journey.durationMinutes} min",
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-            )
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = journey.durationMinutes.toString(),
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    text = stringResource(coreUiR.string.unit_minutes),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 3.dp, bottom = 6.dp),
+                )
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(spacing.lg)) {
                 journey.departureTime?.let { dep ->
                     Text(
-                        text = "Sale $dep",
+                        text = stringResource(R.string.planner_departs_at, dep),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -685,7 +735,7 @@ private fun SheetHeaderRow(
                 }
                 journey.arrivalTime?.let { arr ->
                     Text(
-                        text = "Llega $arr",
+                        text = stringResource(R.string.planner_arrives_at, arr),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -693,161 +743,284 @@ private fun SheetHeaderRow(
                 }
             }
         }
-        IconButton(onClick = if (isSaved) onRemove else onSave) {
+        FilledTonalIconButton(
+            onClick = if (isSaved) onRemove else onSave,
+            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                containerColor = if (isSaved) MaterialTheme.colorScheme.tertiaryContainer
+                else MaterialTheme.colorScheme.surfaceContainerHigh,
+                contentColor = if (isSaved) MaterialTheme.colorScheme.onTertiaryContainer
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+        ) {
             Icon(
                 imageVector = if (isSaved) Icons.Outlined.Star else Icons.Outlined.StarBorder,
                 contentDescription = if (isSaved) stringResource(R.string.planner_route_saved)
                 else stringResource(R.string.planner_save_route),
-                tint = if (isSaved) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
+}
+
+private sealed interface TimelineNode {
+    val time: String?
+
+    data class Station(
+        override val time: String?,
+        val name: String,
+        val kind: StationKind,
+    ) : TimelineNode
+
+    data class Ride(
+        override val time: String?,
+        val lines: List<String>,
+        val lineColors: List<Long>,
+        val headsigns: List<String>,
+        val railColor: Color,
+    ) : TimelineNode
+
+    data class Wait(
+        override val time: String?,
+        val minutes: Int,
+    ) : TimelineNode
+}
+
+private enum class StationKind { ORIGIN, TRANSFER, DESTINATION }
+
+/** Flattens a journey into the ordered nodes the timeline rail renders. */
+private fun buildTimelineNodes(journey: Journey): List<TimelineNode> = buildList {
+    journey.legs.forEachIndexed { index, leg ->
+        if (index == 0) {
+            add(TimelineNode.Station(leg.departureTime, leg.originName, StationKind.ORIGIN))
+        } else {
+            val previous = journey.legs[index - 1]
+            add(TimelineNode.Station(previous.arrivalTime, leg.originName, StationKind.TRANSFER))
+            leg.waitMinutes?.let { add(TimelineNode.Wait(time = null, minutes = it)) }
+        }
+        add(
+            TimelineNode.Ride(
+                time = if (index > 0) leg.departureTime else null,
+                lines = leg.lineNames,
+                lineColors = leg.lineColors,
+                headsigns = leg.headsigns,
+                railColor = leg.lineColors.firstOrNull()?.let(::Color) ?: Color.Unspecified,
+            ),
+        )
+    }
+    val last = journey.legs.last()
+    add(TimelineNode.Station(last.arrivalTime, last.destinationName, StationKind.DESTINATION))
 }
 
 @Composable
 private fun SheetTimeline(journey: Journey) {
-    val spacing = LocalSpacing.current
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(spacing.sm),
-    ) {
-        journey.legs.forEachIndexed { i, leg ->
-            if (i == 0) {
-                TimelineStationRow(
-                    time = leg.departureTime,
-                    name = leg.originName,
-                    dotColor = MaterialTheme.colorScheme.primary,
-                )
-            } else {
-                val prevLeg = journey.legs[i - 1]
-                TimelineStationRow(
-                    time = prevLeg.arrivalTime,
-                    name = leg.originName,
-                    dotColor = MaterialTheme.colorScheme.outline,
-                )
-                leg.waitMinutes?.let { wait ->
-                    TimelineWaitRow(minutes = wait)
+    val nodes = remember(journey) { buildTimelineNodes(journey) }
+    val primary = MaterialTheme.colorScheme.primary
+    val tertiary = MaterialTheme.colorScheme.tertiary
+    val outline = MaterialTheme.colorScheme.outline
+    val neutral = MaterialTheme.colorScheme.outlineVariant
+    val surface = MaterialTheme.colorScheme.surface
+
+    // One rail colour per node; rides carry their line colour, everything else
+    // (stations, waits) stays on the neutral track.
+    val railColors: List<Color> = nodes.map { node ->
+        when (node) {
+            is TimelineNode.Ride -> if (node.railColor == Color.Unspecified) primary else node.railColor
+            else -> neutral
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        nodes.forEachIndexed { index, node ->
+            val isFirst = index == 0
+            val isLast = index == nodes.lastIndex
+            val previousIsRide = index > 0 && nodes[index - 1] is TimelineNode.Ride
+            val nextIsRide = index < nodes.lastIndex && nodes[index + 1] is TimelineNode.Ride
+
+            when (node) {
+                is TimelineNode.Ride -> TimelineRow(
+                    time = node.time,
+                    timeColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    topRail = railColors[index],
+                    bottomRail = railColors[index],
+                    dotColor = null,
+                    ringColor = surface,
+                ) {
+                    RideContent(node)
+                }
+
+                is TimelineNode.Wait -> TimelineRow(
+                    time = null,
+                    timeColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    topRail = neutral,
+                    bottomRail = if (nextIsRide) railColors[index + 1] else neutral,
+                    dotColor = null,
+                    ringColor = surface,
+                ) {
+                    WaitContent(node.minutes)
+                }
+
+                is TimelineNode.Station -> {
+                    val dot = when (node.kind) {
+                        StationKind.ORIGIN -> primary
+                        StationKind.TRANSFER -> outline
+                        StationKind.DESTINATION -> tertiary
+                    }
+                    TimelineRow(
+                        time = node.time,
+                        timeColor = MaterialTheme.colorScheme.onSurface,
+                        topRail = when {
+                            isFirst -> null
+                            previousIsRide -> railColors[index - 1]
+                            else -> neutral
+                        },
+                        bottomRail = when {
+                            isLast -> null
+                            nextIsRide -> railColors[index + 1]
+                            else -> neutral
+                        },
+                        dotColor = dot,
+                        ringColor = surface,
+                    ) {
+                        StationContent(node.name, node.kind)
+                    }
                 }
             }
-
-            TimelineLegInfo(
-                time = if (i > 0) leg.departureTime else null,
-                lines = leg.lineNames,
-                lineColors = leg.lineColors,
-                headsigns = leg.headsigns,
-            )
         }
-        val lastLeg = journey.legs.last()
-        TimelineStationRow(
-            time = lastLeg.arrivalTime,
-            name = lastLeg.destinationName,
-            dotColor = MaterialTheme.colorScheme.tertiary,
-        )
     }
 }
 
 @Composable
-private fun TimelineStationRow(
+private fun TimelineRow(
     time: String?,
-    name: String,
-    dotColor: Color,
+    timeColor: Color,
+    topRail: Color?,
+    bottomRail: Color?,
+    dotColor: Color?,
+    ringColor: Color,
+    content: @Composable () -> Unit,
 ) {
-    val spacing = LocalSpacing.current
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
         Text(
             text = time ?: "",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.width(50.dp),
+            color = timeColor,
+            modifier = Modifier.width(52.dp),
+        )
+        Rail(
+            topRail = topRail,
+            bottomRail = bottomRail,
+            dotColor = dotColor,
+            ringColor = ringColor,
+            modifier = Modifier
+                .width(28.dp)
+                .fillMaxHeight(),
         )
         Box(
             modifier = Modifier
-                .size(12.dp)
-                .clip(CircleShape)
-                .background(dotColor),
-        )
-        Text(
-            text = name,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f),
-        )
+                .weight(1f)
+                .padding(start = 4.dp, top = 9.dp, bottom = 9.dp),
+        ) {
+            content()
+        }
     }
 }
 
 @Composable
-private fun TimelineLegInfo(
-    time: String?,
-    lines: List<String>,
-    lineColors: List<Long>,
-    headsigns: List<String>,
+private fun Rail(
+    topRail: Color?,
+    bottomRail: Color?,
+    dotColor: Color?,
+    ringColor: Color,
+    modifier: Modifier = Modifier,
 ) {
-    val spacing = LocalSpacing.current
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-    ) {
-        Text(
-            text = time ?: "",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.width(50.dp),
-        )
-        Spacer(Modifier.width(12.dp + spacing.md))
-        lines.forEachIndexed { index, lineName ->
-            val bgColor = lineColors.getOrNull(index)?.let { Color(it) }
-            Surface(
-                shape = MaterialTheme.shapes.small,
-                color = bgColor ?: MaterialTheme.colorScheme.primaryContainer,
-            ) {
-                Text(
-                    text = lineName,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (bgColor != null) Color.White
-                    else MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                )
-            }
+    Canvas(modifier = modifier) {
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        val stroke = 4.dp.toPx()
+        topRail?.let {
+            drawLine(
+                color = it,
+                start = Offset(cx, 0f),
+                end = Offset(cx, cy),
+                strokeWidth = stroke,
+                cap = StrokeCap.Round,
+            )
         }
-        if (headsigns.isNotEmpty()) {
-            Text(
-                text = "→",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.outline,
+        bottomRail?.let {
+            drawLine(
+                color = it,
+                start = Offset(cx, cy),
+                end = Offset(cx, size.height),
+                strokeWidth = stroke,
+                cap = StrokeCap.Round,
+            )
+        }
+        if (dotColor != null) {
+            drawCircle(color = ringColor, radius = 8.dp.toPx(), center = Offset(cx, cy))
+            drawCircle(color = dotColor, radius = 5.5.dp.toPx(), center = Offset(cx, cy))
+        }
+    }
+}
+
+@Composable
+private fun RideContent(node: TimelineNode.Ride) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        node.lines.forEachIndexed { index, lineName ->
+            LineBadge(
+                label = lineName,
+                colorArgb = node.lineColors.getOrNull(index),
+                size = 32.dp,
+            )
+        }
+        if (node.headsigns.isNotEmpty()) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(14.dp),
             )
             Text(
-                text = headsigns.joinToString(),
+                text = node.headsigns.joinToString(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
 }
 
 @Composable
-private fun TimelineWaitRow(minutes: Int) {
-    val spacing = LocalSpacing.current
+private fun StationContent(name: String, kind: StationKind) {
+    Text(
+        text = name,
+        style = MaterialTheme.typography.bodyLarge,
+        fontWeight = if (kind == StationKind.DESTINATION) FontWeight.SemiBold else FontWeight.Medium,
+        color = MaterialTheme.colorScheme.onSurface,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
+}
+
+@Composable
+private fun WaitContent(minutes: Int) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Spacer(Modifier.width(50.dp + 12.dp + spacing.md))
         Icon(
             imageVector = Icons.Outlined.Schedule,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.tertiary,
-            modifier = Modifier.size(14.dp),
+            modifier = Modifier.size(15.dp),
         )
         Text(
             text = stringResource(R.string.planner_wait_minutes, minutes),
@@ -861,19 +1034,33 @@ private fun TimelineWaitRow(minutes: Int) {
 private fun SheetStats(journey: Journey) {
     val stats = buildList {
         journey.fareZone?.let { add(stringResource(R.string.planner_fare_zone, it)) }
-        add(
-            if (journey.hasTransfers)
-                stringResource(R.string.planner_transfers_count, journey.legs.size - 1)
-            else
-                stringResource(R.string.planner_no_transfers),
+        add(transfersLabel(journey))
+    }
+    Surface(
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = stats.joinToString("  ·  "),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
         )
     }
-    Text(
-        text = stats.joinToString("  ·  "),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
 }
+
+@Composable
+private fun transfersLabel(journey: Journey): String =
+    if (journey.hasTransfers) {
+        pluralStringResource(
+            R.plurals.planner_transfers_count,
+            journey.legs.size - 1,
+            journey.legs.size - 1,
+        )
+    } else {
+        stringResource(R.string.planner_no_transfers)
+    }
 
 @Composable
 private fun JourneyAlternatives(
@@ -888,16 +1075,53 @@ private fun JourneyAlternatives(
             .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
-        journeys.forEachIndexed { i, journey ->
-            val label = buildString {
-                append("${journey.durationMinutes} min")
-                if (journey.hasTransfers) append(" · ${journey.legs.size}t")
+        journeys.forEachIndexed { index, journey ->
+            val selected = index == selectedIndex
+            Surface(
+                onClick = { onSelect(index) },
+                shape = MaterialTheme.shapes.large,
+                color = if (selected) {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    MaterialTheme.colorScheme.surfaceContainerHigh
+                },
+                border = if (selected) {
+                    BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                } else {
+                    null
+                },
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    val onCard = if (selected) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    }
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        Text(
+                            text = journey.durationMinutes.toString(),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = onCard,
+                        )
+                        Text(
+                            text = stringResource(coreUiR.string.unit_minutes),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = onCard.copy(alpha = 0.75f),
+                            modifier = Modifier.padding(start = 3.dp, bottom = 3.dp),
+                        )
+                    }
+                    Text(
+                        text = transfersLabel(journey),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = onCard.copy(alpha = 0.75f),
+                        maxLines = 1,
+                    )
+                }
             }
-            FilterChip(
-                selected = i == selectedIndex,
-                onClick = { onSelect(i) },
-                label = { Text(label, maxLines = 1) },
-            )
         }
     }
 }
@@ -923,28 +1147,29 @@ private fun StationPickerSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         val spacing = LocalSpacing.current
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = stringResource(R.string.planner_pick_with_title, title),
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(start = spacing.lg, bottom = spacing.xs),
+                modifier = Modifier.padding(start = spacing.lg, end = spacing.lg, bottom = spacing.sm),
             )
             TextField(
                 value = query,
                 onValueChange = { query = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = spacing.lg, vertical = spacing.sm),
+                    .padding(horizontal = spacing.lg, vertical = spacing.xs),
                 placeholder = { Text(stringResource(R.string.planner_search_station)) },
                 leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                 singleLine = true,
-                shape = MaterialTheme.shapes.large,
+                shape = PillShape,
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                 ),
@@ -957,8 +1182,9 @@ private fun StationPickerSheet(
                 items(filtered, key = { it.id }) { stop ->
                     Surface(
                         onClick = { onPick(stop) },
-                        shape = MaterialTheme.shapes.small,
-                        color = MaterialTheme.colorScheme.surface,
+                        shape = MaterialTheme.shapes.large,
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Row(
                             modifier = Modifier
@@ -970,12 +1196,14 @@ private fun StationPickerSheet(
                             Icon(
                                 imageVector = Icons.Outlined.LocationOn,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.outline,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Text(
                                 text = stop.name,
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         }
                     }

@@ -5,8 +5,10 @@
     <string name="home_alerts_plural">%1$d línies amb avisos</string>
     <string name="home_saved_routes">Rutes guardades</string>
     <string name="home_favorites">Preferits</string>
+    <string name="home_more_stops">Més parades</string>
     <string name="home_no_favorites_title">Encara no tens parades preferides</string>
     <string name="home_no_favorites_subtitle">Busca una estació i marca-la per vore ací les seues pròximes arribades.</string>
+    <string name="home_search_stations">Buscar estacions</string>
     <string name="settings_cd">Ajustos</string>
     <string name="home_rename_route">Canviar nom</string>
     <string name="home_rename_route_title">Nom de la ruta</string>

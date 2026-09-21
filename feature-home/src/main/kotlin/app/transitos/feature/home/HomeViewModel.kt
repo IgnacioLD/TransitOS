@@ -7,17 +7,20 @@ import com.glossostudio.transitos.core.repository.RouteFavoritesRepository
 import com.glossostudio.transitos.core.repository.TransitRepository
 import com.glossostudio.transitos.core.result.AppError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -27,7 +30,24 @@ class HomeViewModel(
     private val routeFavorites: RouteFavoritesRepository,
 ) : ViewModel() {
 
-    private val combined: Flow<HomeUiState> = combine(
+    /**
+     * Bumped to rebuild the whole data pipeline. A terminal failure completes
+     * the source flow, and a `stateIn(WhileSubscribed)` cache will not
+     * re-subscribe while collectors stay active, so after an error we restart
+     * from scratch instead: the user's "Retry" must be able to leave Error.
+     */
+    private val retryTrigger = MutableStateFlow(0)
+
+    private val contentState: Flow<HomeUiState> = retryTrigger.flatMapLatest {
+        flow {
+            emit(HomeUiState.Loading)
+            emitAll(homeData())
+        }.catch { throwable ->
+            emit(HomeUiState.Error(AppError.Unknown(throwable.message.orEmpty(), throwable)))
+        }
+    }
+
+    private fun homeData(): Flow<HomeUiState> = combine(
         repository.observeStops(),
         favorites.observeFavoriteStopIds(),
         repository.observeAlerts(),
@@ -82,6 +102,12 @@ class HomeViewModel(
     fun refresh() {
         viewModelScope.launch {
             _isRefreshing.value = true
+            // If the last attempt failed, rebuild the pipeline so the stream is
+            // live again; otherwise a plain repository refresh is enough and
+            // avoids flashing the content back to Loading.
+            if (uiState.value is HomeUiState.Error) {
+                retryTrigger.update { it + 1 }
+            }
             repository.refresh()
             // The refresh signal already kicked off an immediate background
             // re-fetch. Show the spinner for a brief, fixed beat for feedback
@@ -93,7 +119,7 @@ class HomeViewModel(
     }
 
     val uiState: StateFlow<HomeUiState> = combine(
-        combined.catch { emit(HomeUiState.Error(AppError.Unknown(it.message ?: "Error desconocido", it))) },
+        contentState,
         _isRefreshing,
     ) { state, refreshing ->
         if (state is HomeUiState.Ready) state.copy(isRefreshing = refreshing)

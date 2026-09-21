@@ -5,6 +5,7 @@
     <string name="action_cancel">Cancel</string>
     <string name="action_next">Next</string>
     <string name="action_plan">Plan</string>
+    <string name="action_retry">Try again</string>
 
     <!-- Content descriptions -->
     <string name="cd_back">Back</string>
@@ -39,6 +40,8 @@
     <string name="time_hours_ago">%1$d h ago</string>
 
     <!-- Favorite stop card -->
+    <string name="board_next_departure">Next departure</string>
+    <string name="board_minutes_short">%1$d min</string>
     <string name="card_updated_prefix">Updated %1$s</string>
     <string name="arrival_unconfirmed_title">Next train unconfirmed</string>
     <string name="arrival_unconfirmed_subtitle">Use the Planner to see scheduled times</string>
@@ -54,7 +57,7 @@
     <string name="a11y_towards">towards %1$s</string>
 
     <!-- Alerts -->
-    <string name="alerts_section_title">Service alerts · %1$d</string>
+    <string name="alerts_section_title">Service alerts</string>
     <string name="alerts_show_less">Show less</string>
     <string name="alerts_show_all">Show all %1$d lines</string>
     <string name="alert_line_incident_title">Line %1$s with incidents</string>

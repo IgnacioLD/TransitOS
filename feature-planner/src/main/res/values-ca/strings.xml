@@ -28,7 +28,10 @@
     <string name="planner_route_saved">Ruta guardada en Preferits</string>
     <string name="planner_save_route">Guardar ruta en Preferits</string>
     <string name="planner_legs_unit">trams</string>
-    <string name="planner_transfers_count">%1$d transbords</string>
+    <plurals name="planner_transfers_count">
+        <item quantity="one">%1$d transbord</item>
+        <item quantity="other">%1$d transbords</item>
+    </plurals>
     <string name="planner_no_transfers">Sense transbords</string>
     <string name="planner_departures_count">%1$d eixides</string>
     <string name="planner_direction">Direcció: %1$s</string>
@@ -49,4 +52,7 @@
     <string name="planner_search_route">Buscar ruta</string>
     <string name="planner_quick_picks">Suggeriments</string>
     <string name="planner_wait_minutes">Espera %1$d min</string>
+    <string name="planner_departs_at">Eixida %1$s</string>
+    <string name="planner_arrives_at">Arribada %1$s</string>
+    <string name="planner_duration_minutes">%1$d min</string>
 </resources>
