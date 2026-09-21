@@ -2,7 +2,6 @@ package com.glossostudio.transitos.core.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.glossostudio.transitos.core.design.theme.BrandColors
 import com.glossostudio.transitos.core.design.theme.HeroShape
-import com.glossostudio.transitos.core.design.theme.PillShape
 import com.glossostudio.transitos.core.model.Arrival
 
 /**
@@ -40,9 +37,9 @@ import com.glossostudio.transitos.core.model.Arrival
  * the app, blown up to hero size.
  *
  * A deep brand gradient surface with a faint network watermark, the line badge
- * and destination, and the next departure's minutes as the typographic anchor.
- * The following departures appear as compact chips so the user can already
- * sense the cadence without leaving the card.
+ * and the direction it is heading, and the next departure's minutes as the
+ * typographic anchor. The following departures appear as compact rows with
+ * their own line and direction, so the cadence is readable at a glance.
  *
  * Everything sits on the fixed brand gradient, so the same hero reads
  * correctly in light, dark and AMOLED.
@@ -65,6 +62,10 @@ fun DepartureBoard(
     )
     val a11y = boardA11yLabel(stopName, next)
     val noLine = stringResource(R.string.arrival_no_line)
+    val noDestination = stringResource(R.string.arrival_no_destination)
+    val towardsLabel = stringResource(R.string.board_towards)
+    val hasDestination = next.destination.isNotBlank()
+    val destination = if (hasDestination) next.destination else noDestination
 
     Box(
         modifier = modifier
@@ -75,6 +76,15 @@ fun DepartureBoard(
             .semantics { contentDescription = a11y },
     ) {
         HeroWatermark(modifier = Modifier.matchParentSize())
+        // Re-paints the brand gradient over the watermark, so the art can only
+        // contribute a fraction of its colour. The card keeps its exact brand
+        // surface while the plan stays legible as a texture, never as a
+        // competitor to the departure text.
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(HeroArtScrim),
+        )
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -109,12 +119,20 @@ fun DepartureBoard(
                 )
                 Spacer(Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
+                    if (hasDestination) {
+                        Text(
+                            text = towardsLabel.uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = BrandColors.OnHeroMuted,
+                            letterSpacing = 1.sp,
+                        )
+                    }
                     Text(
-                        text = next.destination,
+                        text = destination,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = BrandColors.OnHero,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -139,16 +157,11 @@ fun DepartureBoard(
             if (upcoming.isNotEmpty()) {
                 Spacer(Modifier.height(16.dp))
                 HorizontalDivider(color = BrandColors.OnHero.copy(alpha = 0.18f))
-                Spacer(Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    upcoming.take(MAX_UPCOMING).forEach { arrival ->
-                        UpcomingChip(arrival = arrival)
+                upcoming.take(MAX_UPCOMING).forEachIndexed { index, arrival ->
+                    if (index > 0) {
+                        HorizontalDivider(color = BrandColors.OnHero.copy(alpha = 0.10f))
                     }
+                    UpcomingRow(arrival = arrival)
                 }
             }
 
@@ -178,30 +191,45 @@ private fun LiveChip(isRealTime: Boolean) {
     )
 }
 
+/**
+ * One following departure: line badge, the direction it is heading and the wait.
+ *
+ * A full-width row rather than a narrow chip, so the headsign always stays
+ * visible instead of being clipped by a horizontal scroll, and its two-line
+ * allowance keeps long names such as "Alboraya Peris Arago" intact.
+ */
 @Composable
-private fun UpcomingChip(arrival: Arrival) {
+private fun UpcomingRow(arrival: Arrival) {
     val noLine = stringResource(R.string.arrival_no_line)
+    val minutes = arrival.minutesAway
     Row(
         modifier = Modifier
-            .clip(PillShape)
-            .background(BrandColors.OnHero.copy(alpha = 0.14f))
-            .padding(start = 6.dp, end = 12.dp, top = 5.dp, bottom = 5.dp),
+            .fillMaxWidth()
+            .padding(vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(7.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         LineBadge(
             label = arrival.lineShortName ?: noLine,
             colorArgb = arrival.lineColor ?: HERO_BADGE_FALLBACK,
-            size = 24.dp,
+            size = 30.dp,
         )
-        val minutes = arrival.minutesAway
+        Text(
+            text = arrivalDirection(arrival.destination),
+            style = MaterialTheme.typography.bodyMedium,
+            color = BrandColors.OnHero,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
         Text(
             text = if (minutes != null && minutes > 0) {
                 stringResource(R.string.board_minutes_short, minutes)
             } else {
                 stringResource(R.string.arrival_boarding)
             },
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
             color = BrandColors.OnHero,
             maxLines = 1,
         )
@@ -224,20 +252,34 @@ private fun HeroWatermark(modifier: Modifier = Modifier) {
     )
 }
 
+/**
+ * Scrim painted between the watermark and the content. It is the brand gradient
+ * again, so the base surface colour is unchanged, but it caps how much of the
+ * artwork's brightness reaches the text. At these alphas the art contributes
+ * roughly a third of its colour.
+ */
+private val HeroArtScrim = Brush.linearGradient(
+    colors = listOf(
+        BrandColors.HeroGradientTop.copy(alpha = 0.62f),
+        BrandColors.HeroGradientBottom.copy(alpha = 0.70f),
+    ),
+)
+
+/** Cool, low-luminance marks for the hero; pure white would glare. */
+private val HeroMarkTint = Color(0xFF7FD6D4)
+
 private val HeroMetroStyle = MetroArtStyle(
     frame = MetroFrame.COVER,
-    strokeScale = 0.026f,
-    lineAlpha = 0.30f,
-    // A deep-teal casing (rather than black) separates crossings without the
-    // muddy outlines a pure black under-stroke leaves on the brand gradient.
-    casingColor = BrandColors.HeroGradientBottom.copy(alpha = 0.55f),
-    casingScale = 0.7f,
-    stationColor = Color.White.copy(alpha = 0.22f),
-    ringColor = Color.White.copy(alpha = 0.34f),
-    terminalColor = Color.White.copy(alpha = 0.44f),
+    strokeScale = 0.024f,
+    lineAlpha = 0.22f,
+    // No casing: at watermark strength the dark under-stroke only muddied the
+    // gradient, and the scrim already separates the lines from the text.
+    stationColor = HeroMarkTint.copy(alpha = 0.16f),
+    ringColor = HeroMarkTint.copy(alpha = 0.22f),
+    terminalColor = HeroMarkTint.copy(alpha = 0.26f),
     blendMode = BlendMode.Screen,
     trainLineId = "L1",
-    trainColor = Color.White.copy(alpha = 0.85f),
+    trainColor = Color(0xFFBFF0EE).copy(alpha = 0.50f),
 )
 
 @Composable
@@ -250,7 +292,8 @@ private fun relativeTimeLabel(epochMs: Long): String = when (val relative = rela
 @Composable
 private fun boardA11yLabel(stopName: String, next: Arrival): String {
     val linePrefix = stringResource(R.string.a11y_line_prefix, next.lineShortName ?: "")
-    val towards = stringResource(R.string.a11y_towards, next.destination)
+    val destination = next.destination.ifBlank { stringResource(R.string.arrival_no_destination) }
+    val towards = stringResource(R.string.a11y_towards, destination)
     val eta = next.minutesAway?.let { stringResource(R.string.a11y_eta_minutes, it) }
         ?: stringResource(R.string.a11y_eta_unavailable)
     return "$stopName. $linePrefix $towards, $eta".replace("  ", " ").trim()

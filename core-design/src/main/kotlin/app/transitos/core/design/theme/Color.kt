@@ -220,7 +220,11 @@ object BrandColors {
     /** Warm amber used on the hero for "live" and highlight accents. */
     val HeroAccent = Color(0xFFF5C55A)
 
-    /** Foreground that stays legible on the hero gradient. */
+    /**
+     * Foreground that stays legible on the hero gradient. [OnHeroMuted] keeps a
+     * high alpha so small labels still clear WCAG AA (4.5:1) even over the
+     * watermark's brighter patches.
+     */
     val OnHero = Color(0xFFFFFFFF)
-    val OnHeroMuted = Color(0xCCFFFFFF)
+    val OnHeroMuted = Color(0xEBFFFFFF)
 }

@@ -218,11 +218,11 @@ private fun ArrivalRow(
             verticalArrangement = Arrangement.spacedBy(spacing.xxs),
         ) {
             Text(
-                text = arrival.destination,
+                text = arrivalDirection(arrival.destination),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = if (isNext) FontWeight.SemiBold else FontWeight.Medium,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
             Row(
@@ -297,7 +297,8 @@ private fun arrivalA11yLabel(arrival: Arrival, isNext: Boolean): String {
     val linePrefix = stringResource(R.string.a11y_line_prefix, arrival.lineShortName ?: "")
     val etaMinutes = stringResource(R.string.a11y_eta_minutes, arrival.minutesAway ?: 0)
     val etaUnavailable = stringResource(R.string.a11y_eta_unavailable)
-    val towards = stringResource(R.string.a11y_towards, arrival.destination)
+    val destination = arrival.destination.ifBlank { stringResource(R.string.arrival_no_destination) }
+    val towards = stringResource(R.string.a11y_towards, destination)
 
     val head = if (isNext) "$boarding " else ""
     val line = if (arrival.lineShortName != null) linePrefix else ""

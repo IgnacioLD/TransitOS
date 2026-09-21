@@ -434,8 +434,10 @@ private fun DrawScope.drawMetroNetwork(
             center = position,
             blendMode = style.blendMode,
         )
+        // No pure-white core: on the hero a hard white point is the first thing
+        // to glare through the scrim.
         drawCircle(
-            color = Color.White,
+            color = style.trainColor.copy(alpha = (style.trainColor.alpha * 0.6f).coerceAtMost(1f)),
             radius = unit * 0.24f,
             center = position,
             blendMode = style.blendMode,
