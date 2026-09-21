@@ -52,8 +52,10 @@ import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -81,7 +83,10 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glossostudio.transitos.R
 import com.glossostudio.transitos.core.model.Arrival
+import com.glossostudio.transitos.core.ui.AnimatedMinutes
 import com.glossostudio.transitos.core.ui.LineBadge
+import com.glossostudio.transitos.core.ui.RealtimeDot
+import com.glossostudio.transitos.core.ui.StatusPill
 import com.glossostudio.transitos.core.ui.R as coreUiR
 import org.koin.androidx.compose.koinViewModel
 import org.osmdroid.config.Configuration
@@ -164,6 +169,23 @@ fun OSMNetworkMapRoute(
         }
     }
 
+    val onLocationClick: () -> Unit = {
+        if (showLocation) {
+            locationOverlay?.let { overlay ->
+                overlay.lastFix?.let { fix ->
+                    mapView?.controller?.animateTo(GeoPoint(fix))
+                }
+            }
+        } else {
+            locationPermissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                ),
+            )
+        }
+    }
+
     LaunchedEffect(mapView, focusedLine) {
         rebuildOverlays(mapView, focusedLine, alertedLineNames) { info ->
             selectedStation = info
@@ -206,30 +228,6 @@ fun OSMNetworkMapRoute(
                     }
                 },
                 actions = {
-                    IconButton(onClick = {
-                        if (showLocation) {
-                            locationOverlay?.let { overlay ->
-                                overlay.lastFix?.let { fix ->
-                                    mapView?.controller?.animateTo(GeoPoint(fix))
-                                }
-                            }
-                        } else {
-                            locationPermissionLauncher.launch(
-                                arrayOf(
-                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                                ),
-                            )
-                        }
-                    }) {
-                        Icon(
-                            imageVector = if (showLocation) Icons.Outlined.MyLocation
-                            else Icons.Outlined.LocationOff,
-                            contentDescription = stringResource(R.string.map_location_cd),
-                            tint = if (showLocation) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
                     IconButton(onClick = onOpenPdf) {
                         Icon(Icons.Outlined.Map, contentDescription = stringResource(R.string.map_pdf_cd))
                     }
@@ -351,6 +349,27 @@ fun OSMNetworkMapRoute(
                 },
                 modifier = Modifier.fillMaxSize(),
             )
+
+            FilledTonalIconButton(
+                onClick = onLocationClick,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = 16.dp)
+                    .size(52.dp),
+                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = if (showLocation) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                ),
+            ) {
+                Icon(
+                    imageVector = if (showLocation) Icons.Outlined.MyLocation else Icons.Outlined.LocationOff,
+                    contentDescription = stringResource(R.string.map_location_cd),
+                )
+            }
 
             nearestStation?.let { (name, distance, pos) ->
                 Surface(
@@ -547,43 +566,54 @@ private fun SkeletonBox(modifier: Modifier, cornerRadius: Dp = 4.dp) {
 
 @Composable
 private fun ArrivalRowCompact(arrival: Arrival) {
-    val lineColor = arrival.lineColor?.let { Color(it) } ?: MaterialTheme.colorScheme.outline
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .size(24.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(lineColor),
-            contentAlignment = Alignment.Center,
-        ) {
+        LineBadge(
+            label = arrival.lineShortName ?: stringResource(coreUiR.string.arrival_no_line),
+            colorArgb = arrival.lineColor,
+            size = 28.dp,
+        )
+        Column(modifier = Modifier.weight(1f)) {
             Text(
-                arrival.lineShortName ?: "",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
+                text = arrival.destination,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (arrival.isRealTime) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    RealtimeDot(diameter = 6.dp)
+                    Text(
+                        text = stringResource(coreUiR.string.arrival_live),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+        val minutes = arrival.minutesAway
+        if (minutes != null && minutes > 0) {
+            AnimatedMinutes(
+                minutes = minutes,
+                numberStyle = MaterialTheme.typography.titleMedium,
+                unitStyle = MaterialTheme.typography.labelSmall,
+            )
+        } else {
+            StatusPill(
+                text = stringResource(coreUiR.string.arrival_boarding),
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
             )
         }
-        Text(
-            arrival.destination,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            text = if ((arrival.minutesAway ?: 1) <= 0) stringResource(coreUiR.string.arrival_boarding)
-                   else "${arrival.minutesAway} ${stringResource(coreUiR.string.unit_minutes)}",
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = if ((arrival.minutesAway ?: 99) <= 0) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface,
-        )
     }
 }
 

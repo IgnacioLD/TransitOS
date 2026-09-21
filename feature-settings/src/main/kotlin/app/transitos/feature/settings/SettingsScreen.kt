@@ -4,7 +4,9 @@ import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -51,6 +54,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -267,6 +273,7 @@ private fun ThemeSection(
                     selected = currentTheme == ThemeMode.SYSTEM,
                     onClick = { onThemeChange(ThemeMode.SYSTEM) },
                     modifier = Modifier.weight(1f),
+                    swatch = { ThemeSwatch(ThemeMode.SYSTEM) },
                 )
                 ThemeOption(
                     icon = Icons.Outlined.LightMode,
@@ -274,6 +281,7 @@ private fun ThemeSection(
                     selected = currentTheme == ThemeMode.LIGHT,
                     onClick = { onThemeChange(ThemeMode.LIGHT) },
                     modifier = Modifier.weight(1f),
+                    swatch = { ThemeSwatch(ThemeMode.LIGHT) },
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -283,6 +291,7 @@ private fun ThemeSection(
                     selected = currentTheme == ThemeMode.DARK,
                     onClick = { onThemeChange(ThemeMode.DARK) },
                     modifier = Modifier.weight(1f),
+                    swatch = { ThemeSwatch(ThemeMode.DARK) },
                 )
                 ThemeOption(
                     icon = Icons.Outlined.Contrast,
@@ -290,6 +299,7 @@ private fun ThemeSection(
                     selected = currentTheme == ThemeMode.AMOLED,
                     onClick = { onThemeChange(ThemeMode.AMOLED) },
                     modifier = Modifier.weight(1f),
+                    swatch = { ThemeSwatch(ThemeMode.AMOLED) },
                 )
             }
         }
@@ -303,6 +313,7 @@ private fun ThemeOption(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    swatch: (@Composable () -> Unit)? = null,
 ) {
     val container = if (selected) MaterialTheme.colorScheme.primaryContainer
     else MaterialTheme.colorScheme.surfaceContainerLow
@@ -320,12 +331,16 @@ private fun ThemeOption(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 horizontalAlignment = Alignment.Start,
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = content,
-                    modifier = Modifier.size(24.dp),
-                )
+                if (swatch != null) {
+                    swatch()
+                } else {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = content,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
                 Text(
                     text = label,
                     style = MaterialTheme.typography.labelLarge,
@@ -341,6 +356,64 @@ private fun ThemeOption(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .size(18.dp),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * A tiny mocked-up screen so each theme option previews what it actually does,
+ * rather than relying on an icon alone. [ThemeMode.SYSTEM] splits light/dark.
+ */
+@Composable
+private fun ThemeSwatch(mode: ThemeMode) {
+    val background = when (mode) {
+        ThemeMode.LIGHT -> Color(0xFFF4FBFA)
+        ThemeMode.DARK -> Color(0xFF0E1514)
+        ThemeMode.AMOLED -> Color.Black
+        ThemeMode.SYSTEM -> Color(0xFFF4FBFA)
+    }
+    val accent = when (mode) {
+        ThemeMode.LIGHT -> Color(0xFF00696B)
+        ThemeMode.DARK, ThemeMode.AMOLED -> Color(0xFF80D4D5)
+        ThemeMode.SYSTEM -> Color(0xFF00696B)
+    }
+    val card = when (mode) {
+        ThemeMode.LIGHT -> Color.White
+        ThemeMode.DARK -> Color(0xFF252B2B)
+        ThemeMode.AMOLED -> Color(0xFF1B1B1B)
+        ThemeMode.SYSTEM -> Color.White
+    }
+    val shape = RoundedCornerShape(12.dp)
+    Box(
+        modifier = Modifier
+            .size(width = 64.dp, height = 40.dp)
+            .clip(shape)
+            .background(background)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape),
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize().padding(7.dp)) {
+            val barHeight = size.height * 0.20f
+            drawRoundRect(
+                color = accent,
+                topLeft = Offset(0f, 0f),
+                size = Size(size.width * 0.5f, barHeight),
+                cornerRadius = CornerRadius(barHeight / 2f),
+            )
+            drawRoundRect(
+                color = card,
+                topLeft = Offset(0f, size.height * 0.42f),
+                size = Size(size.width, size.height * 0.58f),
+                cornerRadius = CornerRadius(4.dp.toPx()),
+            )
+        }
+        if (mode == ThemeMode.SYSTEM) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                drawRect(
+                    color = Color(0xFF0E1514),
+                    topLeft = Offset(size.width / 2f, 0f),
+                    size = Size(size.width / 2f, size.height),
                 )
             }
         }
