@@ -28,7 +28,10 @@
     <string name="planner_route_saved">Route saved to Favorites</string>
     <string name="planner_save_route">Save route to Favorites</string>
     <string name="planner_legs_unit">legs</string>
-    <string name="planner_transfers_count">%1$d transfers</string>
+    <plurals name="planner_transfers_count">
+        <item quantity="one">%1$d transfer</item>
+        <item quantity="other">%1$d transfers</item>
+    </plurals>
     <string name="planner_no_transfers">Direct</string>
     <string name="planner_departures_count">%1$d departures</string>
     <string name="planner_direction">Direction: %1$s</string>
@@ -49,4 +52,7 @@
     <string name="planner_search_route">Search route</string>
     <string name="planner_quick_picks">Suggestions</string>
     <string name="planner_wait_minutes">Wait %1$d min</string>
+    <string name="planner_departs_at">Departs %1$s</string>
+    <string name="planner_arrives_at">Arrives %1$s</string>
+    <string name="planner_duration_minutes">%1$d min</string>
 </resources>
