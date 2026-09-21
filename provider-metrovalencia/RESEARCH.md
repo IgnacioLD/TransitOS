@@ -12,11 +12,21 @@ both by live HTTP probes and by decompiling the official app
 | Stop catalogue              | FGV `/estaciones`                             | none       | ✅ working    |
 | Line catalogue              | FGV `/lineas`                                 | none       | ✅ working    |
 | Master data (offline dump)  | FGV `/sincronizacion`                         | none       | ✅ working    |
-| **Live arrivals at a stop** | FGV `/horarios-prevision-3/{estacion_id_FGV}` | none       | ✅ working    |
+| **Live arrivals at a stop** | FGV `/horarios-prevision-3/{estacion_id_FGV}` | session    | ✅ working    |
 | Line-status alerts          | FGV `/incidencias`                            | none       | ✅ working*   |
 | Accessibility alerts        | FGV `/incidencias_accesibilidad`              | none       | ✅ working    |
 | Journey planner             | FGV `/horarios-online2` (POST form)           | none       | 🟡 flaky     |
 | Service alerts (rich)       | NAP GTFS-RT                                    | ApiKey     | ❌ not published |
+
+> **Update 2026-09-21, live arrivals now require a session.** FGV changed
+> `horarios-prevision-3` so that it returns HTTP 404
+> (`{"status":400,"error":-1,"resultado":"Error en la obtencion de la prevision de los horarios"}`)
+> unless the request carries the session cookies (`fgv_api_session`,
+> `XSRF-TOKEN`) issued by a public catalogue call. `/estaciones`, `/lineas`,
+> `/incidencias` and `/sincronizacion` still answer 200 without a session. A
+> single `GET /estaciones` (or `/sincronizacion`) first, keeping the cookie jar,
+> makes the arrivals call succeed. See
+> [Session for live arrivals](#session-for-live-arrivals).
 
 *`/incidencias` returns only `{id, linea_id, fecha, sede, timestamps}`, line-status
 flags with no message text. Sufficient for the MVP's "Estado de líneas" view
@@ -38,7 +48,9 @@ Base URL: `https://www.fgv.es/fgv/app/{lang}/api/v1/{sede}/`
 
 - `{lang}` ∈ `es` | `en` | `ca`
 - `{sede}` ∈ `V` (Valencia) | `A` (Alicante trams)
-- No authentication. Only required header: `Accept: application/json`.
+- Catalogue endpoints need no authentication, only the header
+  `Accept: application/json`. Live arrivals additionally need a session (see
+  [Session for live arrivals](#session-for-live-arrivals)).
 - Source of truth: Retrofit annotations recovered from the official APK's
   `com.fgv.transporte.app.*` classes (decompiled for interop only; not
   redistributed). Each Retrofit interface declares exactly this base URL via an
@@ -159,6 +171,33 @@ No published limits. Empirically each call returns in 50-300 ms. We
 **voluntarily** rate-limit at the provider level (poll arrivals at 30 s, refresh
 catalogs at most hourly, cache in memory) to stay polite and to avoid tripping
 any undocumented anti-abuse rules.
+
+### Session for live arrivals
+
+Discovered live on **2026-09-21**. FGV started requiring a session for
+`horarios-prevision-3`:
+
+- A bare `GET /horarios-prevision-3/12` returns **HTTP 404** with
+  `{"status":400,"error":-1,"resultado":"Error en la obtencion de la prevision de los horarios"}`.
+- Doing `GET /estaciones` (or `/sincronizacion`) **first**, keeping the cookies
+  the server sets (`fgv_api_session`, `XSRF-TOKEN`), makes the same arrivals
+  call return **200**.
+- `/estaciones`, `/lineas`, `/incidencias` and `/sincronizacion` keep answering
+  200 with or without a session, so they are usable as the priming call.
+
+Implementation:
+
+1. The shared `:core-network` client installs Ktor's `HttpCookies` plugin with
+   `AcceptAllCookiesStorage`, so any `Set-Cookie` from a catalogue call is
+   replayed on later requests. Without it the session is dropped between calls
+   and arrivals stay broken.
+2. `MetrovalenciaApi.getArrivals` calls `ensureSession()` first: on the first
+   arrivals poll it does one `GET /estaciones` to obtain the cookies, then sets
+   a flag. Later polls reuse the stored session, so priming is not repeated on
+   every 30 s tick.
+3. If an arrivals request still fails (for example the session expired), the API
+   resets the flag, primes again and retries **once**. `MockEngine` tests cover
+   cookie retention, prime-before-arrivals ordering and the retry.
 
 ## 2. Spanish NAP (`nap.transportes.gob.es`)
 
