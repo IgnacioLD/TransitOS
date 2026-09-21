@@ -54,6 +54,9 @@
     <!-- Favorite stop card -->
     <string name="board_next_departure">Próxima salida</string>
     <string name="board_minutes_short">%1$d min</string>
+    <string name="board_towards">Hacia</string>
+    <string name="board_direction">Hacia %1$s</string>
+    <string name="arrival_no_destination">Sin destino</string>
     <string name="card_updated_prefix">Actualizado %1$s</string>
     <string name="arrival_unconfirmed_title">Próximo tren sin confirmar</string>
     <string name="arrival_unconfirmed_subtitle">Usa el Planificador para ver horarios programados</string>

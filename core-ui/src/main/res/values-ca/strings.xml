@@ -54,6 +54,9 @@
     <!-- Favorite stop card -->
     <string name="board_next_departure">Pròxima eixida</string>
     <string name="board_minutes_short">%1$d min</string>
+    <string name="board_towards">Cap a</string>
+    <string name="board_direction">Cap a %1$s</string>
+    <string name="arrival_no_destination">Sense destí</string>
     <string name="card_updated_prefix">Actualitzat %1$s</string>
     <string name="arrival_unconfirmed_title">Pròxim tren sense confirmar</string>
     <string name="arrival_unconfirmed_subtitle">Utilitza el Planificador per veure horaris programats</string>
