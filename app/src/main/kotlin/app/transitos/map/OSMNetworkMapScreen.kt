@@ -101,11 +101,6 @@ import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.ScaleBarOverlay
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
-private data class StationInfo(
-    val name: String,
-    val lines: List<String>,
-    val position: GeoPoint,
-)
 
 /** Zoom level at or above which station markers are worth drawing. */
 private const val MARKER_ZOOM = 13.0
@@ -126,13 +121,13 @@ fun OSMNetworkMapRoute(
         }
     }
 
-    val stops by viewModel.stops.collectAsStateWithLifecycle()
+    val network by viewModel.network.collectAsStateWithLifecycle()
     val alerts by viewModel.alerts.collectAsStateWithLifecycle()
     val alertedLineNames = remember(alerts) { viewModel.alertedLineNames }
 
     var mapView by remember { mutableStateOf<MapView?>(null) }
     var focusedLine by remember { mutableStateOf<String?>(null) }
-    var selectedStation by remember { mutableStateOf<StationInfo?>(null) }
+    var selectedStation by remember { mutableStateOf<MapStation?>(null) }
     var showLocation by remember { mutableStateOf(false) }
     var locationOverlay by remember { mutableStateOf<MyLocationNewOverlay?>(null) }
     var userLocation by remember { mutableStateOf<GeoPoint?>(null) }
@@ -140,22 +135,22 @@ fun OSMNetworkMapRoute(
     // zoom they overlap into an unreadable blob, so the map shows just lines.
     var markersVisible by remember { mutableStateOf(false) }
 
-    val nearestStation = remember(userLocation) {
+    val nearestStation = remember(userLocation, network) {
         userLocation?.let { loc ->
-            var best: Pair<String, Float>? = null
+            var best: Pair<MapStation, Float>? = null
             val results = FloatArray(1)
-            stationPoints.forEach { (name, pos) ->
+            network.stations.forEach { station ->
                 android.location.Location.distanceBetween(
                     loc.latitude, loc.longitude,
-                    pos.latitude, pos.longitude,
+                    station.position.latitude, station.position.longitude,
                     results,
                 )
                 if (best == null || results[0] < best!!.second) {
-                    best = name to results[0]
+                    best = station to results[0]
                 }
             }
-            best?.let { (name, dist) ->
-                Triple(name, dist.toDouble(), stationPoints[name]!!)
+            best?.let { (station, dist) ->
+                Triple(station, dist.toDouble(), station.position)
             }
         }
     }
@@ -195,8 +190,8 @@ fun OSMNetworkMapRoute(
         }
     }
 
-    LaunchedEffect(mapView, focusedLine, markersVisible) {
-        rebuildOverlays(mapView, focusedLine, alertedLineNames, markersVisible) { info ->
+    LaunchedEffect(mapView, network, focusedLine, markersVisible) {
+        rebuildOverlays(mapView, network, focusedLine, alertedLineNames, markersVisible) { info ->
             selectedStation = info
             mapView?.let { map ->
                 if (map.zoomLevelDouble < 15) {
@@ -254,10 +249,8 @@ fun OSMNetworkMapRoute(
                     exit = slideOutVertically { it } + androidx.compose.animation.fadeOut(),
                 ) {
                     selectedStation?.let { info ->
-                        val stop = remember(info) { viewModel.stopByName(info.name) }
                         StationArrivalsPanel(
                             stationInfo = info,
-                            stopId = stop?.id,
                             viewModel = viewModel,
                             onClose = { selectedStation = null },
                         )
@@ -277,7 +270,7 @@ fun OSMNetworkMapRoute(
                                 .padding(horizontal = 10.dp, vertical = 8.dp),
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
-                            metroLines.forEach { line ->
+                            network.lines.forEach { line ->
                                 val isFocused = focusedLine == line.name
                                 val isDimmed = focusedLine != null && !isFocused
                                 val hasAlert = line.name.removePrefix("L") in
@@ -390,18 +383,13 @@ fun OSMNetworkMapRoute(
                 )
             }
 
-            nearestStation?.let { (name, distance, pos) ->
+            nearestStation?.let { (station, distance, pos) ->
                 Surface(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .padding(top = 8.dp)
                         .clickable {
-                            val lines = stationLines[name] ?: emptyList()
-                            selectedStation = StationInfo(
-                                name = name,
-                                lines = lines,
-                                position = pos,
-                            )
+                            selectedStation = station
                             mapView?.let { map ->
                                 if (map.zoomLevelDouble < 15) {
                                     map.controller.setZoom(15.5)
@@ -428,7 +416,7 @@ fun OSMNetworkMapRoute(
                             tint = MaterialTheme.colorScheme.primary,
                         )
                         Text(
-                            text = name,
+                            text = station.name,
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold,
                         )
@@ -447,11 +435,11 @@ fun OSMNetworkMapRoute(
 
 @Composable
 private fun StationArrivalsPanel(
-    stationInfo: StationInfo,
-    stopId: String?,
+    stationInfo: MapStation,
     viewModel: MapViewModel,
     onClose: () -> Unit,
 ) {
+    val stopId = stationInfo.stopId
     val arrivalsLoaded by remember(stopId) {
         if (stopId != null) {
             kotlinx.coroutines.flow.flow {
@@ -500,10 +488,9 @@ private fun StationArrivalsPanel(
                     Spacer(Modifier.height(6.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         stationInfo.lines.forEach { lineName ->
-                            val line = metroLines.find { it.name == lineName }
                             LineBadge(
                                 label = lineName.removePrefix("L"),
-                                colorArgb = line?.color?.toLong(),
+                                colorArgb = viewModel.network.value.lineColor(lineName)?.toLong(),
                                 size = 26.dp,
                             )
                         }
@@ -638,10 +625,11 @@ private fun ArrivalRowCompact(arrival: Arrival) {
 
 private fun rebuildOverlays(
     map: MapView?,
+    network: MapNetwork,
     focusedLine: String?,
     alertedLineNames: Set<String>,
     showMarkers: Boolean,
-    onStationTap: (StationInfo) -> Unit,
+    onStationTap: (MapStation) -> Unit,
 ) {
     val m = map ?: return
     val isAnyFocused = focusedLine != null
@@ -651,7 +639,7 @@ private fun rebuildOverlays(
     val res = m.context.resources
     val density = res.displayMetrics.density
 
-    metroLines.forEach { line ->
+    network.lines.forEach { line ->
         val isFocused = focusedLine == line.name
         val lineAlpha = when {
             !isAnyFocused -> 220
@@ -660,7 +648,7 @@ private fun rebuildOverlays(
         }
         val strokeWidth = when {
             isFocused -> 10f
-            line.tram -> 5f
+            line.isTram -> 5f
             else -> 7f
         }
 
@@ -676,9 +664,10 @@ private fun rebuildOverlays(
             })
         }
 
-        if (showMarkers) line.stations.forEach { (name, _) ->
-            val point = stationPoints[name] ?: return@forEach
-            val linesForStation = stationLines[name] ?: emptyList()
+        if (showMarkers) line.stationNames.forEach { name ->
+            val station = network.stationFor(name) ?: return@forEach
+            val point = station.position
+            val linesForStation = station.lines
             val stationOnFocused = isAnyFocused && focusedLine in linesForStation
             val markerAlpha = when {
                 !isAnyFocused -> 1f
@@ -687,11 +676,9 @@ private fun rebuildOverlays(
             }
 
             val primaryColor = linesForStation.firstOrNull()
-                ?.let { ln -> metroLines.find { it.name == ln }?.color }
+                ?.let { ln -> network.lineColor(ln) }
                 ?: line.color
-            val lineColors = linesForStation.mapNotNull { ln ->
-                metroLines.find { it.name == ln }?.color
-            }
+            val lineColors = linesForStation.mapNotNull { ln -> network.lineColor(ln) }
             val lineNumbers = linesForStation.map { it.removePrefix("L") }
 
             m.overlays.add(Marker(m).apply {
@@ -702,12 +689,8 @@ private fun rebuildOverlays(
                     alpha = (markerAlpha * 255).toInt()
                 }
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                setOnMarkerClickListener { marker, _ ->
-                    onStationTap(StationInfo(
-                        name = marker.title ?: "",
-                        lines = linesForStation,
-                        position = marker.position,
-                    ))
+                setOnMarkerClickListener { _, _ ->
+                    onStationTap(station)
                     true
                 }
             })

@@ -124,6 +124,30 @@ the MVP.
 
 `stops` is a CSV of `estacion_id_FGV` values in line order.
 
+> **Caveat (2026-09-21):** the `stops` CSV is **not** always in travel order.
+> Branch lines enumerate terminals first: L4 starts `110,111,112,...`
+> (Mas del Rosari, La Coma, Tomás y Valiente, ...), a zig-zag that does not
+> follow the rails. Do not build a polyline by joining stations in `stops`
+> order; the result is a visibly wrong line.
+
+### Network geometry for the map (shape points)
+
+The map draws the network from **shape points**, not by joining stations:
+
+- `lineas[].forma_id` identifies the line's shape.
+- `sincronizacion.data.puntos[]` carries the shape vertices as
+  `{forma_id_FGV, orden, latitud, longitud}`. Filtering by the line's
+  `forma_id` and sorting by `orden` yields the authoritative track alignment.
+- `estaciones[]` (id 226 style) supplies the real lat/lon used to place station
+  markers, so markers always sit on the drawn alignment.
+
+The FGV bundle is large (~6 MB, no compression). `MetrovalenciaApi.getSincronizacion`
+is only called when a map is opened, the repository shares it for the process
+lifetime (`SharingStarted.Lazily`) and refreshes it at the 6 h catalogue cadence,
+so re-opening the map does not re-download it. The bundled hardcoded geometry in
+`app/.../MetrovalenciaMapData.kt` is kept **only** as an offline fallback for
+when the bundle cannot be fetched.
+
 ### Live-arrivals shape (observed live)
 
 ```json

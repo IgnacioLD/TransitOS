@@ -4,8 +4,10 @@ import com.glossostudio.transitos.core.model.Alert
 import com.glossostudio.transitos.core.model.Arrival
 import com.glossostudio.transitos.core.model.Journey
 import com.glossostudio.transitos.core.model.Line
+import com.glossostudio.transitos.core.model.LineGeometry
 import com.glossostudio.transitos.core.model.Stop
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.datetime.LocalDate
 
 /**
@@ -24,6 +26,14 @@ import kotlinx.datetime.LocalDate
 public interface TransitRepository {
     public fun observeStops(): Flow<List<Stop>>
     public fun observeLines(): Flow<List<Line>>
+
+    /**
+     * The operator-published shape of every line, for drawing the network on a
+     * map. Providers that do not publish geometry return an empty list, so the
+     * UI can fall back to bundled offline data.
+     */
+    public fun observeLineGeometries(): Flow<List<LineGeometry>> = flowOf(emptyList())
+
     public fun observeArrivals(stopId: String): Flow<List<Arrival>>
     public fun observeAlerts(): Flow<List<Alert>>
 

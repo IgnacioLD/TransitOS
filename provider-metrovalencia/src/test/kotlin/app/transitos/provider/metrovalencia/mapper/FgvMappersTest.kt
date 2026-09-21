@@ -10,7 +10,10 @@ import com.glossostudio.transitos.provider.metrovalencia.dto.FgvPasoDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvPlanificadorDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvPlanificadorLineaDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvPrevisionDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvShapePointDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvSincronizacionResponseDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvStationDto
+import com.glossostudio.transitos.provider.metrovalencia.dto.FgvSyncDataDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvTrainDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvTransbordoDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvTransbordoPlanificadorDto
@@ -379,5 +382,99 @@ class FgvMappersTest {
         assertThat(addMinutesToTime("10:00", 15)).isEqualTo("10:15")
         assertThat(addMinutesToTime("23:50", 20)).isEqualTo("00:10")
         assertThat(addMinutesToTime("09:00", 0)).isEqualTo("09:00")
+    }
+
+    @Test
+    fun `sync bundle builds geometry from shape points ordered by orden`() {
+        val dto = FgvSincronizacionResponseDto(
+            data = FgvSyncDataDto(
+                lineas = listOf(
+                    FgvLineDto(
+                        lineaIdFgv = 4, nombreCorto = "L4", tipo = "0",
+                        color = "#014A99", formaId = 12, stops = "111,110",
+                    ),
+                ),
+                estaciones = listOf(
+                    FgvStationDto(estacionIdFgv = 110, nombre = "Mas del Rosari", latitud = 39.5249, longitud = -0.4358),
+                    FgvStationDto(estacionIdFgv = 111, nombre = "La Coma", latitud = 39.5215, longitud = -0.4317),
+                ),
+                puntos = listOf(
+                    // Declared out of order on purpose: orden must win.
+                    FgvShapePointDto(formaIdFgv = 12, orden = 2, latitud = 39.48, longitud = -0.36),
+                    FgvShapePointDto(formaIdFgv = 12, orden = 1, latitud = 39.47, longitud = -0.37),
+                ),
+            ),
+        )
+
+        val geometries = dto.toLineGeometries()
+
+        val line = geometries.single()
+        assertThat(line.lineId).isEqualTo("mv:4")
+        assertThat(line.shortName).isEqualTo("L4")
+        assertThat(line.color).isEqualTo(0xFF014A99L)
+        assertThat(line.isTram).isTrue()
+        assertThat(line.mode).isEqualTo(TransportMode.TRAM)
+        // Shape order comes from `orden`, not from the stops CSV order.
+        assertThat(line.points.map { it.lat }).containsExactly(39.47, 39.48).inOrder()
+        assertThat(line.stationIds).containsExactly("mv:111", "mv:110").inOrder()
+    }
+
+    @Test
+    fun `sync bundle falls back to station coordinates when a line has no shape`() {
+        val dto = FgvSincronizacionResponseDto(
+            data = FgvSyncDataDto(
+                lineas = listOf(
+                    FgvLineDto(lineaIdFgv = 1, nombreCorto = "L1", tipo = "1", formaId = 99, stops = "10,20"),
+                ),
+                estaciones = listOf(
+                    FgvStationDto(estacionIdFgv = 10, nombre = "A", latitud = 39.1, longitud = -0.1),
+                    FgvStationDto(estacionIdFgv = 20, nombre = "B", latitud = 39.2, longitud = -0.2),
+                ),
+                puntos = emptyList(),
+            ),
+        )
+
+        val line = dto.toLineGeometries().single()
+
+        assertThat(line.isTram).isFalse()
+        assertThat(line.points.map { it.lat }).containsExactly(39.1, 39.2).inOrder()
+    }
+
+    @Test
+    fun `sync bundle drops lines with fewer than two drawable points`() {
+        val dto = FgvSincronizacionResponseDto(
+            data = FgvSyncDataDto(
+                lineas = listOf(
+                    FgvLineDto(lineaIdFgv = 8, nombreCorto = "L8", formaId = 9, stops = "5"),
+                ),
+                estaciones = listOf(
+                    FgvStationDto(estacionIdFgv = 5, nombre = "Only", latitud = 39.1, longitud = -0.1),
+                ),
+                puntos = listOf(
+                    FgvShapePointDto(formaIdFgv = 9, orden = 1, latitud = 39.1, longitud = -0.1),
+                ),
+            ),
+        )
+
+        assertThat(dto.toLineGeometries()).isEmpty()
+    }
+
+    @Test
+    fun `sync bundle skips shape points with null coordinates`() {
+        val dto = FgvSincronizacionResponseDto(
+            data = FgvSyncDataDto(
+                lineas = listOf(
+                    FgvLineDto(lineaIdFgv = 1, nombreCorto = "L1", formaId = 2, stops = "1,2"),
+                ),
+                estaciones = emptyList(),
+                puntos = listOf(
+                    FgvShapePointDto(formaIdFgv = 2, orden = 1, latitud = 39.0, longitud = -0.1),
+                    FgvShapePointDto(formaIdFgv = 2, orden = 2, latitud = null, longitud = -0.2),
+                    FgvShapePointDto(formaIdFgv = 2, orden = 3, latitud = 39.2, longitud = -0.3),
+                ),
+            ),
+        )
+
+        assertThat(dto.toLineGeometries().single().points).hasSize(2)
     }
 }

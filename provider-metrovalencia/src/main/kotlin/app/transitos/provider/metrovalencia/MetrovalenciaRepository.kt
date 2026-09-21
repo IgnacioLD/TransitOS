@@ -4,6 +4,7 @@ import com.glossostudio.transitos.core.model.Alert
 import com.glossostudio.transitos.core.model.Arrival
 import com.glossostudio.transitos.core.model.Journey
 import com.glossostudio.transitos.core.model.Line
+import com.glossostudio.transitos.core.model.LineGeometry
 import com.glossostudio.transitos.core.model.Stop
 import com.glossostudio.transitos.core.provider.ProviderSettingsRepository
 import com.glossostudio.transitos.core.repository.TransitRepository
@@ -18,6 +19,7 @@ import com.glossostudio.transitos.provider.metrovalencia.mapper.toAlert
 import com.glossostudio.transitos.provider.metrovalencia.mapper.toArrivals
 import com.glossostudio.transitos.provider.metrovalencia.mapper.toJourney
 import com.glossostudio.transitos.provider.metrovalencia.mapper.toLine
+import com.glossostudio.transitos.provider.metrovalencia.mapper.toLineGeometries
 import com.glossostudio.transitos.provider.metrovalencia.mapper.toStop
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CoroutineScope
@@ -104,8 +106,25 @@ class MetrovalenciaRepository(
         refreshSignal = alertsRefreshSignal,
     )
 
+    /**
+     * The network shape comes from `/sincronizacion`, a ~6 MB bundle that only
+     * the map needs. Starting [SharingStarted.Lazily] means the app never pays
+     * for it unless a map is opened, and keeping it shared for the process
+     * lifetime means re-opening the map does not re-download it. The slow
+     * catalogue cadence still refreshes it while the process stays alive.
+     */
+    private val lineGeometriesState: StateFlow<List<LineGeometry>> = flow {
+        while (true) {
+            emit(runCatching { api.getSincronizacion().toLineGeometries() }.getOrDefault(emptyList()))
+            delay(config.catalogRefreshMs)
+        }
+    }
+        .distinctUntilChanged()
+        .stateIn(scope = ioScope, started = SharingStarted.Lazily, initialValue = emptyList())
+
     override fun observeStops(): Flow<List<Stop>> = stopsState
     override fun observeLines(): Flow<List<Line>> = linesState
+    override fun observeLineGeometries(): Flow<List<LineGeometry>> = lineGeometriesState
 
     override fun observeAlerts(): Flow<List<Alert>> =
         backend.flatMapLatest { currentBackend ->
