@@ -77,7 +77,7 @@ private fun FgvTrainDto.toArrival(
 ): Arrival = Arrival(
     stopId = stopId,
     lineId = lineId,
-    destination = destino,
+    destination = destino.orEmpty(),
     estimatedEpochMs = nowEpochMs + seconds * 1_000L,
     minutesAway = (seconds / 60L).toInt(),
     vehicleId = vehicle?.toString(),

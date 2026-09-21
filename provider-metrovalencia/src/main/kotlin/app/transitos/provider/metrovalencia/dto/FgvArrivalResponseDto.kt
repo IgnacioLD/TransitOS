@@ -24,7 +24,7 @@ data class FgvPrevisionDto(
 @Serializable
 data class FgvTrainDto(
     val cabecera: Boolean? = null,
-    val destino: String,
+    val destino: String? = null,
     val latitude: Double? = null,
     val longitude: Double? = null,
     val meters: Double? = null,
