@@ -5,11 +5,14 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +20,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -72,7 +76,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -755,114 +761,226 @@ private fun SheetHeaderRow(
     }
 }
 
-@Composable
-private fun SheetTimeline(journey: Journey) {
-    val spacing = LocalSpacing.current
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(spacing.sm),
-    ) {
-        journey.legs.forEachIndexed { i, leg ->
-            if (i == 0) {
-                TimelineStationRow(
-                    time = leg.departureTime,
-                    name = leg.originName,
-                    dotColor = MaterialTheme.colorScheme.primary,
-                )
-            } else {
-                val prevLeg = journey.legs[i - 1]
-                TimelineStationRow(
-                    time = prevLeg.arrivalTime,
-                    name = leg.originName,
-                    dotColor = MaterialTheme.colorScheme.outline,
-                )
-                leg.waitMinutes?.let { wait ->
-                    TimelineWaitRow(minutes = wait)
-                }
-            }
+private sealed interface TimelineNode {
+    val time: String?
 
-            TimelineLegInfo(
-                time = if (i > 0) leg.departureTime else null,
+    data class Station(
+        override val time: String?,
+        val name: String,
+        val kind: StationKind,
+    ) : TimelineNode
+
+    data class Ride(
+        override val time: String?,
+        val lines: List<String>,
+        val lineColors: List<Long>,
+        val headsigns: List<String>,
+        val railColor: Color,
+    ) : TimelineNode
+
+    data class Wait(
+        override val time: String?,
+        val minutes: Int,
+    ) : TimelineNode
+}
+
+private enum class StationKind { ORIGIN, TRANSFER, DESTINATION }
+
+/** Flattens a journey into the ordered nodes the timeline rail renders. */
+private fun buildTimelineNodes(journey: Journey): List<TimelineNode> = buildList {
+    journey.legs.forEachIndexed { index, leg ->
+        if (index == 0) {
+            add(TimelineNode.Station(leg.departureTime, leg.originName, StationKind.ORIGIN))
+        } else {
+            val previous = journey.legs[index - 1]
+            add(TimelineNode.Station(previous.arrivalTime, leg.originName, StationKind.TRANSFER))
+            leg.waitMinutes?.let { add(TimelineNode.Wait(time = null, minutes = it)) }
+        }
+        add(
+            TimelineNode.Ride(
+                time = if (index > 0) leg.departureTime else null,
                 lines = leg.lineNames,
                 lineColors = leg.lineColors,
                 headsigns = leg.headsigns,
-            )
-        }
-        val lastLeg = journey.legs.last()
-        TimelineStationRow(
-            time = lastLeg.arrivalTime,
-            name = lastLeg.destinationName,
-            dotColor = MaterialTheme.colorScheme.tertiary,
+                railColor = leg.lineColors.firstOrNull()?.let(::Color) ?: Color.Unspecified,
+            ),
         )
+    }
+    val last = journey.legs.last()
+    add(TimelineNode.Station(last.arrivalTime, last.destinationName, StationKind.DESTINATION))
+}
+
+@Composable
+private fun SheetTimeline(journey: Journey) {
+    val nodes = remember(journey) { buildTimelineNodes(journey) }
+    val primary = MaterialTheme.colorScheme.primary
+    val tertiary = MaterialTheme.colorScheme.tertiary
+    val outline = MaterialTheme.colorScheme.outline
+    val neutral = MaterialTheme.colorScheme.outlineVariant
+    val surface = MaterialTheme.colorScheme.surface
+
+    // One rail colour per node; rides carry their line colour, everything else
+    // (stations, waits) stays on the neutral track.
+    val railColors: List<Color> = nodes.map { node ->
+        when (node) {
+            is TimelineNode.Ride -> if (node.railColor == Color.Unspecified) primary else node.railColor
+            else -> neutral
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        nodes.forEachIndexed { index, node ->
+            val isFirst = index == 0
+            val isLast = index == nodes.lastIndex
+            val previousIsRide = index > 0 && nodes[index - 1] is TimelineNode.Ride
+            val nextIsRide = index < nodes.lastIndex && nodes[index + 1] is TimelineNode.Ride
+
+            when (node) {
+                is TimelineNode.Ride -> TimelineRow(
+                    time = node.time,
+                    timeColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    topRail = railColors[index],
+                    bottomRail = railColors[index],
+                    dotColor = null,
+                    ringColor = surface,
+                ) {
+                    RideContent(node)
+                }
+
+                is TimelineNode.Wait -> TimelineRow(
+                    time = null,
+                    timeColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    topRail = neutral,
+                    bottomRail = if (nextIsRide) railColors[index + 1] else neutral,
+                    dotColor = null,
+                    ringColor = surface,
+                ) {
+                    WaitContent(node.minutes)
+                }
+
+                is TimelineNode.Station -> {
+                    val dot = when (node.kind) {
+                        StationKind.ORIGIN -> primary
+                        StationKind.TRANSFER -> outline
+                        StationKind.DESTINATION -> tertiary
+                    }
+                    TimelineRow(
+                        time = node.time,
+                        timeColor = MaterialTheme.colorScheme.onSurface,
+                        topRail = when {
+                            isFirst -> null
+                            previousIsRide -> railColors[index - 1]
+                            else -> neutral
+                        },
+                        bottomRail = when {
+                            isLast -> null
+                            nextIsRide -> railColors[index + 1]
+                            else -> neutral
+                        },
+                        dotColor = dot,
+                        ringColor = surface,
+                    ) {
+                        StationContent(node.name, node.kind)
+                    }
+                }
+            }
+        }
     }
 }
 
 @Composable
-private fun TimelineStationRow(
+private fun TimelineRow(
     time: String?,
-    name: String,
-    dotColor: Color,
+    timeColor: Color,
+    topRail: Color?,
+    bottomRail: Color?,
+    dotColor: Color?,
+    ringColor: Color,
+    content: @Composable () -> Unit,
 ) {
-    val spacing = LocalSpacing.current
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
         Text(
             text = time ?: "",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = timeColor,
             modifier = Modifier.width(52.dp),
+        )
+        Rail(
+            topRail = topRail,
+            bottomRail = bottomRail,
+            dotColor = dotColor,
+            ringColor = ringColor,
+            modifier = Modifier
+                .width(28.dp)
+                .fillMaxHeight(),
         )
         Box(
             modifier = Modifier
-                .size(12.dp)
-                .clip(CircleShape)
-                .background(dotColor),
-        )
-        Text(
-            text = name,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
+                .weight(1f)
+                .padding(start = 4.dp, top = 9.dp, bottom = 9.dp),
+        ) {
+            content()
+        }
     }
 }
 
 @Composable
-private fun TimelineLegInfo(
-    time: String?,
-    lines: List<String>,
-    lineColors: List<Long>,
-    headsigns: List<String>,
+private fun Rail(
+    topRail: Color?,
+    bottomRail: Color?,
+    dotColor: Color?,
+    ringColor: Color,
+    modifier: Modifier = Modifier,
 ) {
-    val spacing = LocalSpacing.current
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-    ) {
-        Text(
-            text = time ?: "",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(52.dp),
-        )
-        Spacer(Modifier.width(12.dp + spacing.sm))
-        lines.forEachIndexed { index, lineName ->
-            LineBadge(
-                label = lineName,
-                colorArgb = lineColors.getOrNull(index),
-                size = 30.dp,
+    Canvas(modifier = modifier) {
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        val stroke = 4.dp.toPx()
+        topRail?.let {
+            drawLine(
+                color = it,
+                start = Offset(cx, 0f),
+                end = Offset(cx, cy),
+                strokeWidth = stroke,
+                cap = StrokeCap.Round,
             )
         }
-        if (headsigns.isNotEmpty()) {
+        bottomRail?.let {
+            drawLine(
+                color = it,
+                start = Offset(cx, cy),
+                end = Offset(cx, size.height),
+                strokeWidth = stroke,
+                cap = StrokeCap.Round,
+            )
+        }
+        if (dotColor != null) {
+            drawCircle(color = ringColor, radius = 8.dp.toPx(), center = Offset(cx, cy))
+            drawCircle(color = dotColor, radius = 5.5.dp.toPx(), center = Offset(cx, cy))
+        }
+    }
+}
+
+@Composable
+private fun RideContent(node: TimelineNode.Ride) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        node.lines.forEachIndexed { index, lineName ->
+            LineBadge(
+                label = lineName,
+                colorArgb = node.lineColors.getOrNull(index),
+                size = 32.dp,
+            )
+        }
+        if (node.headsigns.isNotEmpty()) {
             Icon(
                 imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
                 contentDescription = null,
@@ -870,7 +988,7 @@ private fun TimelineLegInfo(
                 modifier = Modifier.size(14.dp),
             )
             Text(
-                text = headsigns.joinToString(),
+                text = node.headsigns.joinToString(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
@@ -881,19 +999,28 @@ private fun TimelineLegInfo(
 }
 
 @Composable
-private fun TimelineWaitRow(minutes: Int) {
-    val spacing = LocalSpacing.current
+private fun StationContent(name: String, kind: StationKind) {
+    Text(
+        text = name,
+        style = MaterialTheme.typography.bodyLarge,
+        fontWeight = if (kind == StationKind.DESTINATION) FontWeight.SemiBold else FontWeight.Medium,
+        color = MaterialTheme.colorScheme.onSurface,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
+}
+
+@Composable
+private fun WaitContent(minutes: Int) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Spacer(Modifier.width(52.dp + 12.dp + spacing.md))
         Icon(
             imageVector = Icons.Outlined.Schedule,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.tertiary,
-            modifier = Modifier.size(14.dp),
+            modifier = Modifier.size(15.dp),
         )
         Text(
             text = stringResource(R.string.planner_wait_minutes, minutes),
@@ -907,16 +1034,7 @@ private fun TimelineWaitRow(minutes: Int) {
 private fun SheetStats(journey: Journey) {
     val stats = buildList {
         journey.fareZone?.let { add(stringResource(R.string.planner_fare_zone, it)) }
-        add(
-            if (journey.hasTransfers)
-                pluralStringResource(
-                    R.plurals.planner_transfers_count,
-                    journey.legs.size - 1,
-                    journey.legs.size - 1,
-                )
-            else
-                stringResource(R.string.planner_no_transfers),
-        )
+        add(transfersLabel(journey))
     }
     Surface(
         shape = MaterialTheme.shapes.medium,
@@ -933,6 +1051,18 @@ private fun SheetStats(journey: Journey) {
 }
 
 @Composable
+private fun transfersLabel(journey: Journey): String =
+    if (journey.hasTransfers) {
+        pluralStringResource(
+            R.plurals.planner_transfers_count,
+            journey.legs.size - 1,
+            journey.legs.size - 1,
+        )
+    } else {
+        stringResource(R.string.planner_no_transfers)
+    }
+
+@Composable
 private fun JourneyAlternatives(
     journeys: List<Journey>,
     selectedIndex: Int,
@@ -945,17 +1075,53 @@ private fun JourneyAlternatives(
             .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
-        journeys.forEachIndexed { i, journey ->
-            FilterChip(
-                selected = i == selectedIndex,
-                onClick = { onSelect(i) },
-                label = {
+        journeys.forEachIndexed { index, journey ->
+            val selected = index == selectedIndex
+            Surface(
+                onClick = { onSelect(index) },
+                shape = MaterialTheme.shapes.large,
+                color = if (selected) {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    MaterialTheme.colorScheme.surfaceContainerHigh
+                },
+                border = if (selected) {
+                    BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                } else {
+                    null
+                },
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    val onCard = if (selected) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    }
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        Text(
+                            text = journey.durationMinutes.toString(),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = onCard,
+                        )
+                        Text(
+                            text = stringResource(coreUiR.string.unit_minutes),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = onCard.copy(alpha = 0.75f),
+                            modifier = Modifier.padding(start = 3.dp, bottom = 3.dp),
+                        )
+                    }
                     Text(
-                        text = stringResource(R.string.planner_duration_minutes, journey.durationMinutes),
+                        text = transfersLabel(journey),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = onCard.copy(alpha = 0.75f),
                         maxLines = 1,
                     )
-                },
-            )
+                }
+            }
         }
     }
 }
