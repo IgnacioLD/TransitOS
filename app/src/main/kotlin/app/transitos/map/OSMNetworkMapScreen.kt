@@ -50,6 +50,7 @@ import androidx.compose.material.icons.outlined.NearMe
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -79,6 +80,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glossostudio.transitos.R
 import com.glossostudio.transitos.core.model.Arrival
+import com.glossostudio.transitos.core.ui.LineBadge
 import com.glossostudio.transitos.core.ui.R as coreUiR
 import org.koin.androidx.compose.koinViewModel
 import org.osmdroid.config.Configuration
@@ -187,7 +189,13 @@ fun OSMNetworkMapRoute(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.map_title)) },
+                title = {
+                    Text(
+                        text = stringResource(R.string.map_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(coreUiR.string.cd_back))
@@ -213,7 +221,7 @@ fun OSMNetworkMapRoute(
                         Icon(
                             imageVector = if (showLocation) Icons.Outlined.MyLocation
                             else Icons.Outlined.LocationOff,
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.map_location_cd),
                             tint = if (showLocation) MaterialTheme.colorScheme.primary
                             else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -247,59 +255,62 @@ fun OSMNetworkMapRoute(
 
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.surfaceContainer,
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                            .padding(horizontal = 8.dp, vertical = 6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        metroLines.forEach { line ->
-                            val isFocused = focusedLine == line.name
-                            val isDimmed = focusedLine != null && !isFocused
-                            val hasAlert = line.name.removePrefix("L") in
-                                alertedLineNames.map { it.removePrefix("L") }
+                    Column {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState())
+                                .padding(horizontal = 10.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            metroLines.forEach { line ->
+                                val isFocused = focusedLine == line.name
+                                val isDimmed = focusedLine != null && !isFocused
+                                val hasAlert = line.name.removePrefix("L") in
+                                    alertedLineNames.map { it.removePrefix("L") }
 
-                            Row(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isFocused) Color(line.color) else Color.Transparent)
-                                    .clickable { focusedLine = if (isFocused) null else line.name }
-                                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Box(
+                                Row(
                                     modifier = Modifier
-                                        .size(8.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                            if (isDimmed) Color(line.color).copy(alpha = 0.3f)
-                                            else Color(line.color)
-                                        ),
-                                )
-                                Spacer(Modifier.width(5.dp))
-                                Text(
-                                    line.name,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = if (isFocused) FontWeight.Bold else FontWeight.Medium,
-                                    color = when {
-                                        isFocused -> Color.White
-                                        isDimmed -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-                                        else -> MaterialTheme.colorScheme.onSurface
-                                    },
-                                )
-                                if (hasAlert) {
-                                    Spacer(Modifier.width(4.dp))
-                                    Icon(
-                                        Icons.Outlined.Warning,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(14.dp),
-                                        tint = if (isFocused) Color.White
-                                        else if (isDimmed) MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
-                                        else MaterialTheme.colorScheme.error,
+                                        .clip(MaterialTheme.shapes.small)
+                                        .background(if (isFocused) Color(line.color) else Color.Transparent)
+                                        .clickable { focusedLine = if (isFocused) null else line.name }
+                                        .padding(horizontal = 10.dp, vertical = 7.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                if (isDimmed) Color(line.color).copy(alpha = 0.3f)
+                                                else Color(line.color),
+                                            ),
                                     )
+                                    Spacer(Modifier.width(5.dp))
+                                    Text(
+                                        line.name,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = if (isFocused) FontWeight.Bold else FontWeight.Medium,
+                                        color = when {
+                                            isFocused -> Color.White
+                                            isDimmed -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                                            else -> MaterialTheme.colorScheme.onSurface
+                                        },
+                                    )
+                                    if (hasAlert) {
+                                        Spacer(Modifier.width(4.dp))
+                                        Icon(
+                                            Icons.Outlined.Warning,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(14.dp),
+                                            tint = if (isFocused) Color.White
+                                            else if (isDimmed) MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
+                                            else MaterialTheme.colorScheme.error,
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -419,12 +430,21 @@ private fun StationArrivalsPanel(
         modifier = Modifier
             .fillMaxWidth()
             .animateContentSize(),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 3.dp,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(bottom = 10.dp)
+                    .width(36.dp)
+                    .height(4.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.outlineVariant),
+            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -432,26 +452,18 @@ private fun StationArrivalsPanel(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         stationInfo.name,
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                     )
-                    Spacer(Modifier.height(4.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Spacer(Modifier.height(6.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         stationInfo.lines.forEach { lineName ->
                             val line = metroLines.find { it.name == lineName }
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(Color(line?.color ?: AndroidColor.GRAY))
-                                    .padding(horizontal = 8.dp, vertical = 2.dp),
-                            ) {
-                                Text(
-                                    lineName.removePrefix("L"),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                            }
+                            LineBadge(
+                                label = lineName.removePrefix("L"),
+                                colorArgb = line?.color?.toLong(),
+                                size = 26.dp,
+                            )
                         }
                     }
                 }
