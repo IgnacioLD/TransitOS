@@ -111,5 +111,10 @@ private fun AppError.toPresentation(): ErrorPresentation = when (this) {
     is AppError.Server -> ErrorPresentation(Icons.Outlined.ErrorOutline, R.string.error_server_title, R.string.error_server_body, titleFormatArg = code)
     is AppError.NotFound -> ErrorPresentation(Icons.Outlined.Info, R.string.error_not_found_title, R.string.error_not_found_body)
     is AppError.Parsing -> ErrorPresentation(Icons.Outlined.ErrorOutline, R.string.error_parsing_title, R.string.error_parsing_body)
-    is AppError.Unknown -> ErrorPresentation(Icons.Outlined.ErrorOutline, R.string.error_unknown_title, bodyRes = 0, dynamicBody = message)
+    is AppError.Unknown -> ErrorPresentation(
+        icon = Icons.Outlined.ErrorOutline,
+        titleRes = R.string.error_unknown_title,
+        bodyRes = R.string.error_unknown_message,
+        dynamicBody = message.ifBlank { null },
+    )
 }

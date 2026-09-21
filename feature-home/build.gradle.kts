@@ -56,6 +56,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.truth)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.kotlinx.datetime)
     testImplementation(libs.koin.test)
     testImplementation(libs.turbine)
 }
