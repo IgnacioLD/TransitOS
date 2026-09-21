@@ -28,9 +28,6 @@ object Alpha {
 
     /** Subtle hint of presence, used for non-interactive decorative text. */
     const val HINT = 0.72f
-
-    /** Hairline borders and dividers on tonally-elevated surfaces. */
-    const val HAIRLINE = 0.12f
 }
 
 /** Material 3 scrim colour used behind modal sheets and dialogs. */

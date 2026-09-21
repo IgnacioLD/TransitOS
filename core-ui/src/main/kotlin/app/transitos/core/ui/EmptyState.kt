@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -84,21 +82,4 @@ fun EmptyState(
             }
         }
     }
-}
-
-/** Convenience empty state with a default "add" icon. */
-@Composable
-fun EmptyState(
-    title: String,
-    modifier: Modifier = Modifier,
-    subtitle: String? = null,
-    action: (@Composable () -> Unit)? = null,
-) {
-    EmptyState(
-        icon = Icons.Outlined.Add,
-        title = title,
-        subtitle = subtitle,
-        modifier = modifier,
-        action = action,
-    )
 }

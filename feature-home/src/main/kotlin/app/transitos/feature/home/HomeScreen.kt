@@ -136,7 +136,7 @@ internal fun HomeScreen(
             Box(modifier = Modifier.padding(padding)) {
                 when (current) {
                     HomeUiState.Loading -> FavoritesSkeleton()
-                    is HomeUiState.Error -> ErrorState(error = current.error)
+                    is HomeUiState.Error -> ErrorState(error = current.error, onRetry = onRefresh)
                     is HomeUiState.Ready -> {
                         PullToRefreshBox(
                             isRefreshing = current.isRefreshing,

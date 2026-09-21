@@ -75,11 +75,3 @@ fun TransitOSTheme(
         )
     }
 }
-
-/** True when [themeMode] resolves to a dark palette (DARK or AMOLED). */
-@Composable
-fun ThemeMode.isDark(): Boolean = when (this) {
-    ThemeMode.DARK, ThemeMode.AMOLED -> true
-    ThemeMode.LIGHT -> false
-    ThemeMode.SYSTEM -> isSystemInDarkTheme()
-}

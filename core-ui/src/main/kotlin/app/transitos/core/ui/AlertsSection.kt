@@ -51,7 +51,7 @@ fun AlertsSection(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = spacing.screenGutter, vertical = spacing.xs),
+            .padding(vertical = spacing.xs),
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
         SectionHeader(
@@ -66,7 +66,9 @@ fun AlertsSection(
                 lineShortName = alert.lineShortName,
                 lineColor = alert.lineColor,
                 severity = alert.severity,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = spacing.screenGutter),
             )
         }
 

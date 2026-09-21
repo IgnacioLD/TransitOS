@@ -51,4 +51,3 @@ enum class TopLevelDestination(
         selectedIcon = Icons.Filled.Map,
     ),
 }
-

@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 private val Family = FontFamily.SansSerif
 
 /** Turns on tabular (monospaced) figures so live counters stop jittering. */
-val tabularFigures = TextStyle(fontFamily = Family, fontFeatureSettings = "tnum")
+const val TabularFigures = "tnum"
 
 private val baseline = TextStyle(fontFamily = Family)
 

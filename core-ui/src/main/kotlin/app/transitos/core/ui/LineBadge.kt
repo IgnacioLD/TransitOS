@@ -1,6 +1,7 @@
 package com.glossostudio.transitos.core.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
@@ -25,8 +26,10 @@ import com.glossostudio.transitos.core.design.theme.onColor
  * The coloured line identifier chip, `L3` on the line's brand colour.
  *
  * This is the single most recognisable transit-app element, so it gets a little
- * care: a soft top-light gradient for depth and a hairline border so pale
- * operator colours (yellow, light grey) still read against a pale surface.
+ * care: the brand colour sits on the bottom, a soft top-light gradient is
+ * layered over it for depth, and a hairline border in the foreground colour
+ * keeps pale operator colours (yellow, light grey) legible against a pale
+ * surface.
  *
  * Falls back to the theme primary when no colour is supplied, so the badge is
  * never an empty coloured square.
@@ -53,6 +56,7 @@ fun LineBadge(
         modifier = modifier
             .defaultMinSize(minWidth = size, minHeight = size)
             .clip(shape)
+            .background(badgeColor)
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
@@ -61,7 +65,7 @@ fun LineBadge(
                     ),
                 ),
             )
-            .background(badgeColor)
+            .border(width = 1.dp, color = foreground.copy(alpha = 0.15f), shape = shape)
             .padding(horizontal = size * 0.12f)
             .then(
                 if (contentDescription != null) {
@@ -83,31 +87,3 @@ fun LineBadge(
     }
 }
 
-/**
- * A quiet outlined badge used when a line has no known brand colour. Keeps the
- * grid honest instead of painting the fallback primary on every unknown line.
- */
-@Composable
-fun LineBadgeOutline(
-    label: String,
-    modifier: Modifier = Modifier,
-    size: Dp = 40.dp,
-) {
-    val shape = RoundedCornerShape(size * 0.30f)
-    Box(
-        modifier = modifier
-            .defaultMinSize(minWidth = size, minHeight = size)
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .padding(horizontal = size * 0.12f),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = label,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.labelLarge,
-            fontSize = if (label.length > 2) (size.value * 0.34f).sp else (size.value * 0.42f).sp,
-            maxLines = 1,
-        )
-    }
-}
