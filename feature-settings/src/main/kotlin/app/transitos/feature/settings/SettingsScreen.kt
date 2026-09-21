@@ -48,6 +48,7 @@ import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.SettingsBrightness
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.Train
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -60,6 +61,7 @@ import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -102,6 +104,7 @@ fun SettingsRoute(
 ) {
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val transferBuffer by viewModel.transferBufferMinutes.collectAsStateWithLifecycle()
+    val liveTrainsEnabled by viewModel.liveTrainsEnabled.collectAsStateWithLifecycle()
     val ratingThanks by viewModel.ratingThanks.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val versionName = rememberVersionName()
@@ -130,6 +133,8 @@ fun SettingsRoute(
         onThemeChange = viewModel::setThemeMode,
         transferBufferMinutes = transferBuffer,
         onTransferBufferChange = viewModel::setTransferBufferMinutes,
+        liveTrainsEnabled = liveTrainsEnabled,
+        onLiveTrainsChange = viewModel::setLiveTrainsEnabled,
         onReplayOnboarding = onReplayOnboarding,
         onShowHintsAgain = viewModel::resetHints,
         onRateApp = viewModel::requestReview,
@@ -184,6 +189,8 @@ internal fun SettingsScreen(
     onThemeChange: (ThemeMode) -> Unit,
     transferBufferMinutes: Int,
     onTransferBufferChange: (Int) -> Unit,
+    liveTrainsEnabled: Boolean,
+    onLiveTrainsChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     onReplayOnboarding: () -> Unit = {},
     onShowHintsAgain: () -> Unit = {},
@@ -244,6 +251,11 @@ internal fun SettingsScreen(
             TransferBufferSection(
                 minutes = transferBufferMinutes,
                 onChange = onTransferBufferChange,
+            )
+
+            ExperimentalSection(
+                liveTrainsEnabled = liveTrainsEnabled,
+                onLiveTrainsChange = onLiveTrainsChange,
             )
 
             AppActionsSection(
@@ -544,6 +556,57 @@ private fun TransferBufferSection(
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExperimentalSection(
+    liveTrainsEnabled: Boolean,
+    onLiveTrainsChange: (Boolean) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        SectionTitle(Icons.Outlined.Train, stringResource(R.string.settings_experimental))
+        SettingsCard {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.tertiaryContainer),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Train,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.settings_live_trains),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_live_trains_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(
+                    checked = liveTrainsEnabled,
+                    onCheckedChange = onLiveTrainsChange,
                 )
             }
         }
