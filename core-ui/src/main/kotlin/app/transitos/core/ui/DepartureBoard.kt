@@ -1,6 +1,5 @@
 package com.glossostudio.transitos.core.ui
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -21,12 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -212,32 +208,37 @@ private fun UpcomingChip(arrival: Arrival) {
     }
 }
 
-/** Faint rail watermark so the hero reads as part of the network language. */
+/**
+ * Faint schematic metro plan behind the board, so the hero reads as part of the
+ * network language. The official line colours are blended onto the brand
+ * gradient at low opacity: present and recognisable, but never competing with
+ * the departure text. A single dot travels the yellow line for a touch of life.
+ */
 @Composable
 private fun HeroWatermark(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier) {
-        val w = size.width
-        val h = size.height
-        val stroke = h * 0.075f
-        val paint = Color.White.copy(alpha = 0.07f)
-
-        val first = Path().apply {
-            moveTo(-w * 0.05f, h * 0.86f)
-            quadraticTo(w * 0.32f, h * 0.56f, w * 0.60f, h * 0.66f)
-            quadraticTo(w * 0.84f, h * 0.74f, w * 1.06f, h * 0.30f)
-        }
-        val second = Path().apply {
-            moveTo(-w * 0.05f, h * 1.05f)
-            quadraticTo(w * 0.40f, h * 0.82f, w * 0.72f, h * 0.92f)
-            quadraticTo(w * 0.94f, h * 0.99f, w * 1.06f, h * 0.70f)
-        }
-        drawPath(first, color = paint, style = Stroke(width = stroke, cap = StrokeCap.Round))
-        drawPath(second, color = paint, style = Stroke(width = stroke, cap = StrokeCap.Round))
-
-        drawCircle(color = Color.White.copy(alpha = 0.10f), radius = stroke * 0.6f, center = Offset(w * 0.60f, h * 0.66f))
-        drawCircle(color = Color.White.copy(alpha = 0.10f), radius = stroke * 0.6f, center = Offset(w * 0.32f, h * 0.78f))
-    }
+    MetroNetworkArtwork(
+        network = MetrovalenciaNetworks.hero,
+        style = HeroMetroStyle,
+        modifier = modifier,
+        animate = true,
+    )
 }
+
+private val HeroMetroStyle = MetroArtStyle(
+    frame = MetroFrame.COVER,
+    strokeScale = 0.026f,
+    lineAlpha = 0.30f,
+    // A deep-teal casing (rather than black) separates crossings without the
+    // muddy outlines a pure black under-stroke leaves on the brand gradient.
+    casingColor = BrandColors.HeroGradientBottom.copy(alpha = 0.55f),
+    casingScale = 0.7f,
+    stationColor = Color.White.copy(alpha = 0.22f),
+    ringColor = Color.White.copy(alpha = 0.34f),
+    terminalColor = Color.White.copy(alpha = 0.44f),
+    blendMode = BlendMode.Screen,
+    trainLineId = "L1",
+    trainColor = Color.White.copy(alpha = 0.85f),
+)
 
 @Composable
 private fun relativeTimeLabel(epochMs: Long): String = when (val relative = relativeTime(epochMs)) {
