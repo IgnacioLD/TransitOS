@@ -118,6 +118,23 @@ class FgvMappersTest {
     }
 
     @Test
+    fun `train with null destino maps to empty destination instead of failing`() {
+        val prevision = FgvPrevisionDto(
+            lineId = 6L,
+            trains = listOf(FgvTrainDto(destino = null, seconds = 120)),
+        )
+
+        val arrivals = prevision.toArrivals(
+            stopId = "mv:12",
+            nowEpochMs = 0L,
+            lineByFgvId = emptyMap(),
+        )
+
+        assertThat(arrivals).hasSize(1)
+        assertThat(arrivals[0].destination).isEmpty()
+    }
+
+    @Test
     fun `prevision with no trains yields empty list`() {
         val prevision = FgvPrevisionDto(lineId = 1L, trains = emptyList())
 

@@ -1,0 +1,143 @@
+{
+  "locale": "ca",
+  "play_locale": "ca-ES",
+  "app_name": "TransitOS",
+  "tagline": "El transport públic, més fàcil",
+  "trust": [
+    "Gratuït",
+    "Codi obert",
+    "Sense rastreig"
+  ],
+  "feature_graphic": {
+    "features": [
+      {
+        "title": "Planificador en temps real",
+        "subtitle": "Horaris exactes i colors oficials"
+      },
+      {
+        "title": "Privacitat per davant",
+        "subtitle": "Sense anuncis ni rastreig, les dades al mòbil"
+      },
+      {
+        "title": "Tota Metrovalencia",
+        "subtitle": "10 línies, avisos en directe i rutes guardades"
+      }
+    ],
+    "card": {
+      "kicker": "PRÒXIMA EIXIDA",
+      "live": "En directe",
+      "stop": "Benimaclet",
+      "destination": "Aeroport",
+      "minutes": "1",
+      "unit": "min",
+      "chips": [
+        "L9   5 min",
+        "L6   8 min"
+      ]
+    }
+  },
+  "promo": {
+    "line": "Transport públic"
+  },
+  "captions": {
+    "home": {
+      "headline": [
+        "El teu pròxim tren,",
+        "d'un colp d'ull"
+      ],
+      "sub": [
+        "Arribades en directe de",
+        "les teues parades preferides"
+      ]
+    },
+    "alerts": {
+      "headline": [
+        "Assabenta't abans",
+        "d'eixir"
+      ],
+      "sub": [
+        "Avisos de servei en",
+        "temps real per a cada línia"
+      ]
+    },
+    "search": {
+      "headline": [
+        "Troba qualsevol",
+        "estació"
+      ],
+      "sub": [
+        "Busca entre les 144",
+        "parades de la xarxa"
+      ]
+    },
+    "planner": {
+      "headline": [
+        "Planifica tot",
+        "el viatge"
+      ],
+      "sub": [
+        "Rutes, transbords i",
+        "colors oficials"
+      ]
+    },
+    "settings": {
+      "headline": [
+        "Fes-la teua",
+        ""
+      ],
+      "sub": [
+        "Temes, idioma i",
+        "marge de transbord"
+      ]
+    },
+    "map": {
+      "headline": [
+        "Explora",
+        "la xarxa"
+      ],
+      "sub": [
+        "Totes les línies i",
+        "estacions al mapa"
+      ]
+    },
+    "dark": {
+      "headline": [
+        "Còmode",
+        "de nit"
+      ],
+      "sub": [
+        "Un tema fosc i tranquil",
+        "per a viatjar de nit"
+      ]
+    },
+    "amoled": {
+      "headline": [
+        "Negre pur",
+        "AMOLED"
+      ],
+      "sub": [
+        "El negre real estalvia bateria",
+        "en pantalles OLED"
+      ]
+    }
+  },
+  "short_description": "Horaris de metro i tramvia, arribades en directe i planificador a València.",
+  "full_description": "TransitOS és una app de transport públic gratuïta per a moure't en metro i tramvia. Consulta horaris i arribades en temps real, planifica els teus viatges amb transbords i segueix el mapa de la xarxa: tot el que necessites per a moure't per València amb Metrovalencia, sense anuncis i sense rastreig.\n\nARRIBADES I HORARIS EN TEMPS REAL\n\nGuarda les teues parades de metro i tramvia preferides i consulta les pròximes arribades d'un colp d'ull. Cada eixida mostra la línia, el destí i els minuts que falten, actualitzats en directe. Ideal per al dia a dia i per a no perdre l'últim tren.\n\nPLANIFICADOR DE VIATGES AMB TRANSBORDS\n\nPlanifica qualsevol trajecte per la xarxa de metro i tramvia. Busca un origen i un destí i TransitOS troba les millors rutes, amb cada transbord, les línies que has de prendre, el temps a peu i la durada total del viatge. Tria eixir ara o arribar a una hora concreta i configura un marge de transbord perquè només et propose enllaços que pugues agafar amb tranquil·litat.\n\nMAPA DE LA XARXA DE METROVALENCIA\n\nExplora el mapa complet de la xarxa de Metrovalencia, amb totes les línies en els seus colors oficials i cada estació i connexió. Fes zoom, comprova on has de canviar de línia i descarrega el pla PDF oficial per a consultar-lo sense connexió.\n\nAVISOS DE SERVEI\n\nLes incidències, els retards i les obres programades apareixen abans que isques, perquè pugues triar una ruta alternativa en compte d'assabentar-te a l'estació.\n\nPREFERITS I RUTES GUARDADES\n\nMarca amb una estrella les parades que uses cada dia i guarda els teus trajectes habituals, de casa a la feina o a l'aeroport, amb una etiqueta pròpia per a accedir amb un sol toc.\n\nMODE FOSC I AMOLED\n\nTemes del sistema, clar, fosc i negre pur AMOLED, còmodes per a la vista de nit i més eficients amb la bateria en pantalles OLED.\n\nPRIVACITAT PER DISSENY\n\nTransitOS és privada per defecte. Sense anuncis, sense rastreig, sense analítica i sense compte. Les dades de la teua ubicació es queden al teu dispositiu i mai s'envien enlloc. L'aplicació només es connecta a l'API pública de l'operador de transport per HTTPS, directament des del teu mòbil.\n\nMULTIIDIOMA\n\nDisponible en anglés, espanyol i valencià, amb l'idioma que tries aplicat a l'instant.\n\nCODI OBERT\n\nTransitOS és programari lliure sota la llicència AGPL-3.0. El codi font complet està en github.com/IgnacioLD/TransitOS, i s'agraeixen les contribucions, els informes d'errors i les traduccions.\n\nPensada primer per a Metrovalencia (FGV), la xarxa de metro i tramvia de València, i dissenyada per a créixer com a app de transport públic multioperador: pròximament més ciutats i operadors.\n\nTransitOS és un projecte independent i no està afiliat ni recolzat per Metrovalencia ni per FGV.",
+  "triptych": {
+    "headline": [
+      "Tot,",
+      "en un sol lloc"
+    ],
+    "sub": [
+      "Arribades, planificador",
+      "i mapa de la xarxa"
+    ],
+    "labels": [
+      "Arribades",
+      "Planificar",
+      "Xarxa"
+    ]
+  },
+  "release_notes": "Esta actualització porta el redisseny Material 3: una nova pantalla d'inici amb eixides en directe, un planificador amb línia de temps més clar, busca i ajustos renovats, temes fosc i AMOLED, i suport complet del valencià. A més, correccions i millores d'acabat.",
+  "store_title": "TransitOS: Transport Públic"
+}

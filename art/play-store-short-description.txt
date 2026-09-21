@@ -1,1 +1,1 @@
-Real-time public transport planner. Open source, no tracking.
+Metro and tram times, live arrivals and a journey planner in Valencia.

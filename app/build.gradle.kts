@@ -15,14 +15,14 @@ val keystoreProps = file("keystore.properties").let { f ->
 
 android {
     namespace = "com.glossostudio.transitos"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.glossostudio.transitos"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 4
-        versionName = "1.0.3"
+        targetSdk = 36
+        versionCode = 5
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

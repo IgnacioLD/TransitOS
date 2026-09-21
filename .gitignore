@@ -33,6 +33,9 @@ keystore.properties
 # Research workspace (decompiled 3rd-party APKs, never commit — licensing)
 .research/
 
+# Generated asset scratch space (intermediate SVG/PNG renders)
+art/.build/
+
 # Scratch / planning artifacts
 hon.json
 plan.json
@@ -41,3 +44,6 @@ qemu_adb_*.core
 
 # Internal analysis (not for the public repo)
 COMPETITIVE_ANALYSIS.md
+
+# Python bytecode cache
+__pycache__/

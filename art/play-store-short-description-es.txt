@@ -1,1 +1,1 @@
-Planificador de transporte público en tiempo real. Código abierto, sin rastreo.
+Horarios de metro y tranvía, llegadas en vivo y planificador en Valencia.

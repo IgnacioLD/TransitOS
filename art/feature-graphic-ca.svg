@@ -1,0 +1,172 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.9" y2="1">
+      <stop offset="0%" stop-color="#0B5F5D"/>
+      <stop offset="52%" stop-color="#053230"/>
+      <stop offset="100%" stop-color="#02191A"/>
+    </linearGradient>
+    <radialGradient id="glowTeal" cx="0.82" cy="0.02" r="0.75">
+      <stop offset="0%" stop-color="#3ED3C7" stop-opacity="0.36"/>
+      <stop offset="100%" stop-color="#3ED3C7" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowAmber" cx="0.04" cy="1.05" r="0.6">
+      <stop offset="0%" stop-color="#F5C55A" stop-opacity="0.24"/>
+      <stop offset="100%" stop-color="#F5C55A" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="iconBg" x1="0" y1="0" x2="0.8" y2="1">
+      <stop offset="0%" stop-color="#17A09A"/>
+      <stop offset="100%" stop-color="#00504F"/>
+    </linearGradient>
+    <linearGradient id="cardBg" x1="0" y1="0" x2="0.9" y2="1">
+      <stop offset="0%" stop-color="#0E827E"/>
+      <stop offset="100%" stop-color="#04302E"/>
+    </linearGradient>
+    <linearGradient id="topLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#F5C55A"/>
+      <stop offset="45%" stop-color="#3ED3C7"/>
+      <stop offset="100%" stop-color="#3ED3C7" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow" x="-40%" y="-30%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+    <filter id="cardGlow" x="-40%" y="-30%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="20" stdDeviation="26" flood-color="#001B1A" flood-opacity="0.55"/>
+    </filter>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" result="n"/>
+      <feColorMatrix in="n" type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.05"/></feComponentTransfer>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="500" fill="url(#bg)"/>
+  <rect width="1024" height="500" fill="url(#glowTeal)"/>
+  <rect width="1024" height="500" fill="url(#glowAmber)"/>
+
+  <!-- Metrovalencia network motif: schematic metro-map geometry (straight
+       runs with 45 degree bends), not decorative curves -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M -20 470 H 130 L 210 390 H 372" stroke="#FFD100" stroke-width="6"/>
+    <path d="M -20 512 H 250 L 330 432 H 508" stroke="#E60096" stroke-width="6"/>
+    <path d="M 92 528 V 470 L 172 390" stroke="#009B48" stroke-width="5"/>
+    <path d="M 250 528 L 350 428 H 470" stroke="#DD052C" stroke-width="5"/>
+  </g>
+  <g>
+    <circle cx="60" cy="470" r="8" fill="#0B4846" stroke="#FFD100" stroke-width="4"/>
+    <circle cx="130" cy="470" r="8" fill="#0B4846" stroke="#FFD100" stroke-width="4"/>
+    <circle cx="290" cy="390" r="7" fill="#0B4846" stroke="#FFD100" stroke-width="4"/>
+    <circle cx="120" cy="512" r="8" fill="#0B4846" stroke="#E60096" stroke-width="4"/>
+    <circle cx="250" cy="512" r="8" fill="#0B4846" stroke="#E60096" stroke-width="4"/>
+    <circle cx="92" cy="495" r="7" fill="#0B4846" stroke="#009B48" stroke-width="4"/>
+    <circle cx="172" cy="390" r="7" fill="#0B4846" stroke="#009B48" stroke-width="4"/>
+    <circle cx="316" cy="462" r="7" fill="#0B4846" stroke="#DD052C" stroke-width="4"/>
+    <circle cx="400" cy="428" r="7" fill="#0B4846" stroke="#DD052C" stroke-width="4"/>
+  </g>
+
+  <rect width="1024" height="5" fill="url(#topLine)"/>
+
+  <!-- Left: the real TransitOS app icon, rounded like the launcher -->
+  <rect x="72" y="62" width="108" height="108" rx="28" fill="#00100F" opacity="0.35" filter="url(#shadow)"/>
+  <g transform="translate(72,62) scale(0.210938)"><clipPath id="fg_caClip"><rect x="0" y="0" width="512" height="512" rx="132.74"/></clipPath><g clip-path="url(#fg_caClip)">
+  <defs>
+    <linearGradient id="fg_ca_bg" x1="0" y1="0" x2="0.85" y2="1">
+      <stop offset="0%" stop-color="#0E8A87"/>
+      <stop offset="46%" stop-color="#00696B"/>
+      <stop offset="100%" stop-color="#013B3D"/>
+    </linearGradient>
+    <radialGradient id="fg_ca_spot" cx="0.24" cy="0.14" r="0.85">
+      <stop offset="0%" stop-color="#5BE0D8" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#5BE0D8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="fg_ca_warm" cx="0.86" cy="1.05" r="0.7">
+      <stop offset="0%" stop-color="#F5C55A" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#F5C55A" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fg_ca_glass" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0%" stop-color="#0F4A48"/>
+      <stop offset="100%" stop-color="#0A2E2D"/>
+    </linearGradient>
+    <filter id="fg_ca_headGlow" x="-120%" y="-120%" width="340%" height="340%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+    <filter id="fg_ca_drop" x="-30%" y="-20%" width="160%" height="150%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#001412" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#fg_ca_bg)"/>
+  <rect width="512" height="512" fill="url(#fg_ca_spot)"/>
+  <rect width="512" height="512" fill="url(#fg_ca_warm)"/>
+
+  <!-- Subtle network texture -->
+  <g fill="none" stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="5" stroke-linecap="round">
+    <path d="M-30 452 C 120 404 250 486 400 436 S 560 414 560 432"/>
+    <path d="M-30 500 C 150 452 300 528 470 484"/>
+  </g>
+  <g fill="#FFFFFF" fill-opacity="0.09">
+    <circle cx="150" cy="432" r="8"/>
+    <circle cx="352" cy="456" r="8"/>
+  </g>
+
+  <!-- Tram front -->
+  <g filter="url(#fg_ca_drop)">
+    <path d="M120,196 Q120,120 200,120 H312 Q392,120 392,196 V352 Q392,404 340,404 H172 Q120,404 120,352 Z" fill="#F7FEFE"/>
+    <!-- Windshield -->
+    <rect x="150" y="172" width="212" height="132" rx="34" fill="url(#fg_ca_glass)"/>
+    <path d="M170,196 Q176,184 196,184 L246,184 L206,304 L178,304 Q166,304 166,290 Z" fill="#FFFFFF" opacity="0.07"/>
+    <!-- Headlight glow -->
+    <circle cx="184" cy="344" r="30" fill="#F5C55A" opacity="0.5" filter="url(#fg_ca_headGlow)"/>
+    <circle cx="328" cy="344" r="30" fill="#F5C55A" opacity="0.5" filter="url(#fg_ca_headGlow)"/>
+    <!-- Headlights -->
+    <circle cx="184" cy="344" r="19" fill="#FFD262"/>
+    <circle cx="328" cy="344" r="19" fill="#FFD262"/>
+    <circle cx="178" cy="338" r="6" fill="#FFFFFF" opacity="0.75"/>
+    <circle cx="322" cy="338" r="6" fill="#FFFFFF" opacity="0.75"/>
+    <!-- Front grille -->
+    <rect x="222" y="366" width="68" height="12" rx="6" fill="#12403E" opacity="0.22"/>
+  </g>
+</g></g><text x="74" y="256" font-family="Helvetica Neue, Arial, sans-serif" font-size="60" font-weight="800" fill="#FFFFFF" letter-spacing="-1.6">TransitOS</text>
+  <text x="76" y="298" font-family="Helvetica Neue, Arial, sans-serif" font-size="20" font-weight="500" fill="#F5C55A">El transport públic, més fàcil</text>
+  <circle cx="80" cy="338" r="4" fill="#3ED3C7" opacity="0.8"/>
+  <text x="94" y="344" font-family="Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#FFFFFF" fill-opacity="0.62" letter-spacing="0.4">Gratuït  ·  Codi obert  ·  Sense rastreig</text>
+
+  <!-- Right: signature departure card -->
+  <g transform="translate(534, 62)" filter="url(#cardGlow)">
+    <rect width="418" height="376" rx="34" fill="url(#cardBg)" stroke="#FFFFFF" stroke-opacity="0.16"/>
+
+    <text x="34" y="60" font-family="Helvetica Neue, Arial, sans-serif" font-size="15" font-weight="700" fill="#8FE7E0" letter-spacing="2.4">PRÒXIMA EIXIDA</text>
+
+    <g>
+      <rect x="270" y="38" width="114" height="32" rx="16" fill="#FFFFFF" fill-opacity="0.12" stroke="#FFFFFF" stroke-opacity="0.2"/>
+      <circle cx="289" cy="54" r="5.5" fill="#F5C55A"/>
+      <text x="304" y="59" font-family="Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#FFFFFF">En directe</text>
+    </g>
+
+    <text x="34" y="124" font-family="Helvetica Neue, Arial, sans-serif" font-size="34" font-weight="700" fill="#FFFFFF" letter-spacing="-0.6">Benimaclet</text>
+
+    <g transform="translate(34, 148)">
+      <rect width="60" height="60" rx="18" fill="#DD052C"/>
+      <text x="30" y="39" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="24" font-weight="800" fill="#FFFFFF">L3</text>
+    </g>
+    <text x="112" y="188" font-family="Helvetica Neue, Arial, sans-serif" font-size="24" font-weight="600" fill="#FFFFFF">Aeroport</text>
+    <text x="292" y="196" text-anchor="end" font-family="Helvetica Neue, Arial, sans-serif" font-size="64" font-weight="800" fill="#FFFFFF" letter-spacing="-2">1</text>
+    <text x="302" y="196" font-family="Helvetica Neue, Arial, sans-serif" font-size="20" font-weight="600" fill="#8FE7E0">min</text>
+
+    <line x1="34" y1="236" x2="384" y2="236" stroke="#FFFFFF" stroke-opacity="0.14"/>
+
+    <g transform="translate(34, 268)">
+      <rect width="160" height="50" rx="25" fill="#FFFFFF" fill-opacity="0.08" stroke="#FFFFFF" stroke-opacity="0.1"/>
+      <rect x="13" y="13" width="36" height="24" rx="8" fill="#B07A3C"/>
+      <text x="31" y="31" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="800" fill="#FFFFFF">L9</text>
+      <text x="62" y="32" font-family="Helvetica Neue, Arial, sans-serif" font-size="19" font-weight="600" fill="#FFFFFF">5 <tspan font-size="13" fill="#A9DED9">min</tspan></text>
+    </g>
+    <g transform="translate(224, 268)">
+      <rect width="160" height="50" rx="25" fill="#FFFFFF" fill-opacity="0.08" stroke="#FFFFFF" stroke-opacity="0.1"/>
+      <rect x="13" y="13" width="36" height="24" rx="8" fill="#7E57C2"/>
+      <text x="31" y="31" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="800" fill="#FFFFFF">L6</text>
+      <text x="62" y="32" font-family="Helvetica Neue, Arial, sans-serif" font-size="19" font-weight="600" fill="#FFFFFF">8 <tspan font-size="13" fill="#A9DED9">min</tspan></text>
+    </g>
+  </g>
+
+  <rect width="1024" height="500" filter="url(#grain)" opacity="0.5" style="mix-blend-mode:overlay"/>
+</svg>

@@ -1,0 +1,124 @@
+locale,app_title,short_description,full_description,release_notes
+en-US,TransitOS: Public Transport,"Metro and tram times, live arrivals and a journey planner in Valencia.","TransitOS is a free public transport app for real-time metro and tram travel. Check live schedules and arrivals, plan a journey with transfers, and follow the whole network map: everything you need to move around Valencia with Metrovalencia, without ads and without tracking.
+
+LIVE ARRIVALS AND SCHEDULES
+
+Save your favourite metro and tram stops and see the next arrivals at a glance. Each departure shows the line, the destination and how many minutes are left, updated live. Perfect for the daily commute and for checking the last train of the day.
+
+JOURNEY PLANNER WITH TRANSFERS
+
+Plan any trip across the metro and tram network. Search an origin and a destination and TransitOS finds the best routes, with every transfer, the lines to take, the walking time and the full journey duration. Choose to leave now or to arrive by a specific time, and set a minimum transfer buffer so you only get connections you can comfortably make.
+
+METROVALENCIA NETWORK MAP
+
+Explore the full Metrovalencia network map, with all lines in their official colours and every station and connection. Zoom in, check where you need to change lines, and download the official PDF map for offline use.
+
+SERVICE ALERTS
+
+Disruptions, delays and planned works are shown before you leave, so you can pick an alternative route instead of finding out at the station.
+
+FAVOURITES AND SAVED ROUTES
+
+Star the stops you use every day and save your regular journeys, from home to work or to the airport, with a custom label for one-tap access.
+
+DARK MODE AND AMOLED
+
+System, light, dark and AMOLED pure-black themes, easy on the eyes at night and lighter on your battery on OLED screens.
+
+PRIVACY BY DESIGN
+
+TransitOS is private by default. No ads, no tracking, no analytics and no account. Your location data stays on your device and is never sent anywhere. The app talks only to the public transport operator's public API over HTTPS, straight from your phone.
+
+MULTILINGUAL
+
+Available in English, Spanish and Valencian, with the language you choose applied instantly.
+
+OPEN SOURCE
+
+TransitOS is free and open source under the AGPL-3.0 licence. The full source code is at github.com/IgnacioLD/TransitOS, and contributions, bug reports and translations are welcome.
+
+Built first for Metrovalencia (FGV), the metro and tram network of Valencia, and designed to grow into a multi-operator public transport app: more cities and operators are on the way.
+
+TransitOS is an independent project and is not affiliated with or endorsed by Metrovalencia or FGV.","This update brings the refreshed Material 3 design: a new home with live departures, a rebuilt journey planner with a clear timeline, a redesigned search and settings, dark and AMOLED themes, and full Valencian support. Smaller fixes and polish throughout."
+es-ES,TransitOS: Transporte Público,"Horarios de metro y tranvía, llegadas en vivo y planificador en Valencia.","TransitOS es una app de transporte público gratuita para moverte en metro y tranvía. Consulta horarios y llegadas en tiempo real, planifica tus viajes con transbordos y sigue el mapa de la red: todo lo que necesitas para moverte por Valencia con Metrovalencia, sin anuncios y sin rastreo.
+
+LLEGADAS Y HORARIOS EN TIEMPO REAL
+
+Guarda tus paradas de metro y tranvía favoritas y consulta las próximas llegadas de un vistazo. Cada salida muestra la línea, el destino y los minutos que faltan, actualizados en directo. Ideal para el día a día y para no perder el último tren.
+
+PLANIFICADOR DE VIAJES CON TRANSBORDOS
+
+Planifica cualquier trayecto por la red de metro y tranvía. Busca un origen y un destino y TransitOS encuentra las mejores rutas, con cada transbordo, las líneas que debes tomar, el tiempo a pie y la duración total del viaje. Elige salir ahora o llegar a una hora concreta y configura un margen de transbordo para que solo te proponga enlaces que puedas coger con tranquilidad.
+
+MAPA DE LA RED DE METROVALENCIA
+
+Explora el mapa completo de la red de Metrovalencia, con todas las líneas en sus colores oficiales y cada estación y conexión. Haz zoom, comprueba dónde tienes que cambiar de línea y descarga el plano PDF oficial para consultarlo sin conexión.
+
+AVISOS DE SERVICIO
+
+Las incidencias, los retrasos y las obras programadas aparecen antes de que salgas, para que puedas elegir una ruta alternativa en lugar de enterarte en la estación.
+
+FAVORITOS Y RUTAS GUARDADAS
+
+Marca con una estrella las paradas que usas cada día y guarda tus trayectos habituales, de casa al trabajo o al aeropuerto, con una etiqueta propia para acceder con un solo toque.
+
+MODO OSCURO Y AMOLED
+
+Temas del sistema, claro, oscuro y negro puro AMOLED, cómodos para la vista de noche y más eficientes con la batería en pantallas OLED.
+
+PRIVACIDAD POR DISEÑO
+
+TransitOS es privada por defecto. Sin anuncios, sin rastreo, sin analítica y sin cuenta. Los datos de tu ubicación se quedan en tu dispositivo y nunca se envían a ningún sitio. La aplicación solo se conecta a la API pública del operador de transporte por HTTPS, directamente desde tu móvil.
+
+MULTIIDIOMA
+
+Disponible en inglés, español y valenciano, con el idioma que elijas aplicado al instante.
+
+CÓDIGO ABIERTO
+
+TransitOS es software libre bajo la licencia AGPL-3.0. El código fuente completo está en github.com/IgnacioLD/TransitOS, y se agradecen las contribuciones, los informes de errores y las traducciones.
+
+Pensada primero para Metrovalencia (FGV), la red de metro y tranvía de Valencia, y diseñada para crecer como app de transporte público multioperador: próximamente más ciudades y operadores.
+
+TransitOS es un proyecto independiente y no está afiliado ni respaldado por Metrovalencia ni por FGV.","Esta actualización trae el rediseño Material 3: una nueva pantalla de inicio con salidas en vivo, un planificador con línea de tiempo más claro, búsqueda y ajustes renovados, temas oscuro y AMOLED, y soporte completo del valenciano. Además, correcciones y mejoras de acabado."
+ca-ES,TransitOS: Transport Públic,"Horaris de metro i tramvia, arribades en directe i planificador a València.","TransitOS és una app de transport públic gratuïta per a moure't en metro i tramvia. Consulta horaris i arribades en temps real, planifica els teus viatges amb transbords i segueix el mapa de la xarxa: tot el que necessites per a moure't per València amb Metrovalencia, sense anuncis i sense rastreig.
+
+ARRIBADES I HORARIS EN TEMPS REAL
+
+Guarda les teues parades de metro i tramvia preferides i consulta les pròximes arribades d'un colp d'ull. Cada eixida mostra la línia, el destí i els minuts que falten, actualitzats en directe. Ideal per al dia a dia i per a no perdre l'últim tren.
+
+PLANIFICADOR DE VIATGES AMB TRANSBORDS
+
+Planifica qualsevol trajecte per la xarxa de metro i tramvia. Busca un origen i un destí i TransitOS troba les millors rutes, amb cada transbord, les línies que has de prendre, el temps a peu i la durada total del viatge. Tria eixir ara o arribar a una hora concreta i configura un marge de transbord perquè només et propose enllaços que pugues agafar amb tranquil·litat.
+
+MAPA DE LA XARXA DE METROVALENCIA
+
+Explora el mapa complet de la xarxa de Metrovalencia, amb totes les línies en els seus colors oficials i cada estació i connexió. Fes zoom, comprova on has de canviar de línia i descarrega el pla PDF oficial per a consultar-lo sense connexió.
+
+AVISOS DE SERVEI
+
+Les incidències, els retards i les obres programades apareixen abans que isques, perquè pugues triar una ruta alternativa en compte d'assabentar-te a l'estació.
+
+PREFERITS I RUTES GUARDADES
+
+Marca amb una estrella les parades que uses cada dia i guarda els teus trajectes habituals, de casa a la feina o a l'aeroport, amb una etiqueta pròpia per a accedir amb un sol toc.
+
+MODE FOSC I AMOLED
+
+Temes del sistema, clar, fosc i negre pur AMOLED, còmodes per a la vista de nit i més eficients amb la bateria en pantalles OLED.
+
+PRIVACITAT PER DISSENY
+
+TransitOS és privada per defecte. Sense anuncis, sense rastreig, sense analítica i sense compte. Les dades de la teua ubicació es queden al teu dispositiu i mai s'envien enlloc. L'aplicació només es connecta a l'API pública de l'operador de transport per HTTPS, directament des del teu mòbil.
+
+MULTIIDIOMA
+
+Disponible en anglés, espanyol i valencià, amb l'idioma que tries aplicat a l'instant.
+
+CODI OBERT
+
+TransitOS és programari lliure sota la llicència AGPL-3.0. El codi font complet està en github.com/IgnacioLD/TransitOS, i s'agraeixen les contribucions, els informes d'errors i les traduccions.
+
+Pensada primer per a Metrovalencia (FGV), la xarxa de metro i tramvia de València, i dissenyada per a créixer com a app de transport públic multioperador: pròximament més ciutats i operadors.
+
+TransitOS és un projecte independent i no està afiliat ni recolzat per Metrovalencia ni per FGV.","Esta actualització porta el redisseny Material 3: una nova pantalla d'inici amb eixides en directe, un planificador amb línia de temps més clar, busca i ajustos renovats, temes fosc i AMOLED, i suport complet del valencià. A més, correccions i millores d'acabat."
