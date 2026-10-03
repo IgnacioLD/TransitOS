@@ -35,13 +35,17 @@ import com.glossostudio.transitos.core.design.theme.LocalSpacing
  * browser is offered as a secondary action.
  */
 @Composable
-fun PrivacyPolicyRoute(onBack: () -> Unit) {
+fun PrivacyPolicyRoute(
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val context = LocalContext.current
     val spacing = LocalSpacing.current
     LegalScreen(
         title = stringResource(R.string.privacy_policy_title),
         onBack = onBack,
         onOpenInBrowser = { openUrlInBrowser(context, AboutLinks.PRIVACY_URL) },
+        modifier = modifier,
     ) {
         Text(
             text = stringResource(R.string.privacy_intro),
@@ -97,7 +101,10 @@ fun PrivacyPolicyRoute(onBack: () -> Unit) {
  * localized. Read from `res/raw` so it is bundled and available offline.
  */
 @Composable
-fun LicenseRoute(onBack: () -> Unit) {
+fun LicenseRoute(
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val context = LocalContext.current
     val licenseText = remember {
         runCatching {
@@ -110,6 +117,7 @@ fun LicenseRoute(onBack: () -> Unit) {
         title = stringResource(R.string.license_title),
         onBack = onBack,
         onOpenInBrowser = { openUrlInBrowser(context, AboutLinks.LICENSE_URL) },
+        modifier = modifier,
     ) {
         Text(
             text = stringResource(R.string.license_summary),
@@ -132,6 +140,7 @@ private fun LegalScreen(
     title: String,
     onBack: () -> Unit,
     onOpenInBrowser: () -> Unit,
+    modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val spacing = LocalSpacing.current
@@ -172,7 +181,7 @@ private fun LegalScreen(
                 ),
             )
         },
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
     ) { padding ->
         Column(
             modifier = Modifier

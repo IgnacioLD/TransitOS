@@ -35,7 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.glossostudio.transitos.core.design.theme.LocalSpacing
-import com.glossostudio.transitos.core.design.theme.TabularFigures
+import com.glossostudio.transitos.core.design.theme.TABULAR_FIGURES
 import com.glossostudio.transitos.core.design.theme.onColor
 import com.glossostudio.transitos.core.model.Arrival
 import com.glossostudio.transitos.core.model.Stop
@@ -275,7 +275,7 @@ private fun ArrivalMinutes(arrival: Arrival, emphasized: Boolean, accent: Color)
                         } else {
                             MaterialTheme.typography.titleLarge
                         }
-                        ).copy(fontFeatureSettings = TabularFigures),
+                        ).copy(fontFeatureSettings = TABULAR_FIGURES),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                 )

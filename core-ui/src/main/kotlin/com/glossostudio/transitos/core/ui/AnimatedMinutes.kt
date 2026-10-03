@@ -15,7 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import com.glossostudio.transitos.core.design.theme.Motion
-import com.glossostudio.transitos.core.design.theme.TabularFigures
+import com.glossostudio.transitos.core.design.theme.TABULAR_FIGURES
 
 /**
  * The live minutes countdown. The number springs between values instead of
@@ -46,7 +46,7 @@ fun AnimatedMinutes(
     ) {
         Text(
             text = animated.toString(),
-            style = numberStyle.copy(fontFeatureSettings = TabularFigures),
+            style = numberStyle.copy(fontFeatureSettings = TABULAR_FIGURES),
             color = numberColor,
         )
         Text(

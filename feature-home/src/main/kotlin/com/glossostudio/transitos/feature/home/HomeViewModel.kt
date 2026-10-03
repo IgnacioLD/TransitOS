@@ -2,6 +2,9 @@ package com.glossostudio.transitos.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.glossostudio.transitos.core.model.Alert
+import com.glossostudio.transitos.core.model.SavedRoute
+import com.glossostudio.transitos.core.model.Stop
 import com.glossostudio.transitos.core.repository.FavoritesRepository
 import com.glossostudio.transitos.core.repository.HintKeys
 import com.glossostudio.transitos.core.repository.HintsPreference
@@ -55,8 +58,12 @@ class HomeViewModel(
         favorites.observeFavoriteStopIds(),
         repository.observeAlerts(),
         routeFavorites.observeSavedRoutes(),
-    ) { stops, favIds, alerts, savedRoutes -> Four(stops, favIds, alerts, savedRoutes) }
-        .flatMapLatest { (stops, favIds, alerts, savedRoutes) ->
+    ) { stops, favIds, alerts, savedRoutes -> HomeInputs(stops, favIds, alerts, savedRoutes) }
+        .flatMapLatest { inputs ->
+            val stops = inputs.stops
+            val favIds = inputs.favoriteIds
+            val alerts = inputs.alerts
+            val savedRoutes = inputs.savedRoutes
             val favoriteStops = stops.filter { it.id in favIds }
             val stopMap = stops.associateBy { it.id }
             val routeInfos = savedRoutes.mapNotNull { sr ->
@@ -71,7 +78,9 @@ class HomeViewModel(
                         destinationStopId = sr.destinationStopId,
                         label = sr.label,
                     )
-                } else null
+                } else {
+                    null
+                }
             }
 
             val arrivalsFlow = if (favoriteStops.isEmpty()) {
@@ -100,11 +109,11 @@ class HomeViewModel(
             }
         }
 
-    private val _isRefreshing = MutableStateFlow(false)
+    private val isRefreshing = MutableStateFlow(false)
 
     fun refresh() {
         viewModelScope.launch {
-            _isRefreshing.value = true
+            isRefreshing.value = true
             // If the last attempt failed, rebuild the pipeline so the stream is
             // live again; otherwise a plain repository refresh is enough and
             // avoids flashing the content back to Loading.
@@ -117,16 +126,19 @@ class HomeViewModel(
             // then dismiss — never waiting on data arrival, which can be
             // delayed/deduped and would make the spinner feel stuck.
             delay(REFRESH_MIN_MS)
-            _isRefreshing.value = false
+            isRefreshing.value = false
         }
     }
 
     val uiState: StateFlow<HomeUiState> = combine(
         contentState,
-        _isRefreshing,
+        isRefreshing,
     ) { state, refreshing ->
-        if (state is HomeUiState.Ready) state.copy(isRefreshing = refreshing)
-        else state
+        if (state is HomeUiState.Ready) {
+            state.copy(isRefreshing = refreshing)
+        } else {
+            state
+        }
     }
         .stateIn(
             scope = viewModelScope,
@@ -162,6 +174,10 @@ class HomeViewModel(
     }
 }
 
-private data class Four<T1, T2, T3, T4>(
-    val first: T1, val second: T2, val third: T3, val fourth: T4,
+/** Everything the Home screen is derived from, combined into one emission. */
+private data class HomeInputs(
+    val stops: List<Stop>,
+    val favoriteIds: Set<String>,
+    val alerts: List<Alert>,
+    val savedRoutes: List<SavedRoute>,
 )

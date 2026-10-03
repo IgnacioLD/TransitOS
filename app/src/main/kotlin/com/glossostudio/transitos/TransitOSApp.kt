@@ -21,8 +21,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.glossostudio.transitos.feature.home.HomeRoute
 import com.glossostudio.transitos.feature.onboarding.OnboardingRoute
+import com.glossostudio.transitos.feature.planner.PlannerPrefill
 import com.glossostudio.transitos.feature.planner.PlannerRoute
-import com.glossostudio.transitos.feature.planner.PrefilledPlannerRoute
 import com.glossostudio.transitos.feature.search.SearchRoute
 import com.glossostudio.transitos.feature.settings.LicenseRoute
 import com.glossostudio.transitos.feature.settings.PrivacyPolicyRoute
@@ -40,6 +40,7 @@ private const val LICENSE_ROUTE = "settings/license"
 
 @Composable
 fun TransitOSApp(
+    modifier: Modifier = Modifier,
     appViewModel: AppViewModel = koinViewModel(),
 ) {
     val onboardingCompleted by appViewModel.onboardingCompleted.collectAsStateWithLifecycle()
@@ -51,6 +52,7 @@ fun TransitOSApp(
     val navController = rememberNavController()
 
     Scaffold(
+        modifier = modifier,
         containerColor = MaterialTheme.colorScheme.surface,
         bottomBar = {
             val currentRoute = navController
@@ -58,8 +60,8 @@ fun TransitOSApp(
                 .value
                 ?.destination
                 ?.route
-            val isTopLevel = TopLevelDestination.entries.any { it.route == currentRoute }
-                || currentRoute?.startsWith("planner/") == true
+            val isTopLevel = TopLevelDestination.entries.any { it.route == currentRoute } ||
+                currentRoute?.startsWith("planner/") == true
             if (isTopLevel) {
                 TransitOSBottomBar(
                     currentRoute = currentRoute,
@@ -129,10 +131,7 @@ private fun TransitOSNavHost(
         composable("planner/{originId}/{destId}") { backStackEntry ->
             val originId = backStackEntry.arguments?.getString("originId") ?: return@composable
             val destId = backStackEntry.arguments?.getString("destId") ?: return@composable
-            PrefilledPlannerRoute(
-                originStopId = originId,
-                destinationStopId = destId,
-            )
+            PlannerRoute(prefill = PlannerPrefill(originStopId = originId, destinationStopId = destId))
         }
         composable(TopLevelDestination.MAP.route) {
             OSMNetworkMapRoute(

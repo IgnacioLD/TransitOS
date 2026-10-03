@@ -41,8 +41,8 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Lightbulb
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.SettingsBrightness
@@ -96,10 +96,10 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SettingsRoute(
     onBack: () -> Unit,
+    modifier: Modifier = Modifier,
     onReplayOnboarding: () -> Unit = {},
     onOpenPrivacyPolicy: () -> Unit = {},
     onOpenLicense: () -> Unit = {},
-    modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
@@ -351,8 +351,11 @@ private fun LanguageOption(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (selected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurface,
+            color = if (selected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            },
         )
     }
 }
@@ -414,10 +417,16 @@ private fun ThemeOption(
     modifier: Modifier = Modifier,
     swatch: (@Composable () -> Unit)? = null,
 ) {
-    val container = if (selected) MaterialTheme.colorScheme.primaryContainer
-    else MaterialTheme.colorScheme.surfaceContainerLow
-    val content = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
-    else MaterialTheme.colorScheme.onSurfaceVariant
+    val container = if (selected) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerLow
+    }
+    val content = if (selected) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
     Surface(
         onClick = onClick,
         modifier = modifier,

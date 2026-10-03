@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Environment
 import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -54,13 +55,17 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.glossostudio.transitos.R
 import com.glossostudio.transitos.core.ui.R as coreUiR
+import java.io.File
+import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NetworkMapRoute(onBack: () -> Unit) {
+fun NetworkMapRoute(
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val context = LocalContext.current
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     var error by remember { mutableStateOf(false) }
@@ -73,6 +78,7 @@ fun NetworkMapRoute(onBack: () -> Unit) {
     }
 
     Scaffold(
+        modifier = modifier,
         // The host Scaffold already insets content for the system bars, so this
         // nested Scaffold must not re-apply them.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -92,8 +98,11 @@ fun NetworkMapRoute(onBack: () -> Unit) {
                         val saved = savePdfToDownloads(context)
                         Toast.makeText(
                             context,
-                            if (saved) context.getString(R.string.map_pdf_saved)
-                            else context.getString(R.string.map_pdf_save_error),
+                            if (saved) {
+                                context.getString(R.string.map_pdf_saved)
+                            } else {
+                                context.getString(R.string.map_pdf_save_error)
+                            },
                             Toast.LENGTH_SHORT,
                         ).show()
                     }) {
@@ -210,6 +219,8 @@ private fun ZoomablePdfViewer(bitmap: Bitmap) {
     }
 }
 
+private const val TAG = "NetworkMapScreen"
+
 private fun renderPdf(context: Context): Bitmap? {
     return try {
         val cacheFile = File(context.cacheDir, "mapa_metro.pdf")
@@ -236,7 +247,11 @@ private fun renderPdf(context: Context): Bitmap? {
             page.close()
             bitmap
         }
-    } catch (e: Exception) {
+    } catch (e: IOException) {
+        Log.w(TAG, "Could not render the network map PDF", e)
+        null
+    } catch (e: SecurityException) {
+        Log.w(TAG, "The network map PDF is protected", e)
         null
     }
 }
@@ -271,7 +286,11 @@ private fun savePdfToDownloads(context: Context): Boolean {
             }
         }
         true
-    } catch (e: Exception) {
+    } catch (e: IOException) {
+        Log.w(TAG, "Could not save the network map PDF", e)
+        false
+    } catch (e: SecurityException) {
+        Log.w(TAG, "No permission to save the network map PDF", e)
         false
     }
 }

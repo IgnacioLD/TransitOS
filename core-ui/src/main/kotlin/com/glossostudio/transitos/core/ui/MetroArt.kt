@@ -25,7 +25,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-/**
+/*
  * TransitOS's own illustration language: a fragment of a schematic metro plan.
  *
  * Everything here follows the same grammar, so the artwork reads consistently
@@ -106,7 +106,9 @@ object MetrovalenciaNetworks {
                 id = "L2",
                 color = MetrovalenciaPalette.L2,
                 points = listOf(
-                    Offset(42f, 0f), Offset(42f, 24f), Offset(66f, 48f),
+                    Offset(42f, 0f),
+                    Offset(42f, 24f),
+                    Offset(66f, 48f),
                     Offset(66f, 96f),
                 ),
                 stops = listOf(
@@ -120,8 +122,12 @@ object MetrovalenciaNetworks {
                 id = "L3",
                 color = MetrovalenciaPalette.L3,
                 points = listOf(
-                    Offset(0f, 36f), Offset(54f, 36f), Offset(78f, 12f),
-                    Offset(114f, 12f), Offset(138f, 36f), Offset(150f, 36f),
+                    Offset(0f, 36f),
+                    Offset(54f, 36f),
+                    Offset(78f, 12f),
+                    Offset(114f, 12f),
+                    Offset(138f, 36f),
+                    Offset(150f, 36f),
                 ),
                 stops = listOf(
                     stop(18f, 36f),
@@ -137,8 +143,12 @@ object MetrovalenciaNetworks {
                 id = "L1",
                 color = MetrovalenciaPalette.L1,
                 points = listOf(
-                    Offset(6f, 96f), Offset(6f, 72f), Offset(30f, 48f),
-                    Offset(78f, 48f), Offset(102f, 24f), Offset(150f, 24f),
+                    Offset(6f, 96f),
+                    Offset(6f, 72f),
+                    Offset(30f, 48f),
+                    Offset(78f, 48f),
+                    Offset(102f, 24f),
+                    Offset(150f, 24f),
                 ),
                 stops = listOf(
                     stop(6f, 92f),
@@ -155,8 +165,12 @@ object MetrovalenciaNetworks {
                 id = "L5",
                 color = MetrovalenciaPalette.L5,
                 points = listOf(
-                    Offset(0f, 84f), Offset(36f, 84f), Offset(60f, 60f),
-                    Offset(90f, 60f), Offset(114f, 36f), Offset(114f, 12f),
+                    Offset(0f, 84f),
+                    Offset(36f, 84f),
+                    Offset(60f, 60f),
+                    Offset(90f, 60f),
+                    Offset(114f, 36f),
+                    Offset(114f, 12f),
                     Offset(150f, 12f),
                 ),
                 stops = listOf(
@@ -189,7 +203,9 @@ object MetrovalenciaNetworks {
                 id = "L3",
                 color = MetrovalenciaPalette.L3,
                 points = listOf(
-                    Offset(24f, 4f), Offset(24f, 28f), Offset(48f, 52f),
+                    Offset(24f, 4f),
+                    Offset(24f, 28f),
+                    Offset(48f, 52f),
                     Offset(48f, 96f),
                 ),
                 stops = listOf(
@@ -203,7 +219,9 @@ object MetrovalenciaNetworks {
                 id = "L5",
                 color = MetrovalenciaPalette.L5,
                 points = listOf(
-                    Offset(4f, 92f), Offset(36f, 92f), Offset(60f, 68f),
+                    Offset(4f, 92f),
+                    Offset(36f, 92f),
+                    Offset(60f, 68f),
                     Offset(96f, 68f),
                 ),
                 stops = listOf(
@@ -217,8 +235,12 @@ object MetrovalenciaNetworks {
                 id = "L1",
                 color = MetrovalenciaPalette.L1,
                 points = listOf(
-                    Offset(0f, 64f), Offset(24f, 64f), Offset(44f, 44f),
-                    Offset(72f, 44f), Offset(92f, 24f), Offset(100f, 24f),
+                    Offset(0f, 64f),
+                    Offset(24f, 64f),
+                    Offset(44f, 44f),
+                    Offset(72f, 44f),
+                    Offset(92f, 24f),
+                    Offset(100f, 24f),
                 ),
                 stops = listOf(
                     stop(12f, 64f),
@@ -236,8 +258,7 @@ object MetrovalenciaNetworks {
         ),
     )
 
-    private fun line(id: String, color: Color, points: List<Offset>, stops: List<MetroStop>) =
-        MetroLine(id = id, color = color, points = points, stops = stops)
+    private fun line(id: String, color: Color, points: List<Offset>, stops: List<MetroStop>) = MetroLine(id = id, color = color, points = points, stops = stops)
 
     private fun stop(x: Float, y: Float) = MetroStop(x, y)
 }

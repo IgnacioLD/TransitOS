@@ -11,12 +11,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.EaseInOut
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.EaseInOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -51,8 +51,8 @@ import androidx.compose.material.icons.outlined.NearMe
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -85,9 +85,11 @@ import com.glossostudio.transitos.R
 import com.glossostudio.transitos.core.model.Arrival
 import com.glossostudio.transitos.core.ui.AnimatedMinutes
 import com.glossostudio.transitos.core.ui.LineBadge
+import com.glossostudio.transitos.core.ui.R as coreUiR
 import com.glossostudio.transitos.core.ui.RealtimeDot
 import com.glossostudio.transitos.core.ui.StatusPill
-import com.glossostudio.transitos.core.ui.R as coreUiR
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onStart
 import org.koin.androidx.compose.koinViewModel
 import org.osmdroid.config.Configuration
 import org.osmdroid.events.MapListener
@@ -110,6 +112,7 @@ private const val MARKER_ZOOM = 13.0
 fun OSMNetworkMapRoute(
     onBack: () -> Unit,
     onOpenPdf: () -> Unit,
+    modifier: Modifier = Modifier,
     viewModel: MapViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
@@ -128,6 +131,15 @@ fun OSMNetworkMapRoute(
     var mapView by remember { mutableStateOf<MapView?>(null) }
     var focusedLine by remember { mutableStateOf<String?>(null) }
     var selectedStation by remember { mutableStateOf<MapStation?>(null) }
+    // One subscription per selected stop; null while the first poll is pending.
+    val selectedStopId = selectedStation?.stopId
+    val selectedArrivals by remember(selectedStopId) {
+        if (selectedStopId == null) {
+            flowOf(emptyList())
+        } else {
+            viewModel.observeArrivals(selectedStopId).onStart<List<Arrival>?> { emit(null) }
+        }
+    }.collectAsStateWithLifecycle(initialValue = null)
     var showLocation by remember { mutableStateOf(false) }
     var locationOverlay by remember { mutableStateOf<MyLocationNewOverlay?>(null) }
     var userLocation by remember { mutableStateOf<GeoPoint?>(null) }
@@ -141,8 +153,10 @@ fun OSMNetworkMapRoute(
             val results = FloatArray(1)
             network.stations.forEach { station ->
                 android.location.Location.distanceBetween(
-                    loc.latitude, loc.longitude,
-                    station.position.latitude, station.position.longitude,
+                    loc.latitude,
+                    loc.longitude,
+                    station.position.latitude,
+                    station.position.longitude,
                     results,
                 )
                 if (best == null || results[0] < best.second) {
@@ -191,7 +205,7 @@ fun OSMNetworkMapRoute(
     }
 
     LaunchedEffect(mapView, network, focusedLine, markersVisible) {
-        rebuildOverlays(mapView, network, focusedLine, alertedLineNames, markersVisible) { info ->
+        rebuildOverlays(mapView, network, focusedLine, markersVisible) { info ->
             selectedStation = info
             mapView?.let { map ->
                 if (map.zoomLevelDouble < 15) {
@@ -214,6 +228,7 @@ fun OSMNetworkMapRoute(
     }
 
     Scaffold(
+        modifier = modifier,
         // The host Scaffold already insets content for the system bars and the
         // bottom navigation, so this nested Scaffold must not re-apply them.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -251,7 +266,8 @@ fun OSMNetworkMapRoute(
                     selectedStation?.let { info ->
                         StationArrivalsPanel(
                             stationInfo = info,
-                            viewModel = viewModel,
+                            arrivals = selectedArrivals,
+                            lineColor = { network.lineColor(it)?.toLong() },
                             onClose = { selectedStation = null },
                         )
                     }
@@ -289,8 +305,11 @@ fun OSMNetworkMapRoute(
                                             .size(8.dp)
                                             .clip(CircleShape)
                                             .background(
-                                                if (isDimmed) Color(line.color).copy(alpha = 0.3f)
-                                                else Color(line.color),
+                                                if (isDimmed) {
+                                                    Color(line.color).copy(alpha = 0.3f)
+                                                } else {
+                                                    Color(line.color)
+                                                },
                                             ),
                                     )
                                     Spacer(Modifier.width(5.dp))
@@ -310,9 +329,13 @@ fun OSMNetworkMapRoute(
                                             Icons.Outlined.Warning,
                                             contentDescription = null,
                                             modifier = Modifier.size(14.dp),
-                                            tint = if (isFocused) Color.White
-                                            else if (isDimmed) MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
-                                            else MaterialTheme.colorScheme.error,
+                                            tint = if (isFocused) {
+                                                Color.White
+                                            } else if (isDimmed) {
+                                                MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
+                                            } else {
+                                                MaterialTheme.colorScheme.error
+                                            },
                                         )
                                     }
                                 }
@@ -337,10 +360,12 @@ fun OSMNetworkMapRoute(
                         controller.setZoom(11.5)
                         controller.setCenter(GeoPoint(39.47, -0.38))
 
-                        overlays.add(ScaleBarOverlay(this).apply {
-                            setAlignBottom(true)
-                            setAlignRight(true)
-                        })
+                        overlays.add(
+                            ScaleBarOverlay(this).apply {
+                                setAlignBottom(true)
+                                setAlignRight(true)
+                            },
+                        )
 
                         val locOverlay = MyLocationNewOverlay(GpsMyLocationProvider(ctx), this)
                         overlays.add(locOverlay)
@@ -421,8 +446,11 @@ fun OSMNetworkMapRoute(
                             fontWeight = FontWeight.SemiBold,
                         )
                         Text(
-                            text = if (distance < 1000) "${distance.toInt()} m"
-                            else "${"%.1f".format(distance / 1000)} km",
+                            text = if (distance < 1000) {
+                                "${distance.toInt()} m"
+                            } else {
+                                "${"%.1f".format(distance / 1000)} km"
+                            },
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -436,25 +464,11 @@ fun OSMNetworkMapRoute(
 @Composable
 private fun StationArrivalsPanel(
     stationInfo: MapStation,
-    viewModel: MapViewModel,
+    arrivals: List<Arrival>?,
+    lineColor: (String) -> Long?,
     onClose: () -> Unit,
 ) {
     val stopId = stationInfo.stopId
-    val arrivalsLoaded by remember(stopId) {
-        if (stopId != null) {
-            kotlinx.coroutines.flow.flow {
-                emit(false)
-                viewModel.observeArrivals(stopId).collect { emit(true) }
-            }
-        } else {
-            kotlinx.coroutines.flow.flowOf(true)
-        }
-    }.collectAsStateWithLifecycle(initialValue = false)
-
-    val arrivals by remember(stopId) {
-        if (stopId != null) viewModel.observeArrivals(stopId)
-        else kotlinx.coroutines.flow.flowOf(emptyList())
-    }.collectAsStateWithLifecycle(initialValue = emptyList())
 
     Surface(
         modifier = Modifier
@@ -490,7 +504,7 @@ private fun StationArrivalsPanel(
                         stationInfo.lines.forEach { lineName ->
                             LineBadge(
                                 label = lineName.removePrefix("L"),
-                                colorArgb = viewModel.network.value.lineColor(lineName)?.toLong(),
+                                colorArgb = lineColor(lineName),
                                 size = 26.dp,
                             )
                         }
@@ -508,7 +522,7 @@ private fun StationArrivalsPanel(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            } else if (!arrivalsLoaded) {
+            } else if (arrivals == null) {
                 Spacer(Modifier.height(8.dp))
                 repeat(3) {
                     Row(
@@ -552,7 +566,7 @@ private fun StationArrivalsPanel(
 }
 
 @Composable
-private fun SkeletonBox(modifier: Modifier, cornerRadius: Dp = 4.dp) {
+private fun SkeletonBox(modifier: Modifier = Modifier, cornerRadius: Dp = 4.dp) {
     val transition = rememberInfiniteTransition(label = "skeleton")
     val alpha by transition.animateFloat(
         initialValue = 0.25f,
@@ -627,7 +641,6 @@ private fun rebuildOverlays(
     map: MapView?,
     network: MapNetwork,
     focusedLine: String?,
-    alertedLineNames: Set<String>,
     showMarkers: Boolean,
     onStationTap: (MapStation) -> Unit,
 ) {
@@ -653,47 +666,53 @@ private fun rebuildOverlays(
         }
 
         if (line.path.size >= 2) {
-            m.overlays.add(Polyline().apply {
-                outlinePaint.apply {
-                    color = line.color
-                    this.strokeWidth = strokeWidth
-                    isAntiAlias = true
-                    alpha = lineAlpha
-                }
-                setPoints(line.path)
-            })
+            m.overlays.add(
+                Polyline().apply {
+                    outlinePaint.apply {
+                        color = line.color
+                        this.strokeWidth = strokeWidth
+                        isAntiAlias = true
+                        alpha = lineAlpha
+                    }
+                    setPoints(line.path)
+                },
+            )
         }
 
-        if (showMarkers) line.stationNames.forEach { name ->
-            val station = network.stationFor(name) ?: return@forEach
-            val point = station.position
-            val linesForStation = station.lines
-            val stationOnFocused = isAnyFocused && focusedLine in linesForStation
-            val markerAlpha = when {
-                !isAnyFocused -> 1f
-                stationOnFocused -> 1f
-                else -> 0.2f
+        if (showMarkers) {
+            line.stationNames.forEach { name ->
+                val station = network.stationFor(name) ?: return@forEach
+                val point = station.position
+                val linesForStation = station.lines
+                val stationOnFocused = isAnyFocused && focusedLine in linesForStation
+                val markerAlpha = when {
+                    !isAnyFocused -> 1f
+                    stationOnFocused -> 1f
+                    else -> 0.2f
+                }
+
+                val primaryColor = linesForStation.firstOrNull()
+                    ?.let { ln -> network.lineColor(ln) }
+                    ?: line.color
+                val lineColors = linesForStation.mapNotNull { ln -> network.lineColor(ln) }
+                val lineNumbers = linesForStation.map { it.removePrefix("L") }
+
+                m.overlays.add(
+                    Marker(m).apply {
+                        position = point
+                        title = name
+                        snippet = linesForStation.joinToString(", ")
+                        icon = createLineCircleMarker(res, primaryColor, density, lineNumbers, lineColors).apply {
+                            alpha = (markerAlpha * 255).toInt()
+                        }
+                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                        setOnMarkerClickListener { _, _ ->
+                            onStationTap(station)
+                            true
+                        }
+                    },
+                )
             }
-
-            val primaryColor = linesForStation.firstOrNull()
-                ?.let { ln -> network.lineColor(ln) }
-                ?: line.color
-            val lineColors = linesForStation.mapNotNull { ln -> network.lineColor(ln) }
-            val lineNumbers = linesForStation.map { it.removePrefix("L") }
-
-            m.overlays.add(Marker(m).apply {
-                position = point
-                title = name
-                snippet = linesForStation.joinToString(", ")
-                icon = createLineCircleMarker(res, primaryColor, density, lineNumbers, lineColors).apply {
-                    alpha = (markerAlpha * 255).toInt()
-                }
-                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                setOnMarkerClickListener { _, _ ->
-                    onStationTap(station)
-                    true
-                }
-            })
         }
     }
 
@@ -724,8 +743,14 @@ private fun createLineCircleMarker(res: Resources, color: Int, density: Float, l
         colors.forEachIndexed { i, c ->
             arcPaint.color = c
             canvas.drawArc(
-                cx - ri, cy - ri, cx + ri, cy + ri,
-                i * anglePerSegment - 90f, anglePerSegment - 0.5f, true, arcPaint,
+                cx - ri,
+                cy - ri,
+                cx + ri,
+                cy + ri,
+                i * anglePerSegment - 90f,
+                anglePerSegment - 0.5f,
+                true,
+                arcPaint,
             )
         }
     } else {

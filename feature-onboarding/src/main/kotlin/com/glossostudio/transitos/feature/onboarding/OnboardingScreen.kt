@@ -34,6 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -91,9 +92,13 @@ internal fun OnboardingScreen(
             pagerState.animateScrollToPage(state.currentPage)
         }
     }
+    // The collector outlives recompositions, so read the latest page and
+    // callback rather than the ones captured when the effect started.
+    val currentPage by rememberUpdatedState(state.currentPage)
+    val currentOnSelectPage by rememberUpdatedState(onSelectPage)
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
-            if (page != state.currentPage) onSelectPage(page)
+            if (page != currentPage) currentOnSelectPage(page)
         }
     }
 
@@ -218,26 +223,31 @@ private fun illustrationColors(illustration: OnboardingIllustration): Illustrati
             scheme.primaryContainer,
             scheme.onPrimaryContainer,
         )
+
         OnboardingIllustration.OVERVIEW -> IllustrationStyle(
             Icons.Outlined.Search,
             scheme.secondaryContainer,
             scheme.onSecondaryContainer,
         )
+
         OnboardingIllustration.REALTIME -> IllustrationStyle(
             Icons.Outlined.Schedule,
             scheme.tertiaryContainer,
             scheme.onTertiaryContainer,
         )
+
         OnboardingIllustration.FAVORITES -> IllustrationStyle(
             Icons.Outlined.Star,
             scheme.primaryContainer,
             scheme.onPrimaryContainer,
         )
+
         OnboardingIllustration.MAP -> IllustrationStyle(
             Icons.Outlined.Map,
             scheme.secondaryContainer,
             scheme.onSecondaryContainer,
         )
+
         OnboardingIllustration.LOCATION -> IllustrationStyle(
             Icons.Outlined.LocationOn,
             scheme.tertiaryContainer,
@@ -271,8 +281,11 @@ private fun OnboardingProgress(
                     .height(8.dp)
                     .clip(PillShape)
                     .background(
-                        if (selected) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.outlineVariant,
+                        if (selected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.outlineVariant
+                        },
                     ),
             )
         }
@@ -307,8 +320,11 @@ private fun OnboardingControls(
         Button(onClick = if (isLastPage) onFinish else onNext) {
             Text(
                 stringResource(
-                    if (isLastPage) R.string.onboarding_start
-                    else com.glossostudio.transitos.core.ui.R.string.action_next,
+                    if (isLastPage) {
+                        R.string.onboarding_start
+                    } else {
+                        com.glossostudio.transitos.core.ui.R.string.action_next
+                    },
                 ),
             )
             if (!isLastPage) {

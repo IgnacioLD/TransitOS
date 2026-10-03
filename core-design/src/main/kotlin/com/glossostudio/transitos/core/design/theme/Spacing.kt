@@ -22,8 +22,10 @@ data class Spacing(
 ) {
     /** Horizontal content gutter used by every screen edge. */
     val screenGutter: Dp get() = lg
+
     /** Vertical space between cards in a section list. */
     val cardGap: Dp get() = md
+
     /** Vertical breathing room inside a card. */
     val cardPadding: Dp get() = lg
 }

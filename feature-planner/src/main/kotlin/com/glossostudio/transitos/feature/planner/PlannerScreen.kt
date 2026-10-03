@@ -17,10 +17,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -44,8 +44,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -92,8 +92,8 @@ import com.glossostudio.transitos.core.design.theme.PillShape
 import com.glossostudio.transitos.core.model.Journey
 import com.glossostudio.transitos.core.model.JourneyLeg
 import com.glossostudio.transitos.core.model.Stop
-import com.glossostudio.transitos.core.ui.LineBadge
 import com.glossostudio.transitos.core.ui.HintCard
+import com.glossostudio.transitos.core.ui.LineBadge
 import com.glossostudio.transitos.core.ui.R as coreUiR
 import com.glossostudio.transitos.core.ui.ShareDialog
 import com.glossostudio.transitos.core.ui.SkeletonBlock
@@ -101,8 +101,8 @@ import com.glossostudio.transitos.core.ui.sharePlainText
 import com.glossostudio.transitos.core.util.stripDiacritics
 import com.glossostudio.transitos.feature.planner.R
 import kotlin.time.Clock
-import kotlinx.datetime.DatePeriod
 import kotlin.time.Instant
+import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
@@ -115,8 +115,14 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun PlannerRoute(
     modifier: Modifier = Modifier,
+    prefill: PlannerPrefill? = null,
     viewModel: PlannerViewModel = koinViewModel(),
 ) {
+    if (prefill != null) {
+        LaunchedEffect(prefill) {
+            viewModel.prefillRoute(prefill.originStopId, prefill.destinationStopId)
+        }
+    }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val stops by viewModel.stops.collectAsStateWithLifecycle()
     val showHint by viewModel.showHint.collectAsStateWithLifecycle()
@@ -130,11 +136,11 @@ fun PlannerRoute(
         showHint = showHint,
         onDismissHint = viewModel::dismissHint,
         onSkipHints = viewModel::skipHints,
-        onOriginSelected = viewModel::setOrigin,
-        onDestinationSelected = viewModel::setDestination,
-        onDateSelected = viewModel::setDate,
-        onTravelTimeSelected = viewModel::setTravelTime,
-        onTimeModeSelected = viewModel::setTimeMode,
+        onSelectOrigin = viewModel::setOrigin,
+        onSelectDestination = viewModel::setDestination,
+        onSelectDate = viewModel::setDate,
+        onSelectTravelTime = viewModel::setTravelTime,
+        onSelectTimeMode = viewModel::setTimeMode,
         onSwap = viewModel::swapEndpoints,
         onSearch = viewModel::search,
         onSaveRoute = viewModel::saveCurrentRoute,
@@ -186,29 +192,16 @@ private fun journeyShareText(journey: Journey?): String? {
     )
 }
 
-@Composable
-fun PrefilledPlannerRoute(
-    originStopId: String,
-    destinationStopId: String,
-    modifier: Modifier = Modifier,
-    viewModel: PlannerViewModel = koinViewModel(),
-) {
-    LaunchedEffect(originStopId, destinationStopId) {
-        viewModel.prefillRoute(originStopId, destinationStopId)
-    }
-    PlannerRoute(modifier = modifier, viewModel = viewModel)
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PlannerScreen(
     state: PlannerUiState,
     stops: List<Stop>,
-    onOriginSelected: (Stop) -> Unit,
-    onDestinationSelected: (Stop) -> Unit,
-    onDateSelected: (LocalDate) -> Unit,
-    onTravelTimeSelected: (String?) -> Unit,
-    onTimeModeSelected: (TimeMode) -> Unit,
+    onSelectOrigin: (Stop) -> Unit,
+    onSelectDestination: (Stop) -> Unit,
+    onSelectDate: (LocalDate) -> Unit,
+    onSelectTravelTime: (String?) -> Unit,
+    onSelectTimeMode: (TimeMode) -> Unit,
     onSwap: () -> Unit,
     onSearch: () -> Unit,
     modifier: Modifier = Modifier,
@@ -314,9 +307,8 @@ internal fun PlannerScreen(
                     today = today,
                     tomorrow = tomorrow,
                     travelTime = state.travelTime,
-                    onTimeModeSelected = onTimeModeSelected,
-                    onDateSelected = onDateSelected,
-                    onTravelTimeSelected = onTravelTimeSelected,
+                    onSelectTimeMode = onSelectTimeMode,
+                    onSelectTravelTime = onSelectTravelTime,
                     onShowDatePicker = { showDatePicker = true },
                     onShowTimePicker = { showTimePicker = true },
                 )
@@ -360,7 +352,7 @@ internal fun PlannerScreen(
 
             if (!state.canPlan) {
                 item {
-                    QuickPicks(stops = stops, onPick = onOriginSelected)
+                    QuickPicks(stops = stops, onPick = onSelectOrigin)
                 }
             }
         }
@@ -380,13 +372,16 @@ internal fun PlannerScreen(
     val target = picking
     if (target != null) {
         StationPickerSheet(
-            title = if (target == PickingTarget.ORIGIN) stringResource(R.string.planner_from)
-            else stringResource(R.string.planner_to),
+            title = if (target == PickingTarget.ORIGIN) {
+                stringResource(R.string.planner_from)
+            } else {
+                stringResource(R.string.planner_to)
+            },
             stops = stops,
             onPick = { stop ->
                 when (target) {
-                    PickingTarget.ORIGIN -> onOriginSelected(stop)
-                    PickingTarget.DESTINATION -> onDestinationSelected(stop)
+                    PickingTarget.ORIGIN -> onSelectOrigin(stop)
+                    PickingTarget.DESTINATION -> onSelectDestination(stop)
                 }
                 picking = null
             },
@@ -403,7 +398,7 @@ internal fun PlannerScreen(
                 TextButton(
                     onClick = {
                         pickerState.selectedDateMillis?.let { millis ->
-                            onDateSelected(
+                            onSelectDate(
                                 Instant.fromEpochMilliseconds(millis).toLocalDateTime(timeZone).date,
                             )
                         }
@@ -433,10 +428,11 @@ internal fun PlannerScreen(
             onDismissRequest = { showTimePicker = false },
             title = {
                 Text(
-                    if (state.timeMode == TimeMode.ARRIVAL)
+                    if (state.timeMode == TimeMode.ARRIVAL) {
                         stringResource(R.string.planner_arrival_time_title)
-                    else
-                        stringResource(R.string.planner_departure_time_title),
+                    } else {
+                        stringResource(R.string.planner_departure_time_title)
+                    },
                 )
             },
             text = {
@@ -451,7 +447,7 @@ internal fun PlannerScreen(
                 TextButton(onClick = {
                     val h = timePickerState.hour.toString().padStart(2, '0')
                     val m = timePickerState.minute.toString().padStart(2, '0')
-                    onTravelTimeSelected("$h:$m")
+                    onSelectTravelTime("$h:$m")
                     showTimePicker = false
                 }) { Text(stringResource(coreUiR.string.action_accept)) }
             },
@@ -557,8 +553,11 @@ private fun EndpointRow(
                     text = value ?: stringResource(R.string.planner_pick_station),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = if (value != null) FontWeight.SemiBold else FontWeight.Normal,
-                    color = if (value == null) MaterialTheme.colorScheme.outline
-                    else MaterialTheme.colorScheme.onSurface,
+                    color = if (value == null) {
+                        MaterialTheme.colorScheme.outline
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -574,9 +573,8 @@ private fun TimeOptions(
     today: LocalDate,
     tomorrow: LocalDate,
     travelTime: String?,
-    onTimeModeSelected: (TimeMode) -> Unit,
-    onDateSelected: (LocalDate) -> Unit,
-    onTravelTimeSelected: (String?) -> Unit,
+    onSelectTimeMode: (TimeMode) -> Unit,
+    onSelectTravelTime: (String?) -> Unit,
     onShowDatePicker: () -> Unit,
     onShowTimePicker: () -> Unit,
 ) {
@@ -588,8 +586,8 @@ private fun TimeOptions(
             SegmentedButton(
                 selected = leaveNow,
                 onClick = {
-                    onTimeModeSelected(TimeMode.DEPARTURE)
-                    onTravelTimeSelected(null)
+                    onSelectTimeMode(TimeMode.DEPARTURE)
+                    onSelectTravelTime(null)
                 },
                 shape = SegmentedButtonDefaults.itemShape(0, 2),
                 label = { Text(stringResource(R.string.planner_leave_now), maxLines = 1) },
@@ -597,12 +595,12 @@ private fun TimeOptions(
             SegmentedButton(
                 selected = !leaveNow,
                 onClick = {
-                    onTimeModeSelected(TimeMode.ARRIVAL)
+                    onSelectTimeMode(TimeMode.ARRIVAL)
                     if (travelTime == null) {
                         val now = java.time.LocalTime.now()
                         val h = now.hour.toString().padStart(2, '0')
                         val m = now.minute.toString().padStart(2, '0')
-                        onTravelTimeSelected("$h:$m")
+                        onSelectTravelTime("$h:$m")
                     }
                 },
                 shape = SegmentedButtonDefaults.itemShape(1, 2),
@@ -837,16 +835,25 @@ private fun SheetHeaderRow(
             FilledTonalIconButton(
                 onClick = if (isSaved) onRemove else onSave,
                 colors = IconButtonDefaults.filledTonalIconButtonColors(
-                    containerColor = if (isSaved) MaterialTheme.colorScheme.tertiaryContainer
-                    else MaterialTheme.colorScheme.surfaceContainerHigh,
-                    contentColor = if (isSaved) MaterialTheme.colorScheme.onTertiaryContainer
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    containerColor = if (isSaved) {
+                        MaterialTheme.colorScheme.tertiaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerHigh
+                    },
+                    contentColor = if (isSaved) {
+                        MaterialTheme.colorScheme.onTertiaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                 ),
             ) {
                 Icon(
                     imageVector = if (isSaved) Icons.Outlined.Star else Icons.Outlined.StarBorder,
-                    contentDescription = if (isSaved) stringResource(R.string.planner_route_saved)
-                    else stringResource(R.string.planner_save_route),
+                    contentDescription = if (isSaved) {
+                        stringResource(R.string.planner_route_saved)
+                    } else {
+                        stringResource(R.string.planner_save_route)
+                    },
                 )
             }
         }
@@ -1143,16 +1150,15 @@ private fun SheetStats(journey: Journey) {
 }
 
 @Composable
-private fun transfersLabel(journey: Journey): String =
-    if (journey.hasTransfers) {
-        pluralStringResource(
-            R.plurals.planner_transfers_count,
-            journey.legs.size - 1,
-            journey.legs.size - 1,
-        )
-    } else {
-        stringResource(R.string.planner_no_transfers)
-    }
+private fun transfersLabel(journey: Journey): String = if (journey.hasTransfers) {
+    pluralStringResource(
+        R.plurals.planner_transfers_count,
+        journey.legs.size - 1,
+        journey.legs.size - 1,
+    )
+} else {
+    stringResource(R.string.planner_no_transfers)
+}
 
 @Composable
 private fun JourneyAlternatives(
@@ -1229,8 +1235,9 @@ private fun StationPickerSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var query by rememberSaveable { mutableStateOf("") }
     val filtered = remember(query, stops) {
-        if (query.isBlank()) stops
-        else {
+        if (query.isBlank()) {
+            stops
+        } else {
             val nq = query.stripDiacritics()
             stops.filter { it.name.stripDiacritics().contains(nq, ignoreCase = true) }
         }

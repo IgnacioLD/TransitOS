@@ -2,6 +2,9 @@
 # deviations live here. Formatting is ktlint's job (Spotless), not detekt's.
 
 naming:
+  ConstructorParameterNaming:
+    # Network DTOs mirror the upstream JSON keys.
+    excludes: ['**/dto/**']
   FunctionNaming:
     # Composables are PascalCase by convention.
     ignoreAnnotated: ['Composable']
@@ -9,6 +12,11 @@ naming:
     constantPattern: '[A-Z][_A-Za-z0-9]*'
 
 complexity:
+  TooManyFunctions:
+    # Compose files are many small private composables by design.
+    thresholdInFiles: 25
+    thresholdInClasses: 15
+    ignorePrivate: true
   LongParameterList:
     # Composables take state + callbacks as parameters by design.
     ignoreAnnotated: ['Composable']
@@ -16,10 +24,18 @@ complexity:
     ignoreAnnotated: ['Composable', 'Preview']
 
 style:
+  # Line length is a formatting concern, owned by ktlint/.editorconfig.
+  MaxLineLength:
+    active: false
   MagicNumber:
+    ignoreNumbers: ['-1', '0', '1', '2', '0.5', '24', '60', '90', '100', '180', '255', '360']
     ignorePropertyDeclaration: true
     ignoreCompanionObjectPropertyDeclaration: true
     ignoreAnnotated: ['Composable', 'Preview']
+  ReturnCount:
+    max: 3
+    excludeGuardClauses: true
+    excludeReturnFromLambda: true
   UnusedPrivateMember:
     ignoreAnnotated: ['Preview']
 

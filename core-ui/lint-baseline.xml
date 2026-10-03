@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 9.4.1" type="baseline" client="gradle" dependencies="false" name="AGP (9.4.1)" variant="all" version="9.4.1">
+
+    <issue
+        id="Typos"
+        message="&quot;momento&quot; is a common misspelling; did you mean &quot;memento&quot;?"
+        errorLine1="    &lt;string name=&quot;error_network_body&quot;>El servicio no responde. Vuelve a intentarlo en un momento.&lt;/string>"
+        errorLine2="                                                                                         ~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="35"
+            column="90"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;minutes&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;a11y_eta_minutes&quot;>%1$d minutes&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-en/strings.xml"
+            line="70"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;minutos&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;a11y_eta_minutes&quot;>%1$d minutos&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="70"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;lines&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;alerts_show_all&quot;>Show all %1$d lines&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values-en/strings.xml"
+            line="77"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;líneas&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;alerts_show_all&quot;>Ver las %1$d líneas&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="77"
+            column="5"/>
+    </issue>
+
+</issues>

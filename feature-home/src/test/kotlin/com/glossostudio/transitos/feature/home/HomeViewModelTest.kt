@@ -83,7 +83,7 @@ class HomeViewModelTest {
         )
 
         override fun observeStops(): Flow<List<Stop>> = flow {
-            if (failStops) throw IllegalStateException("stops unavailable")
+            check(!failStops) { "stops unavailable" }
             emit(stops)
         }
 
