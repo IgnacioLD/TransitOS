@@ -2,7 +2,6 @@
 # Build tooling
 agp = "8.9.1"
 kotlin = "2.0.21"
-ksp = "2.0.21-1.0.28"
 
 # AndroidX core
 coreKtx = "1.13.1"
@@ -12,7 +11,6 @@ activityCompose = "1.9.2"
 appcompat = "1.7.0"
 navigationCompose = "2.8.2"
 datastore = "1.1.1"
-room = "2.6.1"
 
 # Compose
 composeBom = "2024.09.03"
@@ -28,9 +26,6 @@ ktor = "3.0.3"
 # DI
 koin = "4.0.0"
 
-# Images
-coil = "2.7.0"
-
 # Maps
 osmdroid = "6.1.18"
 
@@ -41,9 +36,6 @@ playReview = "2.0.2"
 junit = "4.13.2"
 truth = "1.4.4"
 turbine = "1.1.0"
-robolectric = "4.13"
-androidxTestExt = "1.2.1"
-androidxTestRunner = "1.6.2"
 
 [libraries]
 # AndroidX core
@@ -56,13 +48,8 @@ androidx-activity-compose = { group = "androidx.activity", name = "activity-comp
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 
-# DataStore (deferred wiring)
+# DataStore
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
-
-# Room (deferred wiring)
-androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
-androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
-androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
 # Compose (BOM-managed)
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -83,7 +70,7 @@ kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "ko
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
 
-# Ktor (deferred wiring)
+# Ktor
 ktor-bom = { group = "io.ktor", name = "ktor-bom", version.ref = "ktor" }
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core" }
 ktor-client-android = { group = "io.ktor", name = "ktor-client-android" }
@@ -98,9 +85,6 @@ koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = 
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
 koin-test = { group = "io.insert-koin", name = "koin-test", version.ref = "koin" }
 
-# Coil (deferred wiring)
-coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
-
 # osmdroid
 osmdroid-android = { group = "org.osmdroid", name = "osmdroid-android", version.ref = "osmdroid" }
 
@@ -112,9 +96,11 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
-robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
-androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExt" }
-androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
+
+# Build logic (convention plugins compile against these)
+android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
+kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+compose-gradlePlugin = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -123,4 +109,3 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
