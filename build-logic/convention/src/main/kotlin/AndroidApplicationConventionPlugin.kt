@@ -1,5 +1,6 @@
 import com.android.build.api.dsl.ApplicationExtension
 import com.glossostudio.transitos.buildlogic.TransitosSdk
+import com.glossostudio.transitos.buildlogic.configureAndroidLint
 import com.glossostudio.transitos.buildlogic.configureKotlinAndroid
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -9,9 +10,11 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             pluginManager.apply("com.android.application")
+            pluginManager.apply("transitos.quality")
 
             extensions.configure<ApplicationExtension> {
                 configureKotlinAndroid(this)
+                configureAndroidLint(this)
                 defaultConfig.targetSdk = TransitosSdk.TARGET
             }
         }

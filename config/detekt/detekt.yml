@@ -1,0 +1,34 @@
+# Builds on detekt's default config (buildUponDefaultConfig = true); only the
+# deviations live here. Formatting is ktlint's job (Spotless), not detekt's.
+
+naming:
+  FunctionNaming:
+    # Composables are PascalCase by convention.
+    ignoreAnnotated: ['Composable']
+  TopLevelPropertyNaming:
+    constantPattern: '[A-Z][_A-Za-z0-9]*'
+
+complexity:
+  LongParameterList:
+    # Composables take state + callbacks as parameters by design.
+    ignoreAnnotated: ['Composable']
+  LongMethod:
+    ignoreAnnotated: ['Composable', 'Preview']
+
+style:
+  MagicNumber:
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreAnnotated: ['Composable', 'Preview']
+  UnusedPrivateMember:
+    ignoreAnnotated: ['Preview']
+
+coroutines:
+  GlobalCoroutineUsage:
+    active: true
+  SuspendFunSwallowedCancellation:
+    active: true
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: true

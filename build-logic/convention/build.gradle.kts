@@ -21,6 +21,8 @@ dependencies {
     compileOnly(libs.android.gradlePlugin)
     compileOnly(libs.kotlin.gradlePlugin)
     compileOnly(libs.compose.gradlePlugin)
+    implementation(libs.spotless.gradlePlugin)
+    implementation(libs.detekt.gradlePlugin)
 }
 
 gradlePlugin {
@@ -40,6 +42,10 @@ gradlePlugin {
         register("androidFeature") {
             id = "transitos.android.feature"
             implementationClass = "AndroidFeatureConventionPlugin"
+        }
+        register("quality") {
+            id = "transitos.quality"
+            implementationClass = "QualityConventionPlugin"
         }
         register("jvmLibrary") {
             id = "transitos.jvm.library"
