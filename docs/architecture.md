@@ -123,7 +123,7 @@ Koin, chosen over Hilt deliberately:
 
 ## Stack
 
-- **Kotlin 2.0.21**, Coroutines, Flow
+- **Kotlin 2.4**, Coroutines, Flow
 - **Jetpack Compose** (BOM-managed), Material 3, dynamic colour
 - **Ktor 3** for HTTP (one shared `HttpClient`; providers plug in their own
   endpoints)
@@ -133,22 +133,21 @@ Koin, chosen over Hilt deliberately:
 - **Gradle Version Catalog** (`gradle/libs.versions.toml`) as a single source
   for every dependency and plugin
 
-Room and Coil are declared in the version catalog but not yet wired. They will
-land when the first feature that needs them (an offline cache, image loading)
-arrives.
-
 ## Conventions
 
-- Package root: `app.transitos.<module-suffix>` (for example
-  `app.transitos.feature.home`). Note the `applicationId` and manifest namespace
-  use `com.glossostudio.transitos`.
+- Package root: `com.glossostudio.transitos.<module-suffix>` (for example
+  `com.glossostudio.transitos.feature.home`), matching the `applicationId`,
+  the manifest namespaces and the source directories.
 - Public API in `:core` is explicit (`-Xexplicit-api=warning`): visibility is
   always stated, never implied.
 - Composables follow the `Screen` to `Content` to `Component` to `Primitive`
   hierarchy. Keep them small and stateless; hoist state to the route-level
   composable or the ViewModel.
-- Module build files use Kotlin DSL. There are no `buildSrc` convention plugins
-  yet; we will extract them once duplication across modules justifies it.
+- Module build files use Kotlin DSL and apply convention plugins from the
+  `build-logic` included build (`transitos.android.feature`,
+  `transitos.android.library`, `transitos.android.compose`,
+  `transitos.jvm.library`). SDK levels, the JVM target, Compose setup and the
+  quality tooling (Spotless/ktlint, detekt, Android Lint) live there once.
 
 ## Decisions worth remembering
 
