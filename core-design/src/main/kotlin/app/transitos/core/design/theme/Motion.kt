@@ -50,6 +50,5 @@ object Motion {
     )
 
     /** Simple tween helper wired to the shared easing curve. */
-    fun <T> standard(durationMillis: Int = MEDIUM): AnimationSpec<T> =
-        tween(durationMillis = durationMillis, easing = Expressive)
+    fun <T> standard(durationMillis: Int = MEDIUM): AnimationSpec<T> = tween(durationMillis = durationMillis, easing = Expressive)
 }

@@ -28,8 +28,7 @@ class DataStoreThemePreference(
         context.transitosDataStore.edit { it[KEY] = mode.name }
     }
 
-    private fun String.toThemeMode(): ThemeMode =
-        ThemeMode.entries.firstOrNull { it.name == this } ?: ThemeMode.SYSTEM
+    private fun String.toThemeMode(): ThemeMode = ThemeMode.entries.firstOrNull { it.name == this } ?: ThemeMode.SYSTEM
 
     private companion object {
         const val PREFS_NAME = "transitos_prefs"

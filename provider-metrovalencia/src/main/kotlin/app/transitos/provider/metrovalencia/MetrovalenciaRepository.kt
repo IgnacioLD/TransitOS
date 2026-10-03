@@ -22,6 +22,7 @@ import com.glossostudio.transitos.provider.metrovalencia.mapper.toLine
 import com.glossostudio.transitos.provider.metrovalencia.mapper.toLineGeometries
 import com.glossostudio.transitos.provider.metrovalencia.mapper.toStop
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -38,7 +39,6 @@ import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.LocalDate
-import kotlin.math.min
 
 /**
  * FGV-backed implementation of [TransitRepository]. Replaces the earlier stub.
@@ -128,11 +128,13 @@ class MetrovalenciaRepository(
     override fun observeLineGeometries(): Flow<List<LineGeometry>> = lineGeometriesState
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun observeAlerts(): Flow<List<Alert>> =
-        backend.flatMapLatest { currentBackend ->
-            if (currentBackend == MetrovalenciaBackend.NAP) flowOf(emptyList())
-            else alertsState
+    override fun observeAlerts(): Flow<List<Alert>> = backend.flatMapLatest { currentBackend ->
+        if (currentBackend == MetrovalenciaBackend.NAP) {
+            flowOf(emptyList())
+        } else {
+            alertsState
         }
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun observeArrivals(stopId: String): Flow<List<Arrival>> {
@@ -219,10 +221,13 @@ class MetrovalenciaRepository(
                     horaLlegada = effectiveHora,
                 )
             }
-            if (response.status != 200) emptyList()
-            else response.resultado.mapNotNull { dto ->
-                val enforced = enforceTransferBuffer(dto, date, minTransferMinutes)
-                enforced.toJourney(date)
+            if (response.status != 200) {
+                emptyList()
+            } else {
+                response.resultado.mapNotNull { dto ->
+                    val enforced = enforceTransferBuffer(dto, date, minTransferMinutes)
+                    enforced.toJourney(date)
+                }
             }
         }.getOrDefault(emptyList())
     }

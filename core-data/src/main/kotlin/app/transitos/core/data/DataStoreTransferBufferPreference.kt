@@ -13,9 +13,8 @@ class DataStoreTransferBufferPreference(private val context: Context) : Transfer
         prefs[KEY] ?: DEFAULT
     }
 
-    override fun current(): Int =
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .getInt(SHARED_KEY, DEFAULT)
+    override fun current(): Int = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        .getInt(SHARED_KEY, DEFAULT)
 
     override suspend fun set(minutes: Int) {
         val clamped = minutes.coerceIn(MIN, MAX)

@@ -24,8 +24,11 @@ class MapViewModel(
         repository.observeLineGeometries(),
         repository.observeStops(),
     ) { geometries, stops ->
-        if (geometries.isEmpty()) MapNetwork.fallback()
-        else MapNetwork.fromLive(geometries, stops)
+        if (geometries.isEmpty()) {
+            MapNetwork.fallback()
+        } else {
+            MapNetwork.fromLive(geometries, stops)
+        }
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5_000),

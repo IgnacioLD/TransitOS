@@ -37,28 +37,26 @@ class MetrovalenciaApi(
     private val config: MetrovalenciaConfig,
 ) {
     private val sessionMutex = Mutex()
+
     @Volatile
     private var sessionEstablished = false
 
-    suspend fun getStations(): List<FgvStationDto> =
-        client.get("${config.fullBaseUrl}estaciones") {
-            headerAcceptJson()
-        }.body()
+    suspend fun getStations(): List<FgvStationDto> = client.get("${config.fullBaseUrl}estaciones") {
+        headerAcceptJson()
+    }.body()
 
-    suspend fun getLines(): List<FgvLineDto> =
-        client.get("${config.fullBaseUrl}lineas") {
-            headerAcceptJson()
-        }.body()
+    suspend fun getLines(): List<FgvLineDto> = client.get("${config.fullBaseUrl}lineas") {
+        headerAcceptJson()
+    }.body()
 
     /**
      * The heavy catalogue bundle (lineas + estaciones + track shapes). Only the
      * map needs it, so the repository keeps it behind a lazily-shared flow and
      * refreshes it at the slow catalogue cadence.
      */
-    suspend fun getSincronizacion(): FgvSincronizacionResponseDto =
-        client.get("${config.fullBaseUrl}sincronizacion") {
-            headerAcceptJson()
-        }.body()
+    suspend fun getSincronizacion(): FgvSincronizacionResponseDto = client.get("${config.fullBaseUrl}sincronizacion") {
+        headerAcceptJson()
+    }.body()
 
     /**
      * @param estacionIdFgv the `estacion_id_FGV` value, not FGV's internal id.
@@ -114,10 +112,9 @@ class MetrovalenciaApi(
         return response.body()
     }
 
-    suspend fun getIncidencias(): FgvIncidenciasResponseDto =
-        client.get("${config.fullBaseUrl}incidencias") {
-            headerAcceptJson()
-        }.body()
+    suspend fun getIncidencias(): FgvIncidenciasResponseDto = client.get("${config.fullBaseUrl}incidencias") {
+        headerAcceptJson()
+    }.body()
 
     /**
      * Plans a journey via FGV's `horarios-online2`.

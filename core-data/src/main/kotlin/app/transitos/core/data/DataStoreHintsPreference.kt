@@ -12,8 +12,7 @@ class DataStoreHintsPreference(
     private val context: Context,
 ) : HintsPreference {
 
-    override fun observeSeen(key: String): Flow<Boolean> =
-        context.transitosDataStore.data.map { prefs -> key in (prefs[KEY] ?: emptySet()) }
+    override fun observeSeen(key: String): Flow<Boolean> = context.transitosDataStore.data.map { prefs -> key in (prefs[KEY] ?: emptySet()) }
 
     override fun isSeen(key: String): Boolean = seenSet().contains(key)
 
@@ -29,11 +28,10 @@ class DataStoreHintsPreference(
         updateSet { emptySet() }
     }
 
-    private fun seenSet(): Set<String> =
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .getStringSet(SHARED_KEY, emptySet())
-            ?.toSet()
-            .orEmpty()
+    private fun seenSet(): Set<String> = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        .getStringSet(SHARED_KEY, emptySet())
+        ?.toSet()
+        .orEmpty()
 
     private suspend fun updateSet(transform: (Set<String>) -> Set<String>) {
         val updated = transform(seenSet())

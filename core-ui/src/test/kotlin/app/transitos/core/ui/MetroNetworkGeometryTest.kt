@@ -3,9 +3,9 @@ package com.glossostudio.transitos.core.ui
 import androidx.compose.ui.geometry.Offset
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
-import org.junit.Test
 import kotlin.math.abs
 import kotlin.math.hypot
+import org.junit.Test
 
 /**
  * Guards the authored metro fragments: the whole look depends on lines turning

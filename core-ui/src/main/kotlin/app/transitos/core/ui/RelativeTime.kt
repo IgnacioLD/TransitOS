@@ -19,8 +19,10 @@ fun relativeTime(epochMs: Long, nowMs: Long = System.currentTimeMillis()): Relat
     val delta = (nowMs - epochMs).coerceAtLeast(0L)
     return when {
         delta < SECONDS_PER_MINUTE * MS_PER_SECOND -> RelativeTime.JustNow
+
         delta < SECONDS_PER_HOUR * MS_PER_SECOND ->
             RelativeTime.Minutes(delta / (SECONDS_PER_MINUTE * MS_PER_SECOND))
+
         else ->
             RelativeTime.Hours(delta / (SECONDS_PER_HOUR * MS_PER_SECOND))
     }

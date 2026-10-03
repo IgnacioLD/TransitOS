@@ -1,7 +1,7 @@
 package com.glossostudio.transitos.provider.metrovalencia.dto
 
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 @Serializable
 data class FgvIncidenciasResponseDto(

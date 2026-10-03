@@ -77,12 +77,12 @@ import com.glossostudio.transitos.core.ui.FavoriteStopCard
 import com.glossostudio.transitos.core.ui.FavoriteStopCardSkeleton
 import com.glossostudio.transitos.core.ui.FavoritesSkeleton
 import com.glossostudio.transitos.core.ui.HintCard
+import com.glossostudio.transitos.core.ui.PLAY_STORE_URL
+import com.glossostudio.transitos.core.ui.R as coreUiR
 import com.glossostudio.transitos.core.ui.SectionHeader
 import com.glossostudio.transitos.core.ui.ShareDialog
 import com.glossostudio.transitos.core.ui.StatusPill
-import com.glossostudio.transitos.core.ui.PLAY_STORE_URL
 import com.glossostudio.transitos.core.ui.sharePlainText
-import com.glossostudio.transitos.core.ui.R as coreUiR
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -174,7 +174,9 @@ internal fun HomeScreen(
             Box(modifier = Modifier.padding(padding)) {
                 when (current) {
                     HomeUiState.Loading -> FavoritesSkeleton()
+
                     is HomeUiState.Error -> ErrorState(error = current.error, onRetry = onRefresh)
+
                     is HomeUiState.Ready -> {
                         PullToRefreshBox(
                             isRefreshing = current.isRefreshing,

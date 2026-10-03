@@ -157,12 +157,17 @@ internal fun SearchScreen(
 
             when {
                 allStopsSize == 0 -> SearchSkeleton()
+
                 filteredStops.isEmpty() -> EmptyState(
                     title = stringResource(R.string.search_no_results),
-                    subtitle = if (query.isBlank()) stringResource(R.string.search_loading)
-                    else stringResource(R.string.search_no_match, query),
+                    subtitle = if (query.isBlank()) {
+                        stringResource(R.string.search_loading)
+                    } else {
+                        stringResource(R.string.search_no_match, query)
+                    },
                     modifier = Modifier.fillMaxSize(),
                 )
+
                 else -> StopsList(
                     query = query,
                     stops = filteredStops,
@@ -339,16 +344,22 @@ private fun StopRow(
                     .size(40.dp)
                     .clip(MaterialTheme.shapes.medium)
                     .background(
-                        if (isFavorite) MaterialTheme.colorScheme.tertiaryContainer
-                        else MaterialTheme.colorScheme.secondaryContainer,
+                        if (isFavorite) {
+                            MaterialTheme.colorScheme.tertiaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.secondaryContainer
+                        },
                     ),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Outlined.LocationOn,
                     contentDescription = null,
-                    tint = if (isFavorite) MaterialTheme.colorScheme.onTertiaryContainer
-                    else MaterialTheme.colorScheme.onSecondaryContainer,
+                    tint = if (isFavorite) {
+                        MaterialTheme.colorScheme.onTertiaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSecondaryContainer
+                    },
                     modifier = Modifier.size(21.dp),
                 )
             }

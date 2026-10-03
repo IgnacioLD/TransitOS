@@ -114,12 +114,19 @@ private data class ErrorPresentation(
 
 private fun AppError.toPresentation(): ErrorPresentation = when (this) {
     is AppError.Offline -> ErrorPresentation(Icons.Outlined.WifiOff, R.string.error_offline_title, R.string.error_offline_body)
+
     is AppError.Network -> ErrorPresentation(Icons.Outlined.CloudOff, R.string.error_network_title, R.string.error_network_body)
+
     is AppError.Timeout -> ErrorPresentation(Icons.Outlined.CloudOff, R.string.error_timeout_title, R.string.error_timeout_body)
+
     is AppError.Unauthorized -> ErrorPresentation(Icons.Outlined.ErrorOutline, R.string.error_unauthorized_title, R.string.error_unauthorized_body)
+
     is AppError.Server -> ErrorPresentation(Icons.Outlined.ErrorOutline, R.string.error_server_title, R.string.error_server_body, titleFormatArg = code)
+
     is AppError.NotFound -> ErrorPresentation(Icons.Outlined.Info, R.string.error_not_found_title, R.string.error_not_found_body)
+
     is AppError.Parsing -> ErrorPresentation(Icons.Outlined.ErrorOutline, R.string.error_parsing_title, R.string.error_parsing_body)
+
     is AppError.Unknown -> ErrorPresentation(
         icon = Icons.Outlined.ErrorOutline,
         titleRes = R.string.error_unknown_title,

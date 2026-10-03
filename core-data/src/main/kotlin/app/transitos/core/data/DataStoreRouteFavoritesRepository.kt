@@ -16,11 +16,10 @@ class DataStoreRouteFavoritesRepository(
     private val context: Context,
 ) : RouteFavoritesRepository {
 
-    override fun observeSavedRoutes(): Flow<List<SavedRoute>> =
-        context.transitosDataStore.data.map { prefs ->
-            val json = prefs[ROUTES_KEY] ?: return@map emptyList()
-            runCatching { Json.decodeFromString<List<SavedRoute>>(json) }.getOrDefault(emptyList())
-        }
+    override fun observeSavedRoutes(): Flow<List<SavedRoute>> = context.transitosDataStore.data.map { prefs ->
+        val json = prefs[ROUTES_KEY] ?: return@map emptyList()
+        runCatching { Json.decodeFromString<List<SavedRoute>>(json) }.getOrDefault(emptyList())
+    }
 
     override suspend fun saveRoute(route: SavedRoute) {
         withContext(Dispatchers.IO) {

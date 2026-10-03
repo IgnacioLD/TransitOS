@@ -24,15 +24,21 @@ class OnboardingViewModel(
 
     fun next() {
         _state.update { current ->
-            if (current.isLastPage) current
-            else current.copy(currentPage = current.currentPage + 1)
+            if (current.isLastPage) {
+                current
+            } else {
+                current.copy(currentPage = current.currentPage + 1)
+            }
         }
     }
 
     fun back() {
         _state.update { current ->
-            if (current.isFirstPage) current
-            else current.copy(currentPage = current.currentPage - 1)
+            if (current.isFirstPage) {
+                current
+            } else {
+                current.copy(currentPage = current.currentPage - 1)
+            }
         }
     }
 

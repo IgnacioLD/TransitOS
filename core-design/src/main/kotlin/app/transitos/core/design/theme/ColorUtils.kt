@@ -12,5 +12,4 @@ import androidx.compose.ui.graphics.luminance
  * Used by line badges, occupancy chips and anywhere we paint arbitrary
  * operator-supplied colours.
  */
-fun onColor(background: Color): Color =
-    if (background.luminance() > 0.5f) Color.Black else Color.White
+fun onColor(background: Color): Color = if (background.luminance() > 0.5f) Color.Black else Color.White

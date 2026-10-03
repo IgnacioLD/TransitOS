@@ -62,7 +62,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun ThemeMode.resolvesToDark(): Boolean = when (this) {
         ThemeMode.LIGHT -> false
+
         ThemeMode.DARK, ThemeMode.AMOLED -> true
+
         ThemeMode.SYSTEM ->
             (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
                 Configuration.UI_MODE_NIGHT_YES

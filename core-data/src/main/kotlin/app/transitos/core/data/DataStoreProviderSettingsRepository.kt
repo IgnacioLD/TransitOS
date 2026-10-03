@@ -13,10 +13,9 @@ class DataStoreProviderSettingsRepository(
     private val context: Context,
 ) : ProviderSettingsRepository {
 
-    override fun observeProviderBackend(providerId: String): Flow<String> =
-        context.transitosDataStore.data.map { prefs ->
-            prefs[backendKey(providerId)] ?: DEFAULT_BACKEND
-        }
+    override fun observeProviderBackend(providerId: String): Flow<String> = context.transitosDataStore.data.map { prefs ->
+        prefs[backendKey(providerId)] ?: DEFAULT_BACKEND
+    }
 
     override suspend fun setProviderBackend(providerId: String, backendId: String) {
         withContext(Dispatchers.IO) {

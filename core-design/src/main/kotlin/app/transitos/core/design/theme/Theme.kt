@@ -54,10 +54,15 @@ fun TransitOSTheme(
             val dark = isSystemInDarkTheme()
             when {
                 dynamicColor && supportsDynamic -> {
-                    if (dark) dynamicDarkColorScheme(LocalContext.current)
-                    else dynamicLightColorScheme(LocalContext.current)
+                    if (dark) {
+                        dynamicDarkColorScheme(LocalContext.current)
+                    } else {
+                        dynamicLightColorScheme(LocalContext.current)
+                    }
                 }
+
                 dark -> DarkColors
+
                 else -> LightColors
             }
         }

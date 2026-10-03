@@ -21,5 +21,4 @@ internal fun arrivalDirection(destination: String): String = directionText(
  * Pure formatting behind [arrivalDirection], kept separate so the blank
  * fallback can be unit tested without a Compose runtime.
  */
-internal fun directionText(destination: String, blankLabel: String, template: String): String =
-    if (destination.isBlank()) blankLabel else template.format(destination)
+internal fun directionText(destination: String, blankLabel: String, template: String): String = if (destination.isBlank()) blankLabel else template.format(destination)

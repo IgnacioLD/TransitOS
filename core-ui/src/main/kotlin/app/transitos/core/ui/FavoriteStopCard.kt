@@ -269,8 +269,13 @@ private fun ArrivalMinutes(arrival: Arrival, emphasized: Boolean, accent: Color)
             minutes != null -> Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text = minutes.toString(),
-                    style = (if (emphasized) MaterialTheme.typography.headlineSmall
-                    else MaterialTheme.typography.titleLarge).copy(fontFeatureSettings = TabularFigures),
+                    style = (
+                        if (emphasized) {
+                            MaterialTheme.typography.headlineSmall
+                        } else {
+                            MaterialTheme.typography.titleLarge
+                        }
+                        ).copy(fontFeatureSettings = TabularFigures),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
@@ -348,4 +353,3 @@ private fun FavoriteStopCardPreview() {
         }
     }
 }
-

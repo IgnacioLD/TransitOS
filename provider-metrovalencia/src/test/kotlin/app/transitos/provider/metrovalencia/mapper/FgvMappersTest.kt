@@ -93,8 +93,11 @@ class FgvMappersTest {
         )
         val lineByFgvId = mapOf(
             3L to Line(
-                id = "mv:3", name = "L3", operatorId = "metrovalencia",
-                mode = TransportMode.METRO, color = 0xFFCE2348L,
+                id = "mv:3",
+                name = "L3",
+                operatorId = "metrovalencia",
+                mode = TransportMode.METRO,
+                color = 0xFFCE2348L,
             ),
         )
 
@@ -149,7 +152,9 @@ class FgvMappersTest {
     @Test
     fun `prevision falls back to line or lineaIdInterna when lineId missing`() {
         val prevision = FgvPrevisionDto(
-            lineId = null, line = 5L, trains = listOf(
+            lineId = null,
+            line = 5L,
+            trains = listOf(
                 FgvTrainDto(destino = "X", seconds = 60),
             ),
         )
@@ -282,7 +287,9 @@ class FgvMappersTest {
                     estacion_destino = FgvStationDto(estacionIdFgv = 2, nombre = "La Pobla de Farnals"),
                     tren_origen = "Rafelbunyol",
                     linea_origen = FgvPlanificadorLineaDto(
-                        color = "#FEC601", nombre_corto = "L3", lineaIdFgv = 3,
+                        color = "#FEC601",
+                        nombre_corto = "L3",
+                        lineaIdFgv = 3,
                     ),
                 ),
             ),
@@ -390,8 +397,12 @@ class FgvMappersTest {
             data = FgvSyncDataDto(
                 lineas = listOf(
                     FgvLineDto(
-                        lineaIdFgv = 4, nombreCorto = "L4", tipo = "0",
-                        color = "#014A99", formaId = 12, stops = "111,110",
+                        lineaIdFgv = 4,
+                        nombreCorto = "L4",
+                        tipo = "0",
+                        color = "#014A99",
+                        formaId = 12,
+                        stops = "111,110",
                     ),
                 ),
                 estaciones = listOf(

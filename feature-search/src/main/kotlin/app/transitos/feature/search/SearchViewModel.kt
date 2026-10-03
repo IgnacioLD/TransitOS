@@ -38,8 +38,9 @@ class SearchViewModel(
 
     val filteredStops: StateFlow<List<com.glossostudio.transitos.core.model.Stop>> =
         combine(allStops, query) { stops, q ->
-            if (q.isBlank()) stops
-            else {
+            if (q.isBlank()) {
+                stops
+            } else {
                 val normalizedQuery = q.stripDiacritics()
                 stops.filter { it.name.stripDiacritics().contains(normalizedQuery, ignoreCase = true) }
             }

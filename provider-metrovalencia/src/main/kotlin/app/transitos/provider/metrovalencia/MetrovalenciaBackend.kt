@@ -12,5 +12,4 @@ enum class MetrovalenciaBackend(
 
 val METROVALENCIA_BACKENDS: List<MetrovalenciaBackend> = MetrovalenciaBackend.entries
 
-fun String.toMetrovalenciaBackendOr(default: MetrovalenciaBackend): MetrovalenciaBackend =
-    MetrovalenciaBackend.entries.firstOrNull { it.id == this } ?: default
+fun String.toMetrovalenciaBackendOr(default: MetrovalenciaBackend): MetrovalenciaBackend = MetrovalenciaBackend.entries.firstOrNull { it.id == this } ?: default

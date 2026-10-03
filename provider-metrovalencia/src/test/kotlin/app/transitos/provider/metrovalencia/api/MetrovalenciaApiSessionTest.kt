@@ -48,8 +48,10 @@ class MetrovalenciaApiSessionTest {
             when {
                 request.url.encodedPath.endsWith("estaciones") ->
                     respond(stationsJson, HttpStatusCode.OK, sessionHeaders)
+
                 request.headers[HttpHeaders.Cookie] == null ->
                     respond(sessionErrorJson, HttpStatusCode.NotFound, jsonHeaders)
+
                 else ->
                     respond(arrivalsJson, HttpStatusCode.OK, jsonHeaders)
             }

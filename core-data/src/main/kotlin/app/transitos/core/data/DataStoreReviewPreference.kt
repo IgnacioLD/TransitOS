@@ -9,9 +9,8 @@ class DataStoreReviewPreference(
     private val context: Context,
 ) : ReviewPreference {
 
-    override fun hasBeenRequested(): Boolean =
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .getBoolean(SHARED_KEY, false)
+    override fun hasBeenRequested(): Boolean = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        .getBoolean(SHARED_KEY, false)
 
     override suspend fun markRequested() {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

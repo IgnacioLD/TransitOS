@@ -214,7 +214,9 @@ internal fun FgvPlanificadorDto.toJourney(
             waitFromPrevious = if (index > 0) {
                 timeDiffMinutes(pasos[index - 1].hora_llegada, paso.hora_salida)
                     ?: pasos[index - 1].transbordo?.minEspera
-            } else null,
+            } else {
+                null
+            },
         )
     }
     if (legs.isEmpty()) return null

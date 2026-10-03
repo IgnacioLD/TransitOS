@@ -13,8 +13,7 @@ class DataStoreFavoritesRepository(
     private val context: Context,
 ) : FavoritesRepository {
 
-    override fun observeFavoriteStopIds(): Flow<Set<String>> =
-        context.transitosDataStore.data.map { it[FAVORITE_STOP_IDS] ?: emptySet() }
+    override fun observeFavoriteStopIds(): Flow<Set<String>> = context.transitosDataStore.data.map { it[FAVORITE_STOP_IDS] ?: emptySet() }
 
     override suspend fun addFavorite(stopId: String) {
         withContext(Dispatchers.IO) {

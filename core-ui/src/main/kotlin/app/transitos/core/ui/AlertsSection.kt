@@ -100,8 +100,11 @@ private fun ExpandToggle(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
-                text = if (expanded) stringResource(R.string.alerts_show_less)
-                else stringResource(R.string.alerts_show_all, totalCount),
+                text = if (expanded) {
+                    stringResource(R.string.alerts_show_less)
+                } else {
+                    stringResource(R.string.alerts_show_all, totalCount)
+                },
                 style = MaterialTheme.typography.labelLarge,
             )
             Icon(

@@ -9,7 +9,9 @@ val keystoreProps = file("keystore.properties").let { f ->
             val parts = line.split("=", limit = 2)
             if (parts.size == 2) parts[0].trim() to parts[1].trim() else null
         }.toMap()
-    } else emptyMap()
+    } else {
+        emptyMap()
+    }
 }
 
 android {

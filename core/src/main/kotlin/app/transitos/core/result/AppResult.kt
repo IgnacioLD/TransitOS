@@ -17,7 +17,9 @@ public sealed interface AppResult<out T> {
 
 public inline fun <T, R> AppResult<T>.map(transform: (T) -> R): AppResult<R> = when (this) {
     is AppResult.Success -> AppResult.Success(transform(value))
+
     is AppResult.Failure -> this
+
     // Reference the singleton directly: `this` here stays typed as AppResult<T>
     // (a `when` branch against an object case does not smart-cast the receiver),
     // which would widen the whole expression to AppResult<Any?>.

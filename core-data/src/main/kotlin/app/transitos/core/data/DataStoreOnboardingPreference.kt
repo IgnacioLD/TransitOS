@@ -15,9 +15,8 @@ class DataStoreOnboardingPreference(
         prefs[KEY] ?: false
     }
 
-    override fun current(): Boolean =
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .getBoolean(SHARED_KEY, false)
+    override fun current(): Boolean = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        .getBoolean(SHARED_KEY, false)
 
     override suspend fun setCompleted(completed: Boolean) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
