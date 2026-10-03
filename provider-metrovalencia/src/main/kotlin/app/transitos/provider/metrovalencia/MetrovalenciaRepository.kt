@@ -23,6 +23,7 @@ import com.glossostudio.transitos.provider.metrovalencia.mapper.toLineGeometries
 import com.glossostudio.transitos.provider.metrovalencia.mapper.toStop
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -126,12 +127,14 @@ class MetrovalenciaRepository(
     override fun observeLines(): Flow<List<Line>> = linesState
     override fun observeLineGeometries(): Flow<List<LineGeometry>> = lineGeometriesState
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun observeAlerts(): Flow<List<Alert>> =
         backend.flatMapLatest { currentBackend ->
             if (currentBackend == MetrovalenciaBackend.NAP) flowOf(emptyList())
             else alertsState
         }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun observeArrivals(stopId: String): Flow<List<Arrival>> {
         val fgvId = stopId.removePrefix(STOP_ID_PREFIX).toLongOrNull()
             ?: return flowOf(emptyList())

@@ -16,7 +16,6 @@ import com.glossostudio.transitos.core.repository.ThemeMode
 import com.glossostudio.transitos.core.repository.ThemePreference
 import com.glossostudio.transitos.review.ActivityProvider
 import org.koin.android.ext.android.inject
-import org.koin.androidx.compose.KoinAndroidContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -43,9 +42,7 @@ class MainActivity : AppCompatActivity() {
             )
             LaunchedEffect(currentMode) { applySystemBarStyle(currentMode) }
             TransitOSTheme(themeMode = currentMode) {
-                KoinAndroidContext {
-                    TransitOSApp()
-                }
+                TransitOSApp()
             }
         }
     }
