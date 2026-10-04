@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -25,8 +26,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import com.glossostudio.transitos.core.design.theme.LocalSpacing
 
 /**
@@ -106,12 +107,8 @@ fun LicenseRoute(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val licenseText = remember {
-        runCatching {
-            context.resources.openRawResource(R.raw.license_agpl)
-                .bufferedReader()
-                .use { it.readText() }
-        }.getOrDefault("")
+    val paragraphs = remember {
+        reflowLicense(context.resources.openRawResource(R.raw.license_agpl).bufferedReader().use { it.readText() })
     }
     LegalScreen(
         title = stringResource(R.string.license_title),
@@ -125,12 +122,29 @@ fun LicenseRoute(
             color = MaterialTheme.colorScheme.onSurface,
         )
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
-        Text(
-            text = licenseText,
-            style = MaterialTheme.typography.bodySmall,
-            fontFamily = FontFamily.Monospace,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        paragraphs.forEach { paragraph ->
+            when (paragraph.kind) {
+                LicenseParagraph.Kind.TITLE -> Text(
+                    text = paragraph.text,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                LicenseParagraph.Kind.SECTION -> Text(
+                    text = paragraph.text,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+
+                LicenseParagraph.Kind.BODY -> Text(
+                    text = paragraph.text,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
 }
 
