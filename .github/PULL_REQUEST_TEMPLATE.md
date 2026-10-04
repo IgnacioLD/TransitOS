@@ -13,9 +13,8 @@
 
 ## Checklist
 
-- [ ] I read [`CONTRIBUTING.md`](../CONTRIBUTING.md) and [`ARCHITECTURE.md`](../ARCHITECTURE.md).
-- [ ] The project builds (`./gradlew assembleDebug`).
-- [ ] Existing tests pass (`./gradlew test`).
+- [ ] I read [`CONTRIBUTING.md`](../CONTRIBUTING.md) and [`docs/architecture.md`](../docs/architecture.md).
+- [ ] Checks pass locally (`./gradlew spotlessCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug`).
 - [ ] I added tests for non-trivial logic.
 - [ ] No user-facing strings are hardcoded (I used `stringResource`).
 - [ ] New strings are added to all locales (en, es, ca).

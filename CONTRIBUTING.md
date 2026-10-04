@@ -12,10 +12,10 @@ transit app, and the community around it should feel the same way.
 ## Getting set up
 
 1. **Fork and clone** the repository.
-2. Make sure you have **JDK 17** and **Android SDK 35** (Platform 35 + Build
-   Tools) installed.
-3. Open the project in Android Studio (Ladybug or newer recommended) or work
-   from the CLI.
+2. Make sure you have **JDK 17 or newer** and the **Android SDK** installed.
+   The build compiles against API 37; Gradle downloads the platform if it is
+   missing and the SDK licences are accepted.
+3. Open the project in a recent Android Studio or work from the CLI.
 
    ```bash
    ./gradlew :app:assembleDebug
@@ -24,7 +24,7 @@ transit app, and the community around it should feel the same way.
 4. Pick an issue tagged [`good first issue`](https://github.com/IgnacioLD/TransitOS/labels/good%20first%20issue)
    for a gentle start.
 
-Read [`ARCHITECTURE.md`](./ARCHITECTURE.md) before writing code. It explains the
+Read [`docs/architecture.md`](./docs/architecture.md) before writing code. It explains the
 module graph and the rules that keep the layers clean.
 
 ## How to make changes
@@ -33,10 +33,11 @@ module graph and the rules that keep the layers clean.
    `git checkout -b feat/short-description` (or `fix/`, `docs/`, `i18n/`).
 2. Make your change. Keep commits focused and write clear messages in the
    imperative mood ("Add transfer buffer setting").
-3. Make sure the project builds and existing tests pass:
+3. Run the same checks as CI (formatting, static analysis, lint, tests, build):
 
    ```bash
-   ./gradlew assembleDebug test
+   ./gradlew spotlessApply   # auto-format first
+   ./gradlew spotlessCheck detekt lintDebug testDebugUnitTest :core:test assembleDebug
    ```
 
 4. Open a pull request against `master` and fill in the template.
@@ -56,8 +57,8 @@ module graph and the rules that keep the layers clean.
 
 ### Adding a feature module
 
-1. Create `feature-<name>/` with `build.gradle.kts` mirroring an existing
-   feature module.
+1. Create `feature-<name>/` whose `build.gradle.kts` applies the
+   `transitos.android.feature` convention plugin and sets its `namespace`.
 2. Register it in `settings.gradle.kts` and add it as a dependency of `:app`.
 3. Put your Koin module in `di/` and load it from `TransitOSApplication`.
 4. Add a route in `app/.../TransitOSApp.kt`.
@@ -82,19 +83,22 @@ Text("Buscar")
 Text(stringResource(R.string.search))
 ```
 
-Strings live in each module's `res/values/strings.xml` (default: English), with
-translations in `values-es/` (Spanish) and `values-ca/` (Valencian). When you
-add a string, add it to all three locales, or leave a clear note for translators
-in your PR.
+Strings live in each module's `res/values/strings.xml` (default: Spanish), with
+translations in `values-en/` (English) and `values-ca/` (Valencian). When you
+add a string, add it to all three locales: Android Lint fails the build on a
+missing translation.
 
 ## Code style
 
-The repo includes an [`.editorconfig`](./.editorconfig). Most modern editors and
-`ktlint` follow it automatically. In short:
+Formatting is enforced by ktlint (with the Compose rules) through Spotless, and
+static analysis by detekt and Android Lint; CI fails on any finding. Run
+`./gradlew spotlessApply` to fix formatting. The rules live in
+[`.editorconfig`](./.editorconfig) and [`config/detekt/detekt.yml`](./config/detekt/detekt.yml).
+Existing findings are recorded in each module's `detekt-baseline.xml` and
+`lint-baseline.xml`; new code must not add to them.
 
-- Kotlin, 4-space indent, UTF-8, trailing newline.
-- `kotlin.code.style=official`.
-- Name packages `app.transitos.<module-suffix>`.
+- Name packages `com.glossostudio.transitos.<module-suffix>`, with source
+  directories matching the package.
 - Keep composables small, stateless, and hoisted.
 
 ## Testing

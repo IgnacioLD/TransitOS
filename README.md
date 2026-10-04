@@ -6,7 +6,7 @@
 
 No ads, no tracking, just the next arrivals.
 
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.4-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
 [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-success?logo=gnu&logoColor=white)](./LICENSE)
 [![Platform: Android](https://img.shields.io/badge/Platform-Android%208.0%2B-3DDC84?logo=android&logoColor=white)](https://github.com/IgnacioLD/TransitOS/releases)
@@ -58,8 +58,8 @@ Pre-built APKs are available on the
 
 ## Build
 
-Requires **JDK 17**, **Android SDK 36** (Platform 36 + Build Tools 36), **AGP 8.9.1**
-and **Gradle 8.11.1** (or newer). The app targets `compileSdk` / `targetSdk` 36
+Requires **JDK 17 or newer** and the **Android SDK**. The build uses Gradle 9.8
+(via the wrapper) and AGP 9.4, compiles against API 37 and targets API 36
 (Android 16) with `minSdk` 26.
 
 ```bash
@@ -94,7 +94,7 @@ release builds are still produced but left unsigned.
 ## Architecture
 
 TransitOS uses strict clean layering with a one-way dependency direction.
-Read the full guide in [`ARCHITECTURE.md`](./ARCHITECTURE.md).
+Read the full guide in [`docs/architecture.md`](./docs/architecture.md).
 
 ```
 Presentation (app, feature-*, core-ui, core-design)
@@ -115,11 +115,12 @@ Data (provider-*, core-network, core-data)  -> repository impls, Ktor, DataStore
 | `:core-data`              | Data         | DataStore-backed preferences and favorites repositories     |
 | `:core-network`           | Data         | Shared Ktor `HttpClient` factory, Koin network module       |
 | `:core-design`            | Presentation | Material 3 theme: color, typography, shapes, elevation      |
-| `:core-ui`                | Presentation | Shared composables (`LoadingState`, `ErrorState`, badges)   |
+| `:core-ui`                | Presentation | Shared composables (`EmptyState`, `ErrorState`, badges)     |
 | `:feature-home`           | Presentation | Home and favorites screen + ViewModel                       |
 | `:feature-search`         | Presentation | Station search screen + ViewModel                           |
 | `:feature-planner`        | Presentation | Trip planner screen + ViewModel                             |
 | `:feature-settings`       | Presentation | Settings, theme, language, about screen                     |
+| `:feature-onboarding`     | Presentation | First-run tour                                              |
 | `:provider-metrovalencia` | Data         | `TransitRepository` implementation for Metrovalencia (FGV)  |
 
 Adding a new operator (for example EMT) means adding one `:provider-emt` module,
@@ -128,12 +129,12 @@ Nothing else in the app changes.
 
 ## Tech stack
 
-- **Kotlin 2.0.21** with Coroutines and Flow
+- **Kotlin 2.4** with Coroutines and Flow
 - **Jetpack Compose** (BOM-managed), Material 3, dynamic color
 - **Ktor 3** for networking, **Koin 4** for dependency injection
 - **DataStore** for preferences, **osmdroid** for the network map
 - **Gradle Version Catalog** (`gradle/libs.versions.toml`) as a single source of truth
-- minSdk 26, target / compile SDK 35
+- minSdk 26, target SDK 36, compile SDK 37
 
 ## Contributing
 
