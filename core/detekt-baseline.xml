@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>LongParameterList:TransitRepository.kt$TransitRepository$( originStopId: String, destinationStopId: String, date: LocalDate, hora: String? = null, isDeparture: Boolean = true, minTransferMinutes: Int = 5, )</ID>
+  </CurrentIssues>
+</SmellBaseline>

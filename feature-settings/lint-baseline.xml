@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 9.4.1" type="baseline" client="gradle" dependencies="false" name="AGP (9.4.1)" variant="all" version="9.4.1">
+
+    <issue
+        id="QueryPermissionsNeeded"
+        message="Consider adding a `&lt;queries>` declaration to your manifest when calling this method; see https://g.co/dev/packagevisibility for details"
+        errorLine1="    val canEmail = email.resolveActivity(context.packageManager) != null"
+        errorLine2="                         ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/glossostudio/transitos/feature/settings/SettingsScreen.kt"
+            line="820"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="LocalContextResourcesRead"
+        message="Reading Resources using LocalContext.current.resources is not configuration-aware and may return stale values if the Configuration changes"
+        errorLine1="            context.resources.openRawResource(R.raw.license_agpl)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/glossostudio/transitos/feature/settings/LegalScreens.kt"
+            line="111"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="            Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),"
+        errorLine2="                                       ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/glossostudio/transitos/feature/settings/AboutLinks.kt"
+            line="28"
+            column="40"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="    val mailto = Uri.parse(&quot;mailto:${AboutLinks.SUPPORT_EMAIL}&quot;).buildUpon()"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/glossostudio/transitos/feature/settings/SettingsScreen.kt"
+            line="813"
+            column="18"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="    val issues = Intent(Intent.ACTION_VIEW, Uri.parse(AboutLinks.ISSUES_URL))"
+        errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/glossostudio/transitos/feature/settings/SettingsScreen.kt"
+            line="818"
+            column="45"/>
+    </issue>
+
+</issues>

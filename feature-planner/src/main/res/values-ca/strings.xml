@@ -30,6 +30,7 @@
     <string name="planner_legs_unit">trams</string>
     <plurals name="planner_transfers_count">
         <item quantity="one">%1$d transbord</item>
+        <item quantity="many">%1$d transbords</item>
         <item quantity="other">%1$d transbords</item>
     </plurals>
     <string name="planner_no_transfers">Sense transbords</string>

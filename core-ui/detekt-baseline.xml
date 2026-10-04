@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>LongMethod:MetroArt.kt$private fun DrawScope.drawMetroNetwork( geometry: MetroGeometry, style: MetroArtStyle, trainProgress: Float, interchangePulse: Float, )</ID>
+    <ID>LongMethod:MetroArt.kt$private fun metroGeometry( network: MetroNetwork, style: MetroArtStyle, size: Size, ): MetroGeometry?</ID>
+    <ID>LongParameterList:MetroArt.kt$( center: Offset, perpendicular: Offset, length: Float, width: Float, color: Color, blendMode: BlendMode, )</ID>
+    <ID>LongParameterList:MetroArt.kt$LineGeometry$( val line: MetroLine, val color: Color, val path: Path, val points: List&lt;Offset&gt;, val cumulative: FloatArray, val totalLength: Float, val stops: List&lt;StopGeometry&gt;, )</ID>
+    <ID>MagicNumber:MetroArt.kt$0.42f</ID>
+    <ID>MagicNumber:MetroArt.kt$0.6f</ID>
+    <ID>MagicNumber:MetroArt.kt$0.75f</ID>
+    <ID>MagicNumber:MetroArt.kt$1.05f</ID>
+    <ID>MagicNumber:MetroArt.kt$1.1f</ID>
+    <ID>MagicNumber:MetroArt.kt$2.1f</ID>
+    <ID>MagicNumber:MetroArt.kt$4f</ID>
+    <ID>NestedBlockDepth:MetroArt.kt$private fun DrawScope.drawMetroNetwork( geometry: MetroGeometry, style: MetroArtStyle, trainProgress: Float, interchangePulse: Float, )</ID>
+  </CurrentIssues>
+</SmellBaseline>

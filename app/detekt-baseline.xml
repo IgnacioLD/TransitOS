@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:OSMNetworkMapScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun OSMNetworkMapRoute( onBack: () -&gt; Unit, onOpenPdf: () -&gt; Unit, modifier: Modifier = Modifier, viewModel: MapViewModel = koinViewModel(), )</ID>
+    <ID>CyclomaticComplexMethod:OSMNetworkMapScreen.kt$private fun rebuildOverlays( map: MapView?, network: MapNetwork, focusedLine: String?, showMarkers: Boolean, onStationTap: (MapStation) -&gt; Unit, )</ID>
+    <ID>LongMethod:OSMNetworkMapScreen.kt$private fun rebuildOverlays( map: MapView?, network: MapNetwork, focusedLine: String?, showMarkers: Boolean, onStationTap: (MapStation) -&gt; Unit, )</ID>
+    <ID>MagicNumber:NetworkMapScreen.kt$2600f</ID>
+    <ID>MagicNumber:OSMNetworkMapScreen.kt$0.2f</ID>
+    <ID>MagicNumber:OSMNetworkMapScreen.kt$10f</ID>
+    <ID>MagicNumber:OSMNetworkMapScreen.kt$220</ID>
+    <ID>MagicNumber:OSMNetworkMapScreen.kt$3f</ID>
+    <ID>MagicNumber:OSMNetworkMapScreen.kt$50</ID>
+    <ID>MagicNumber:OSMNetworkMapScreen.kt$5f</ID>
+    <ID>MagicNumber:OSMNetworkMapScreen.kt$7f</ID>
+    <ID>MatchingDeclarationName:MetrovalenciaMapData.kt$LineData</ID>
+    <ID>NestedBlockDepth:NetworkMapScreen.kt$private fun renderPdf(context: Context): Bitmap?</ID>
+    <ID>NestedBlockDepth:NetworkMapScreen.kt$private fun savePdfToDownloads(context: Context): Boolean</ID>
+    <ID>NestedBlockDepth:OSMNetworkMapScreen.kt$private fun rebuildOverlays( map: MapView?, network: MapNetwork, focusedLine: String?, showMarkers: Boolean, onStationTap: (MapStation) -&gt; Unit, )</ID>
+  </CurrentIssues>
+</SmellBaseline>

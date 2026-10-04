@@ -30,6 +30,7 @@
     <string name="planner_legs_unit">tramos</string>
     <plurals name="planner_transfers_count">
         <item quantity="one">%1$d transbordo</item>
+        <item quantity="many">%1$d transbordos</item>
         <item quantity="other">%1$d transbordos</item>
     </plurals>
     <string name="planner_no_transfers">Sin transbordos</string>

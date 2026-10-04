@@ -10,6 +10,13 @@ trim_trailing_whitespace = true
 [*.{kt,kts}]
 indent_size = 4
 max_line_length = off
+ktlint_code_style = android_studio
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+# Composables are PascalCase functions.
+ktlint_function_naming_ignore_when_annotated_with = Composable
+# Design-system tokens are the sanctioned use of CompositionLocals.
+compose_allowed_composition_locals = LocalSpacing,LocalElevation
 
 [*.{xml,json,yml,yaml,toml,md,html,css}]
 indent_size = 2

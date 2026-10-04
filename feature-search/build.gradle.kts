@@ -5,4 +5,3 @@ plugins {
 android {
     namespace = "com.glossostudio.transitos.feature.search"
 }
-
