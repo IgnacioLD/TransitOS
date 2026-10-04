@@ -45,12 +45,8 @@ fun ErrorState(
     onRetry: (() -> Unit)? = null,
 ) {
     val presentation = error.toPresentation()
-    val title = if (presentation.titleFormatArg != null) {
-        stringResource(presentation.titleRes, presentation.titleFormatArg)
-    } else {
-        stringResource(presentation.titleRes)
-    }
-    val body = presentation.dynamicBody ?: stringResource(presentation.bodyRes)
+    val title = errorTitle(error)
+    val body = stringResource(presentation.bodyRes)
     val spacing = LocalSpacing.current
     Column(
         modifier = modifier
@@ -104,12 +100,25 @@ fun ErrorState(
     }
 }
 
+/** The one-line, localised headline for [error], for inline notices. */
+@Composable
+fun errorTitle(error: AppError): String {
+    val presentation = error.toPresentation()
+    return if (presentation.titleFormatArg != null) {
+        stringResource(presentation.titleRes, presentation.titleFormatArg)
+    } else {
+        stringResource(presentation.titleRes)
+    }
+}
+
+/** The icon that signals [error]'s category at a glance. */
+fun errorIcon(error: AppError): ImageVector = error.toPresentation().icon
+
 private data class ErrorPresentation(
     val icon: ImageVector,
     val titleRes: Int,
     val bodyRes: Int,
     val titleFormatArg: Any? = null,
-    val dynamicBody: String? = null,
 )
 
 private fun AppError.toPresentation(): ErrorPresentation = when (this) {
@@ -127,10 +136,6 @@ private fun AppError.toPresentation(): ErrorPresentation = when (this) {
 
     is AppError.Parsing -> ErrorPresentation(Icons.Outlined.ErrorOutline, R.string.error_parsing_title, R.string.error_parsing_body)
 
-    is AppError.Unknown -> ErrorPresentation(
-        icon = Icons.Outlined.ErrorOutline,
-        titleRes = R.string.error_unknown_title,
-        bodyRes = R.string.error_unknown_message,
-        dynamicBody = message.ifBlank { null },
-    )
+    // Raw exception text is never shown to the user.
+    is AppError.Unknown -> ErrorPresentation(Icons.Outlined.ErrorOutline, R.string.error_unknown_title, R.string.error_unknown_message)
 }

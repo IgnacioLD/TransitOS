@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -39,6 +40,7 @@ import com.glossostudio.transitos.core.design.theme.TABULAR_FIGURES
 import com.glossostudio.transitos.core.design.theme.onColor
 import com.glossostudio.transitos.core.model.Arrival
 import com.glossostudio.transitos.core.model.Stop
+import com.glossostudio.transitos.core.result.AppError
 
 /**
  * Card grouping a favourite [Stop] with its upcoming [arrivals].
@@ -57,6 +59,8 @@ fun FavoriteStopCard(
     arrivals: List<Arrival>,
     modifier: Modifier = Modifier,
     lastUpdatedMs: Long = 0L,
+    isLoading: Boolean = false,
+    error: AppError? = null,
     onClick: (() -> Unit)? = null,
 ) {
     val spacing = LocalSpacing.current
@@ -77,7 +81,21 @@ fun FavoriteStopCard(
 
             if (arrivals.isEmpty()) {
                 Spacer(Modifier.height(spacing.md))
-                NoArrivalsHint()
+                when {
+                    isLoading -> SkeletonBlock(height = 56.dp, shape = MaterialTheme.shapes.medium)
+
+                    error != null -> ArrivalsNotice(
+                        icon = errorIcon(error),
+                        title = errorTitle(error),
+                        subtitle = stringResource(R.string.arrival_live_unavailable_subtitle),
+                    )
+
+                    else -> ArrivalsNotice(
+                        icon = Icons.Outlined.Schedule,
+                        title = stringResource(R.string.arrival_unconfirmed_title),
+                        subtitle = stringResource(R.string.arrival_unconfirmed_subtitle),
+                    )
+                }
             } else {
                 Spacer(Modifier.height(spacing.sm))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
@@ -145,7 +163,7 @@ private fun relativeTimeLabel(epochMs: Long): String = when (val relative = rela
 }
 
 @Composable
-private fun NoArrivalsHint() {
+private fun ArrivalsNotice(icon: ImageVector, title: String, subtitle: String) {
     val spacing = LocalSpacing.current
     Row(
         modifier = Modifier
@@ -159,19 +177,19 @@ private fun NoArrivalsHint() {
         horizontalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
         Icon(
-            imageVector = Icons.Outlined.Schedule,
+            imageVector = icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Column {
             Text(
-                text = stringResource(R.string.arrival_unconfirmed_title),
+                text = title,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = stringResource(R.string.arrival_unconfirmed_subtitle),
+                text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

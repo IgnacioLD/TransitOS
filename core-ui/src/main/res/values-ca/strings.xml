@@ -81,4 +81,5 @@
     <string name="language_spanish">Espanyol</string>
     <string name="language_valencian">Valencià</string>
     <string name="language_english">English</string>
+    <string name="arrival_live_unavailable_subtitle">Ho reintentem automàticament.</string>
 </resources>

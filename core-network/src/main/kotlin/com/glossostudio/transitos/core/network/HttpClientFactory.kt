@@ -5,6 +5,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.engine.android.Android
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
@@ -34,6 +35,11 @@ class HttpClientFactory(private val config: NetworkConfig) {
  * cookie storage) instead of a hand-rolled approximation.
  */
 fun <T : HttpClientEngineConfig> HttpClientConfig<T>.installTransitOsPlugins(config: NetworkConfig) {
+    install(HttpTimeout) {
+        connectTimeoutMillis = config.connectTimeoutMs
+        socketTimeoutMillis = config.socketTimeoutMs
+        requestTimeoutMillis = config.requestTimeoutMs
+    }
     install(HttpCookies) {
         storage = AcceptAllCookiesStorage()
     }

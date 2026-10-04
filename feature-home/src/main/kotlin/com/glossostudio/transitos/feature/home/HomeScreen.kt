@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
@@ -61,6 +62,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -254,9 +256,31 @@ private fun BrandMark() {
 }
 
 @Composable
-private fun AlertStatusPill(alertCount: Int, modifier: Modifier = Modifier) {
-    if (alertCount == 0) {
-        StatusPill(
+private fun AlertStatusPill(
+    status: AlertsStatus,
+    alertCount: Int,
+    modifier: Modifier = Modifier,
+) {
+    when {
+        // Nothing to claim yet; a pill would only flash.
+        status is AlertsStatus.Loading -> Unit
+
+        // Never say "no alerts" when we could not check.
+        status is AlertsStatus.Unavailable -> StatusPill(
+            text = stringResource(R.string.home_alerts_unavailable),
+            modifier = modifier,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            leading = {
+                Icon(
+                    imageVector = Icons.Outlined.CloudOff,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                )
+            },
+        )
+
+        alertCount == 0 -> StatusPill(
             text = stringResource(R.string.home_no_alerts),
             modifier = modifier,
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -269,14 +293,9 @@ private fun AlertStatusPill(alertCount: Int, modifier: Modifier = Modifier) {
                 )
             },
         )
-    } else {
-        val text = if (alertCount == 1) {
-            stringResource(R.string.home_alerts_singular)
-        } else {
-            stringResource(R.string.home_alerts_plural, alertCount)
-        }
-        StatusPill(
-            text = text,
+
+        else -> StatusPill(
+            text = pluralStringResource(R.plurals.home_alerts_count, alertCount, alertCount),
             modifier = modifier,
             containerColor = MaterialTheme.colorScheme.errorContainer,
             contentColor = MaterialTheme.colorScheme.onErrorContainer,
@@ -361,7 +380,7 @@ private fun HomeContent(
                         top = spacing.sm,
                     ),
             ) {
-                AlertStatusPill(alertCount = state.alerts.size)
+                AlertStatusPill(status = state.alertsStatus, alertCount = state.alerts.size)
             }
         }
 
@@ -437,6 +456,8 @@ private fun HomeContent(
                     stop = favorite.stop,
                     arrivals = favorite.arrivals,
                     lastUpdatedMs = favorite.lastUpdatedMs,
+                    isLoading = favorite.isLoading,
+                    error = favorite.error,
                     modifier = Modifier.padding(horizontal = spacing.screenGutter),
                 )
             }

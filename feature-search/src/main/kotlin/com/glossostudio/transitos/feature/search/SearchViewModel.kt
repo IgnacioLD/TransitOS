@@ -2,10 +2,13 @@ package com.glossostudio.transitos.feature.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.glossostudio.transitos.core.model.Stop
 import com.glossostudio.transitos.core.repository.FavoritesRepository
 import com.glossostudio.transitos.core.repository.HintKeys
 import com.glossostudio.transitos.core.repository.HintsPreference
 import com.glossostudio.transitos.core.repository.TransitRepository
+import com.glossostudio.transitos.core.result.AppResult
+import com.glossostudio.transitos.core.result.getOrNull
 import com.glossostudio.transitos.core.util.stripDiacritics
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +31,11 @@ class SearchViewModel(
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
 
-    val allStops: StateFlow<List<com.glossostudio.transitos.core.model.Stop>> = repository.observeStops()
+    val catalog: StateFlow<AppResult<List<Stop>>> = repository.observeStops()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppResult.Loading)
+
+    private val allStops: StateFlow<List<Stop>> = catalog
+        .map { it.getOrNull().orEmpty() }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
@@ -36,7 +43,7 @@ class SearchViewModel(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
 
-    val filteredStops: StateFlow<List<com.glossostudio.transitos.core.model.Stop>> =
+    val filteredStops: StateFlow<List<Stop>> =
         combine(allStops, query) { stops, q ->
             if (q.isBlank()) {
                 stops
@@ -45,6 +52,10 @@ class SearchViewModel(
                 stops.filter { it.name.stripDiacritics().contains(normalizedQuery, ignoreCase = true) }
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun retry() {
+        viewModelScope.launch { repository.refresh() }
+    }
 
     fun onQueryChange(newQuery: String) {
         _query.value = newQuery

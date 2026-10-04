@@ -1,5 +1,7 @@
 package com.glossostudio.transitos.provider.metrovalencia.api
 
+import com.glossostudio.transitos.core.network.HttpStatusException
+import com.glossostudio.transitos.core.network.requireSuccess
 import com.glossostudio.transitos.provider.metrovalencia.MetrovalenciaConfig
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvArrivalResponseDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvHorariosResponseDto
@@ -17,8 +19,6 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import io.ktor.http.isSuccess
-import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -43,11 +43,11 @@ class MetrovalenciaApi(
 
     suspend fun getStations(): List<FgvStationDto> = client.get("${config.fullBaseUrl}estaciones") {
         headerAcceptJson()
-    }.body()
+    }.requireSuccess().body()
 
     suspend fun getLines(): List<FgvLineDto> = client.get("${config.fullBaseUrl}lineas") {
         headerAcceptJson()
-    }.body()
+    }.requireSuccess().body()
 
     /**
      * The heavy catalogue bundle (lineas + estaciones + track shapes). Only the
@@ -56,7 +56,7 @@ class MetrovalenciaApi(
      */
     suspend fun getSincronizacion(): FgvSincronizacionResponseDto = client.get("${config.fullBaseUrl}sincronizacion") {
         headerAcceptJson()
-    }.body()
+    }.requireSuccess().body()
 
     /**
      * @param estacionIdFgv the `estacion_id_FGV` value, not FGV's internal id.
@@ -73,9 +73,10 @@ class MetrovalenciaApi(
         ensureSession()
         return try {
             fetchArrivals(estacionIdFgv)
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (_: Exception) {
+        } catch (_: HttpStatusException) {
+            // An expired session answers HTTP 404. Transport failures (offline,
+            // timeouts) are not retried here: a second attempt would only
+            // double the wait.
             resetSession()
             ensureSession()
             fetchArrivals(estacionIdFgv)
@@ -93,7 +94,7 @@ class MetrovalenciaApi(
             if (sessionEstablished) return
             client.get("${config.fullBaseUrl}estaciones") {
                 headerAcceptJson()
-            }.body<List<FgvStationDto>>()
+            }.requireSuccess().body<List<FgvStationDto>>()
             sessionEstablished = true
         }
     }
@@ -106,15 +107,12 @@ class MetrovalenciaApi(
         val response: HttpResponse = client.get("${config.fullBaseUrl}horarios-prevision-3/$estacionIdFgv") {
             headerAcceptJson()
         }
-        if (!response.status.isSuccess()) {
-            error("FGV horarios-prevision-3 returned HTTP ${response.status}")
-        }
-        return response.body()
+        return response.requireSuccess().body()
     }
 
     suspend fun getIncidencias(): FgvIncidenciasResponseDto = client.get("${config.fullBaseUrl}incidencias") {
         headerAcceptJson()
-    }.body()
+    }.requireSuccess().body()
 
     /**
      * Plans a journey via FGV's `horarios-online2`.
@@ -141,7 +139,7 @@ class MetrovalenciaApi(
             if (hora != null) append("&hora=$hora")
         }
         setBody(body)
-    }.body()
+    }.requireSuccess().body()
 
     /**
      * Plans a journey via FGV's `planificador-online2`.
@@ -170,7 +168,7 @@ class MetrovalenciaApi(
             horaLlegada?.let { append("&hora_llegada=$it") }
         }
         setBody(body)
-    }.body()
+    }.requireSuccess().body()
 
     private fun io.ktor.client.request.HttpRequestBuilder.headerAcceptJson() {
         header("Accept", "application/json")

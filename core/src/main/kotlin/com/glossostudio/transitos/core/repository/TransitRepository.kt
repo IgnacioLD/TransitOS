@@ -6,6 +6,7 @@ import com.glossostudio.transitos.core.model.Journey
 import com.glossostudio.transitos.core.model.Line
 import com.glossostudio.transitos.core.model.LineGeometry
 import com.glossostudio.transitos.core.model.Stop
+import com.glossostudio.transitos.core.result.AppResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.datetime.LocalDate
@@ -14,18 +15,22 @@ import kotlinx.datetime.LocalDate
  * The single transit data contract. Every provider module implements this against
  * its own data source; the rest of the app depends only on this interface.
  *
- * Methods return cold [Flow]s so the UI observes continuous updates (essential
- * for live arrivals). Implementations decide their own refresh cadence and
- * caching strategy, the contract is silent on those.
+ * Methods return [Flow]s so the UI observes continuous updates (essential for
+ * live arrivals). Implementations decide their own refresh cadence and caching
+ * strategy, the contract is silent on those.
  *
- * [planJourney] is the exception: it is a one-shot suspend because a journey
- * plan is a discrete query, not an observable stream. It returns null when the
- * operator cannot find a route for the given O/D/date (different from a
- * network error, which would throw and be caught by the caller).
+ * Failures are values, never exceptions: data streams emit [AppResult.Loading]
+ * first, then [AppResult.Success] or [AppResult.Failure]. Once a stream has
+ * delivered data, a later failed refresh keeps the last good value instead of
+ * replacing it with a failure, and the implementation retries on its own.
+ *
+ * [planJourney] is a one-shot suspend because a journey plan is a discrete
+ * query, not an observable stream. An empty success means the operator found
+ * no route for the given O/D/date.
  */
 public interface TransitRepository {
-    public fun observeStops(): Flow<List<Stop>>
-    public fun observeLines(): Flow<List<Line>>
+    public fun observeStops(): Flow<AppResult<List<Stop>>>
+    public fun observeLines(): Flow<AppResult<List<Line>>>
 
     /**
      * The operator-published shape of every line, for drawing the network on a
@@ -34,8 +39,8 @@ public interface TransitRepository {
      */
     public fun observeLineGeometries(): Flow<List<LineGeometry>> = flowOf(emptyList())
 
-    public fun observeArrivals(stopId: String): Flow<List<Arrival>>
-    public fun observeAlerts(): Flow<List<Alert>>
+    public fun observeArrivals(stopId: String): Flow<AppResult<List<Arrival>>>
+    public fun observeAlerts(): Flow<AppResult<List<Alert>>>
 
     /**
      * @param originStopId canonical stop id (e.g. `"mv:12"`).
@@ -44,7 +49,7 @@ public interface TransitRepository {
      * @param hora `"HH:mm"` or null for current time.
      * @param isDeparture true = depart at [hora], false = arrive by [hora].
      * @param minTransferMinutes buffer added to tight transfers.
-     * @return planned journey alternatives (empty list if no route exists).
+     * @return planned journey alternatives (an empty list if no route exists).
      */
     public suspend fun planJourney(
         originStopId: String,
@@ -53,7 +58,8 @@ public interface TransitRepository {
         hora: String? = null,
         isDeparture: Boolean = true,
         minTransferMinutes: Int = 5,
-    ): List<Journey>
+    ): AppResult<List<Journey>>
 
+    /** Re-fetches everything now: live data, and anything still failing. */
     public suspend fun refresh()
 }

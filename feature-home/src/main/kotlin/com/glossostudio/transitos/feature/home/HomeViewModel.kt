@@ -3,6 +3,7 @@ package com.glossostudio.transitos.feature.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.glossostudio.transitos.core.model.Alert
+import com.glossostudio.transitos.core.model.Arrival
 import com.glossostudio.transitos.core.model.SavedRoute
 import com.glossostudio.transitos.core.model.Stop
 import com.glossostudio.transitos.core.repository.FavoritesRepository
@@ -11,6 +12,8 @@ import com.glossostudio.transitos.core.repository.HintsPreference
 import com.glossostudio.transitos.core.repository.RouteFavoritesRepository
 import com.glossostudio.transitos.core.repository.TransitRepository
 import com.glossostudio.transitos.core.result.AppError
+import com.glossostudio.transitos.core.result.AppResult
+import com.glossostudio.transitos.core.result.getOrNull
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -53,61 +56,85 @@ class HomeViewModel(
         }
     }
 
+    // Alerts are combined beside the favourites section, not inside it, so an
+    // alerts update never restarts the per-stop arrival pollers.
     private fun homeData(): Flow<HomeUiState> = combine(
+        favoritesSection(),
+        repository.observeAlerts(),
+    ) { section, alerts ->
+        when (section) {
+            is FavoritesSection.Failed -> HomeUiState.Error(section.error)
+
+            is FavoritesSection.Data -> HomeUiState.Ready(
+                favorites = section.favorites,
+                alerts = alerts.getOrNull().orEmpty(),
+                alertsStatus = alerts.toStatus(),
+                savedRoutes = section.savedRoutes,
+                isLoading = section.isLoading,
+            )
+        }
+    }
+
+    private fun favoritesSection(): Flow<FavoritesSection> = combine(
         repository.observeStops(),
         favorites.observeFavoriteStopIds(),
-        repository.observeAlerts(),
         routeFavorites.observeSavedRoutes(),
-    ) { stops, favIds, alerts, savedRoutes -> HomeInputs(stops, favIds, alerts, savedRoutes) }
+    ) { stops, favIds, savedRoutes -> HomeInputs(stops, favIds, savedRoutes) }
         .flatMapLatest { inputs ->
-            val stops = inputs.stops
-            val favIds = inputs.favoriteIds
-            val alerts = inputs.alerts
-            val savedRoutes = inputs.savedRoutes
-            val favoriteStops = stops.filter { it.id in favIds }
-            val stopMap = stops.associateBy { it.id }
-            val routeInfos = savedRoutes.mapNotNull { sr ->
-                val origin = stopMap[sr.originStopId]
-                val dest = stopMap[sr.destinationStopId]
-                if (origin != null && dest != null) {
-                    SavedRouteInfo(
-                        id = sr.id,
-                        originName = origin.name,
-                        destinationName = dest.name,
-                        originStopId = sr.originStopId,
-                        destinationStopId = sr.destinationStopId,
-                        label = sr.label,
-                    )
-                } else {
-                    null
-                }
-            }
+            val needsCatalog = inputs.favoriteIds.isNotEmpty() || inputs.savedRoutes.isNotEmpty()
+            when (val stopsResult = inputs.stops) {
+                // Without favourites the catalogue is not needed to render Home.
+                is AppResult.Failure ->
+                    if (needsCatalog) flowOf(FavoritesSection.Failed(stopsResult.error)) else flowOf(EMPTY_SECTION)
 
-            val arrivalsFlow = if (favoriteStops.isEmpty()) {
-                flowOf(emptyList<FavoriteArrivals>())
-            } else {
-                combine(
-                    flows = favoriteStops.map { stop ->
-                        repository.observeArrivals(stop.id).map { arrivals ->
-                            FavoriteArrivals(
-                                stop = stop,
-                                arrivals = arrivals,
-                                lastUpdatedMs = System.currentTimeMillis(),
-                            )
-                        }
-                    },
-                    transform = { array -> array.toList() },
-                )
-            }
-            arrivalsFlow.map { favs ->
-                HomeUiState.Ready(
-                    favorites = favs,
-                    alerts = alerts,
-                    savedRoutes = routeInfos,
-                    isLoading = favs.isEmpty() && favIds.isNotEmpty(),
-                )
+                AppResult.Loading ->
+                    flowOf(if (needsCatalog) EMPTY_SECTION.copy(isLoading = true) else EMPTY_SECTION)
+
+                is AppResult.Success -> sectionFor(stopsResult.value, inputs)
             }
         }
+
+    private fun sectionFor(stops: List<Stop>, inputs: HomeInputs): Flow<FavoritesSection> {
+        val favoriteStops = stops.filter { it.id in inputs.favoriteIds }
+        val stopMap = stops.associateBy { it.id }
+        val routeInfos = inputs.savedRoutes.mapNotNull { sr ->
+            val origin = stopMap[sr.originStopId]
+            val dest = stopMap[sr.destinationStopId]
+            if (origin != null && dest != null) {
+                SavedRouteInfo(
+                    id = sr.id,
+                    originName = origin.name,
+                    destinationName = dest.name,
+                    originStopId = sr.originStopId,
+                    destinationStopId = sr.destinationStopId,
+                    label = sr.label,
+                )
+            } else {
+                null
+            }
+        }
+        if (favoriteStops.isEmpty()) {
+            return flowOf(FavoritesSection.Data(emptyList(), routeInfos, isLoading = false))
+        }
+        return combine(
+            flows = favoriteStops.map { stop ->
+                repository.observeArrivals(stop.id).map { result -> result.toFavoriteArrivals(stop) }
+            },
+            transform = { array -> FavoritesSection.Data(array.toList(), routeInfos, isLoading = false) },
+        )
+    }
+
+    private fun AppResult<List<Arrival>>.toFavoriteArrivals(stop: Stop) = when (this) {
+        is AppResult.Success -> FavoriteArrivals(stop, value, lastUpdatedMs = System.currentTimeMillis())
+        is AppResult.Failure -> FavoriteArrivals(stop, emptyList(), error = error)
+        AppResult.Loading -> FavoriteArrivals(stop, emptyList(), isLoading = true)
+    }
+
+    private fun AppResult<List<Alert>>.toStatus(): AlertsStatus = when (this) {
+        is AppResult.Success -> AlertsStatus.Loaded
+        is AppResult.Failure -> AlertsStatus.Unavailable(error)
+        AppResult.Loading -> AlertsStatus.Loading
+    }
 
     private val isRefreshing = MutableStateFlow(false)
 
@@ -174,10 +201,20 @@ class HomeViewModel(
     }
 }
 
-/** Everything the Home screen is derived from, combined into one emission. */
+/** Everything the favourites section is derived from, combined into one emission. */
 private data class HomeInputs(
-    val stops: List<Stop>,
+    val stops: AppResult<List<Stop>>,
     val favoriteIds: Set<String>,
-    val alerts: List<Alert>,
     val savedRoutes: List<SavedRoute>,
 )
+
+private sealed interface FavoritesSection {
+    data class Failed(val error: AppError) : FavoritesSection
+    data class Data(
+        val favorites: List<FavoriteArrivals>,
+        val savedRoutes: List<SavedRouteInfo>,
+        val isLoading: Boolean,
+    ) : FavoritesSection
+}
+
+private val EMPTY_SECTION = FavoritesSection.Data(emptyList(), emptyList(), isLoading = false)

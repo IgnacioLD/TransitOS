@@ -83,13 +83,15 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glossostudio.transitos.R
 import com.glossostudio.transitos.core.model.Arrival
+import com.glossostudio.transitos.core.result.AppResult
 import com.glossostudio.transitos.core.ui.AnimatedMinutes
 import com.glossostudio.transitos.core.ui.LineBadge
 import com.glossostudio.transitos.core.ui.R as coreUiR
 import com.glossostudio.transitos.core.ui.RealtimeDot
 import com.glossostudio.transitos.core.ui.StatusPill
+import com.glossostudio.transitos.core.ui.errorIcon
+import com.glossostudio.transitos.core.ui.errorTitle
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.onStart
 import org.koin.androidx.compose.koinViewModel
 import org.osmdroid.config.Configuration
 import org.osmdroid.events.MapListener
@@ -131,15 +133,15 @@ fun OSMNetworkMapRoute(
     var mapView by remember { mutableStateOf<MapView?>(null) }
     var focusedLine by remember { mutableStateOf<String?>(null) }
     var selectedStation by remember { mutableStateOf<MapStation?>(null) }
-    // One subscription per selected stop; null while the first poll is pending.
+    // One subscription per selected stop.
     val selectedStopId = selectedStation?.stopId
     val selectedArrivals by remember(selectedStopId) {
         if (selectedStopId == null) {
-            flowOf(emptyList())
+            flowOf(AppResult.Success(emptyList()))
         } else {
-            viewModel.observeArrivals(selectedStopId).onStart<List<Arrival>?> { emit(null) }
+            viewModel.observeArrivals(selectedStopId)
         }
-    }.collectAsStateWithLifecycle(initialValue = null)
+    }.collectAsStateWithLifecycle(initialValue = AppResult.Loading)
     var showLocation by remember { mutableStateOf(false) }
     var locationOverlay by remember { mutableStateOf<MyLocationNewOverlay?>(null) }
     var userLocation by remember { mutableStateOf<GeoPoint?>(null) }
@@ -464,7 +466,7 @@ fun OSMNetworkMapRoute(
 @Composable
 private fun StationArrivalsPanel(
     stationInfo: MapStation,
-    arrivals: List<Arrival>?,
+    arrivals: AppResult<List<Arrival>>,
     lineColor: (String) -> Long?,
     onClose: () -> Unit,
 ) {
@@ -522,7 +524,25 @@ private fun StationArrivalsPanel(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            } else if (arrivals == null) {
+            } else if (arrivals is AppResult.Failure) {
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Icon(
+                        errorIcon(arrivals.error),
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        errorTitle(arrivals.error),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            } else if (arrivals !is AppResult.Success) {
                 Spacer(Modifier.height(8.dp))
                 repeat(3) {
                     Row(
@@ -537,7 +557,7 @@ private fun StationArrivalsPanel(
                         SkeletonBox(modifier = Modifier.width(40.dp).height(14.dp), cornerRadius = 4.dp)
                     }
                 }
-            } else if (arrivals.isEmpty()) {
+            } else if (arrivals.value.isEmpty()) {
                 Spacer(Modifier.height(8.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -557,7 +577,7 @@ private fun StationArrivalsPanel(
                 }
             } else {
                 Spacer(Modifier.height(8.dp))
-                arrivals.take(4).forEach { arrival ->
+                arrivals.value.take(4).forEach { arrival ->
                     ArrivalRowCompact(arrival)
                 }
             }

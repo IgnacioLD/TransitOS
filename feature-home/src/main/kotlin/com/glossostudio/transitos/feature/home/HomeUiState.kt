@@ -11,6 +11,7 @@ sealed interface HomeUiState {
     data class Ready(
         val favorites: List<FavoriteArrivals>,
         val alerts: List<Alert>,
+        val alertsStatus: AlertsStatus = AlertsStatus.Loaded,
         val savedRoutes: List<SavedRouteInfo> = emptyList(),
         val isRefreshing: Boolean = false,
         /**
@@ -24,10 +25,21 @@ sealed interface HomeUiState {
     data class Error(val error: AppError) : HomeUiState
 }
 
+/** Whether [HomeUiState.Ready.alerts] is known: "no alerts" only when loaded. */
+sealed interface AlertsStatus {
+    data object Loading : AlertsStatus
+    data object Loaded : AlertsStatus
+    data class Unavailable(val error: AppError) : AlertsStatus
+}
+
 data class FavoriteArrivals(
     val stop: Stop,
     val arrivals: List<Arrival>,
     val lastUpdatedMs: Long = 0L,
+    /** True until the first live poll for this stop answers. */
+    val isLoading: Boolean = false,
+    /** Set when live times could not be loaded yet for this stop. */
+    val error: AppError? = null,
 )
 
 data class SavedRouteInfo(

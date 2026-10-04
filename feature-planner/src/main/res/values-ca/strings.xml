@@ -61,4 +61,5 @@
     <string name="planner_share_body">Viatge en Metrovalencia\n%1$s → %2$s\n%3$s\nPlanificat amb TransitOS: %4$s</string>
     <string name="planner_hint_title">Planifica el teu viatge</string>
     <string name="planner_hint_body">Tria origen i destinació, i ajusta la data o l\'hora. Et mostrarem les línies, els transbords i el temps total.</string>
+    <string name="planner_stations_unavailable">No s\'han pogut carregar les estacions</string>
 </resources>
