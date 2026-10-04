@@ -145,7 +145,7 @@ fun OSMNetworkMapRoute(
                     station.position.latitude, station.position.longitude,
                     results,
                 )
-                if (best == null || results[0] < best!!.second) {
+                if (best == null || results[0] < best.second) {
                     best = station to results[0]
                 }
             }

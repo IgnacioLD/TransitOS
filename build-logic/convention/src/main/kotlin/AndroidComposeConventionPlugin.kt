@@ -4,6 +4,7 @@ import com.glossostudio.transitos.buildlogic.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.getByType
 
 /**
  * Enables Compose on an Android module (application or library) and adds the
@@ -15,8 +16,7 @@ class AndroidComposeConventionPlugin : Plugin<Project> {
         with(target) {
             pluginManager.apply("org.jetbrains.kotlin.plugin.compose")
 
-            val android = extensions.getByName("android") as CommonExtension<*, *, *, *, *, *>
-            android.buildFeatures.compose = true
+            extensions.getByType<CommonExtension>().buildFeatures.compose = true
 
             dependencies {
                 val bom = platform(libs.lib("androidx-compose-bom"))

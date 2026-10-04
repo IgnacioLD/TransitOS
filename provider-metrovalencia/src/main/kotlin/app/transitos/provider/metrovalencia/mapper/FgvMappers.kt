@@ -21,6 +21,7 @@ import com.glossostudio.transitos.provider.metrovalencia.dto.FgvStationDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvTrainDto
 import com.glossostudio.transitos.provider.metrovalencia.dto.FgvTransbordoDto
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.number
 
 /**
  * Pure mappings from FGV wire DTOs to the universal domain models. All functions
@@ -189,7 +190,7 @@ internal fun parseArgbHexOrNull(hex: String): Long? = runCatching {
         8 -> clean.toLong(16)
         else -> null
     }
-}.getOrNull() ?: null
+}.getOrNull()
 
 /**
  * Maps a planificador-online2 response to a domain [Journey]. Unlike the
@@ -304,9 +305,9 @@ internal fun FgvTransbordoDto.toLeg(): JourneyLeg = JourneyLeg(
  * accepts. ISO `yyyy-MM-dd` returns HTTP 400.
  */
 internal fun LocalDate.formatAsFgvFecha(): String {
-    val day = dayOfMonth.toString().padStart(2, '0')
-    val month = monthNumber.toString().padStart(2, '0')
-    return "$day/$month/$year"
+    val dd = day.toString().padStart(2, '0')
+    val mm = month.number.toString().padStart(2, '0')
+    return "$dd/$mm/$year"
 }
 
 private const val STOP_ID_PREFIX = "mv:"

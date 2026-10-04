@@ -100,12 +100,13 @@ import com.glossostudio.transitos.core.ui.SkeletonBlock
 import com.glossostudio.transitos.core.ui.sharePlainText
 import com.glossostudio.transitos.core.util.stripDiacritics
 import com.glossostudio.transitos.feature.planner.R
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.DatePeriod
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.number
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
@@ -739,7 +740,7 @@ private fun ResultBottomSheet(
                         color = MaterialTheme.colorScheme.error,
                     )
                     Text(
-                        text = state.errorMessage!!,
+                        text = state.errorMessage,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -1305,7 +1306,7 @@ private fun StationPickerSheet(
 }
 
 private fun formatHumanDate(date: LocalDate): String {
-    val m = date.monthNumber.toString().padStart(2, '0')
-    val d = date.dayOfMonth.toString().padStart(2, '0')
+    val m = date.month.number.toString().padStart(2, '0')
+    val d = date.day.toString().padStart(2, '0')
     return "$d/$m"
 }

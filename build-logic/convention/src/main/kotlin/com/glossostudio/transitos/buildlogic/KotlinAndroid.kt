@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 internal object TransitosSdk {
-    const val COMPILE = 36
+    const val COMPILE = 37
     const val TARGET = 36
     const val MIN = 26
 }
@@ -19,17 +19,11 @@ private val JAVA_VERSION = JavaVersion.VERSION_17
 private val JVM_TARGET = JvmTarget.JVM_17
 
 /** Shared Android + Kotlin settings for every Android module (application or library). */
-internal fun Project.configureKotlinAndroid(commonExtension: CommonExtension<*, *, *, *, *, *>) {
-    commonExtension.apply {
-        compileSdk = TransitosSdk.COMPILE
-        defaultConfig {
-            minSdk = TransitosSdk.MIN
-        }
-        compileOptions {
-            sourceCompatibility = JAVA_VERSION
-            targetCompatibility = JAVA_VERSION
-        }
-    }
+internal fun Project.configureKotlinAndroid(commonExtension: CommonExtension) {
+    commonExtension.compileSdk = TransitosSdk.COMPILE
+    commonExtension.defaultConfig.minSdk = TransitosSdk.MIN
+    commonExtension.compileOptions.sourceCompatibility = JAVA_VERSION
+    commonExtension.compileOptions.targetCompatibility = JAVA_VERSION
     extensions.configure<KotlinAndroidProjectExtension> {
         compilerOptions {
             jvmTarget.set(JVM_TARGET)
