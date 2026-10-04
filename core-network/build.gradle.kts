@@ -1,27 +1,10 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
+    id("transitos.android.library")
     alias(libs.plugins.kotlin.serialization)
 }
 
 android {
     namespace = "com.glossostudio.transitos.core.network"
-    compileSdk = 36
-
-    defaultConfig {
-        minSdk = 26
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-    }
 }
 
 dependencies {

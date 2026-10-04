@@ -1,7 +1,6 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
+    id("transitos.android.application")
+    id("transitos.android.compose")
 }
 
 val keystoreProps = file("keystore.properties").let { f ->
@@ -15,12 +14,9 @@ val keystoreProps = file("keystore.properties").let { f ->
 
 android {
     namespace = "com.glossostudio.transitos"
-    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.glossostudio.transitos"
-        minSdk = 26
-        targetSdk = 36
         versionCode = 5
         versionName = "1.1.0"
 
@@ -51,13 +47,7 @@ android {
     }
 
     buildFeatures {
-        compose = true
         buildConfig = true
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
     }
 
     packaging {
@@ -67,12 +57,6 @@ android {
             "META-INF/DEPENDENCIES",
             "META-INF/io.netty.versions.properties",
         )
-    }
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
 
@@ -103,14 +87,7 @@ dependencies {
 
     implementation(libs.play.review)
 
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
-    implementation(libs.androidx.compose.foundation)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    implementation(libs.androidx.compose.ui.tooling.preview)
 
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
