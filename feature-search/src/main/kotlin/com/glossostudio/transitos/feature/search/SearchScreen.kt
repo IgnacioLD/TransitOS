@@ -56,7 +56,10 @@ import com.glossostudio.transitos.core.design.theme.LocalSpacing
 import com.glossostudio.transitos.core.design.theme.Motion
 import com.glossostudio.transitos.core.design.theme.PillShape
 import com.glossostudio.transitos.core.model.Stop
+import com.glossostudio.transitos.core.result.AppResult
+import com.glossostudio.transitos.core.result.map
 import com.glossostudio.transitos.core.ui.EmptyState
+import com.glossostudio.transitos.core.ui.ErrorState
 import com.glossostudio.transitos.core.ui.HintCard
 import com.glossostudio.transitos.core.ui.R as coreUiR
 import com.glossostudio.transitos.core.ui.SkeletonBlock
@@ -72,15 +75,16 @@ fun SearchRoute(
     val query by viewModel.query.collectAsStateWithLifecycle()
     val filteredStops by viewModel.filteredStops.collectAsStateWithLifecycle()
     val favoriteIds by viewModel.favoriteIds.collectAsStateWithLifecycle()
-    val allStops by viewModel.allStops.collectAsStateWithLifecycle()
+    val catalog by viewModel.catalog.collectAsStateWithLifecycle()
     val showHint by viewModel.showHint.collectAsStateWithLifecycle()
 
     SearchScreen(
         query = query,
         filteredStops = filteredStops,
         favoriteIds = favoriteIds,
-        allStopsSize = allStops.size,
+        catalog = catalog.map { it.size },
         showHint = showHint,
+        onRetry = viewModel::retry,
         onDismissHint = viewModel::dismissHint,
         onSkipHints = viewModel::skipHints,
         onQueryChange = viewModel::onQueryChange,
@@ -95,13 +99,15 @@ internal fun SearchScreen(
     query: String,
     filteredStops: List<Stop>,
     favoriteIds: Set<String>,
-    allStopsSize: Int,
+    /** The catalogue's load state, carrying the station count once loaded. */
+    catalog: AppResult<Int>,
     onQueryChange: (String) -> Unit,
     onToggleFavorite: (String) -> Unit,
     modifier: Modifier = Modifier,
     showHint: Boolean = false,
     onDismissHint: () -> Unit = {},
     onSkipHints: () -> Unit = {},
+    onRetry: () -> Unit = {},
 ) {
     val spacing = LocalSpacing.current
     Scaffold(
@@ -119,11 +125,14 @@ internal fun SearchScreen(
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                         )
-                        Text(
-                            text = stringResource(R.string.search_stations_count, allStopsSize),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        // Only a loaded catalogue has a count worth stating.
+                        if (catalog is AppResult.Success) {
+                            Text(
+                                text = stringResource(R.string.search_stations_count, catalog.value),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -156,15 +165,17 @@ internal fun SearchScreen(
             }
 
             when {
-                allStopsSize == 0 -> SearchSkeleton()
+                catalog is AppResult.Failure -> ErrorState(
+                    error = catalog.error,
+                    onRetry = onRetry,
+                    modifier = Modifier.fillMaxSize(),
+                )
+
+                catalog !is AppResult.Success -> SearchSkeleton()
 
                 filteredStops.isEmpty() -> EmptyState(
                     title = stringResource(R.string.search_no_results),
-                    subtitle = if (query.isBlank()) {
-                        stringResource(R.string.search_loading)
-                    } else {
-                        stringResource(R.string.search_no_match, query)
-                    },
+                    subtitle = query.takeIf { it.isNotBlank() }?.let { stringResource(R.string.search_no_match, it) },
                     modifier = Modifier.fillMaxSize(),
                 )
 

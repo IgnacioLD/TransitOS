@@ -7,6 +7,10 @@ package com.glossostudio.transitos.core.network
  */
 data class NetworkConfig(
     val debug: Boolean = false,
-    val connectTimeoutMs: Long = 10_000,
-    val requestTimeoutMs: Long = 15_000,
+    /** TCP connect; generous because slow DNS on mobile networks counts too. */
+    val connectTimeoutMs: Long = 15_000,
+    /** Max silence between bytes: catches a stalled connection quickly. */
+    val socketTimeoutMs: Long = 20_000,
+    /** Whole request including the body; the map bundle is ~6 MB on slow links. */
+    val requestTimeoutMs: Long = 60_000,
 )

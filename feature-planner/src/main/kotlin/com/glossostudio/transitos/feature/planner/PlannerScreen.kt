@@ -92,11 +92,14 @@ import com.glossostudio.transitos.core.design.theme.PillShape
 import com.glossostudio.transitos.core.model.Journey
 import com.glossostudio.transitos.core.model.JourneyLeg
 import com.glossostudio.transitos.core.model.Stop
+import com.glossostudio.transitos.core.result.AppError
 import com.glossostudio.transitos.core.ui.HintCard
 import com.glossostudio.transitos.core.ui.LineBadge
 import com.glossostudio.transitos.core.ui.R as coreUiR
 import com.glossostudio.transitos.core.ui.ShareDialog
 import com.glossostudio.transitos.core.ui.SkeletonBlock
+import com.glossostudio.transitos.core.ui.errorIcon
+import com.glossostudio.transitos.core.ui.errorTitle
 import com.glossostudio.transitos.core.ui.sharePlainText
 import com.glossostudio.transitos.core.util.stripDiacritics
 import com.glossostudio.transitos.feature.planner.R
@@ -125,6 +128,7 @@ fun PlannerRoute(
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val stops by viewModel.stops.collectAsStateWithLifecycle()
+    val catalogError by viewModel.catalogError.collectAsStateWithLifecycle()
     val showHint by viewModel.showHint.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val shareChooserTitle = stringResource(coreUiR.string.share_chooser_title)
@@ -133,6 +137,8 @@ fun PlannerRoute(
     PlannerScreen(
         state = state,
         stops = stops,
+        catalogError = catalogError,
+        onRetryCatalog = viewModel::retryCatalog,
         showHint = showHint,
         onDismissHint = viewModel::dismissHint,
         onSkipHints = viewModel::skipHints,
@@ -205,6 +211,8 @@ internal fun PlannerScreen(
     onSwap: () -> Unit,
     onSearch: () -> Unit,
     modifier: Modifier = Modifier,
+    catalogError: AppError? = null,
+    onRetryCatalog: () -> Unit = {},
     onSaveRoute: () -> Unit = {},
     onRemoveRoute: () -> Unit = {},
     onSelectJourney: (Int) -> Unit = {},
@@ -350,10 +358,14 @@ internal fun PlannerScreen(
                 }
             }
 
-            if (!state.canPlan) {
-                item {
-                    QuickPicks(stops = stops, onPick = onSelectOrigin)
-                }
+            item {
+                PlannerSuggestions(
+                    catalogError = catalogError,
+                    showQuickPicks = !state.canPlan,
+                    stops = stops,
+                    onPick = onSelectOrigin,
+                    onRetryCatalog = onRetryCatalog,
+                )
             }
         }
     }
@@ -731,14 +743,14 @@ private fun ResultBottomSheet(
                     }
                 }
 
-                state.errorMessage != null -> {
+                state.error != null -> {
                     Text(
                         text = stringResource(R.string.planner_error_title),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.error,
                     )
                     Text(
-                        text = state.errorMessage,
+                        text = errorTitle(state.error),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -1316,4 +1328,58 @@ private fun formatHumanDate(date: LocalDate): String {
     val m = date.month.number.toString().padStart(2, '0')
     val d = date.day.toString().padStart(2, '0')
     return "$d/$m"
+}
+
+/** Station suggestions, or why there are none when the catalogue failed to load. */
+@Composable
+private fun PlannerSuggestions(
+    catalogError: AppError?,
+    showQuickPicks: Boolean,
+    stops: List<Stop>,
+    onPick: (Stop) -> Unit,
+    onRetryCatalog: () -> Unit,
+) {
+    when {
+        catalogError != null -> CatalogUnavailableNotice(error = catalogError, onRetry = onRetryCatalog)
+        showQuickPicks -> QuickPicks(stops = stops, onPick = onPick)
+    }
+}
+
+/** Shown instead of the station suggestions when the catalogue failed to load. */
+@Composable
+private fun CatalogUnavailableNotice(
+    error: AppError,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val spacing = LocalSpacing.current
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.shapes.large)
+            .padding(start = spacing.lg, end = spacing.sm, top = spacing.sm, bottom = spacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(spacing.md),
+    ) {
+        Icon(
+            imageVector = errorIcon(error),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.planner_stations_unavailable),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = errorTitle(error),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        TextButton(onClick = onRetry) {
+            Text(stringResource(coreUiR.string.action_retry))
+        }
+    }
 }

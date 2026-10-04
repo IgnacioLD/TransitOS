@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.glossostudio.transitos.core.model.Alert
 import com.glossostudio.transitos.core.repository.TransitRepository
+import com.glossostudio.transitos.core.result.getOrNull
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 class MapViewModel(
@@ -14,6 +16,7 @@ class MapViewModel(
 ) : ViewModel() {
 
     val alerts: StateFlow<List<Alert>> = repository.observeAlerts()
+        .map { it.getOrNull().orEmpty() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /**
@@ -27,7 +30,7 @@ class MapViewModel(
         if (geometries.isEmpty()) {
             MapNetwork.fallback()
         } else {
-            MapNetwork.fromLive(geometries, stops)
+            MapNetwork.fromLive(geometries, stops.getOrNull().orEmpty())
         }
     }.stateIn(
         viewModelScope,

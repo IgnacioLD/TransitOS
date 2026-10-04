@@ -60,4 +60,5 @@
     <string name="planner_share_body">Trip on Metrovalencia\n%1$s → %2$s\n%3$s\nPlanned with TransitOS: %4$s</string>
     <string name="planner_hint_title">Plan your trip</string>
     <string name="planner_hint_body">Pick origin and destination, and adjust the date or time. We\'ll show you the lines, transfers and total time.</string>
+    <string name="planner_stations_unavailable">Couldn\'t load the stations</string>
 </resources>

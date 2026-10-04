@@ -54,6 +54,7 @@ val metrovalenciaModule = module {
             config = get(),
             ioScope = get(qualifier = named(PROVIDER_IO_QUALIFIER)),
             settings = get(),
+            networkMonitor = get(),
         )
     }
 }

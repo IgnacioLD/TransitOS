@@ -21,6 +21,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.koin.core)
+    implementation(libs.koin.android)
+    implementation(libs.androidx.core.ktx)
 
     testImplementation(libs.junit)
     testImplementation(libs.truth)

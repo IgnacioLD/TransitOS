@@ -10,6 +10,9 @@ import com.glossostudio.transitos.core.repository.ReviewPreference
 import com.glossostudio.transitos.core.repository.RouteFavoritesRepository
 import com.glossostudio.transitos.core.repository.TransferBufferPreference
 import com.glossostudio.transitos.core.repository.TransitRepository
+import com.glossostudio.transitos.core.result.AppError
+import com.glossostudio.transitos.core.result.AppResult
+import com.glossostudio.transitos.core.result.getOrNull
 import com.glossostudio.transitos.core.review.AppReviewer
 import kotlin.time.Clock
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,8 +39,21 @@ class PlannerViewModel(
 
     private val timeZone: TimeZone = TimeZone.currentSystemDefault()
 
-    val stops: StateFlow<List<Stop>> = repository.observeStops()
+    private val catalog: StateFlow<AppResult<List<Stop>>> = repository.observeStops()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppResult.Loading)
+
+    val stops: StateFlow<List<Stop>> = catalog
+        .map { it.getOrNull().orEmpty() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Set while the station list could not be loaded, so pickers would be empty. */
+    val catalogError: StateFlow<AppError?> = catalog
+        .map { (it as? AppResult.Failure)?.error }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    fun retryCatalog() {
+        viewModelScope.launch { repository.refresh() }
+    }
 
     private val savedRouteIds: StateFlow<Set<String>> = routeFavorites.observeSavedRoutes()
         .map { routes -> routes.map { it.id }.toSet() }
@@ -98,33 +114,31 @@ class PlannerViewModel(
         val origin = current.origin ?: return
         val destination = current.destination ?: return
         if (origin.id == destination.id) {
-            _state.update { it.copy(journeys = emptyList(), errorMessage = null, hasSearched = true) }
+            _state.update { it.copy(journeys = emptyList(), error = null, hasSearched = true) }
             return
         }
         val routeId = routeIdFor(origin.id, destination.id)
         viewModelScope.launch {
-            _state.update { it.copy(isPlanning = true, errorMessage = null, hasSearched = true) }
-            val result = runCatching {
-                repository.planJourney(
-                    originStopId = origin.id,
-                    destinationStopId = destination.id,
-                    date = current.date,
-                    hora = current.travelTime,
-                    isDeparture = current.timeMode == TimeMode.DEPARTURE,
-                    minTransferMinutes = transferBufferPreference.current(),
-                )
-            }
+            _state.update { it.copy(isPlanning = true, error = null, hasSearched = true) }
+            val result = repository.planJourney(
+                originStopId = origin.id,
+                destinationStopId = destination.id,
+                date = current.date,
+                hora = current.travelTime,
+                isDeparture = current.timeMode == TimeMode.DEPARTURE,
+                minTransferMinutes = transferBufferPreference.current(),
+            )
+            val journeys = result.getOrNull().orEmpty()
             _state.update { s ->
-                val journeys = result.getOrDefault(emptyList())
                 s.copy(
                     isPlanning = false,
                     journeys = journeys,
                     selectedJourneyIndex = 0,
-                    errorMessage = if (journeys.isEmpty()) result.exceptionOrNull()?.message else null,
+                    error = (result as? AppResult.Failure)?.error,
                     isSaved = routeId in savedRouteIds.value,
                 )
             }
-            if (result.getOrDefault(emptyList()).isNotEmpty()) {
+            if (journeys.isNotEmpty()) {
                 maybeRequestReview()
             }
         }
