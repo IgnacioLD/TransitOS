@@ -67,7 +67,10 @@ fun HintCard(
                         modifier = Modifier.size(21.dp),
                     )
                 }
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(spacing.xs),
+                ) {
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleSmall,
