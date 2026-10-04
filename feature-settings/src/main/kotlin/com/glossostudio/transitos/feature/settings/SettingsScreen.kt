@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -83,7 +82,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glossostudio.transitos.core.design.theme.LocalSpacing
 import com.glossostudio.transitos.core.repository.ThemeMode
@@ -122,12 +120,7 @@ fun SettingsRoute(
     SettingsScreen(
         onBack = onBack,
         currentLanguage = viewModel.currentLanguage,
-        onLanguageChange = { lang ->
-            viewModel.setLanguage(lang)
-            AppCompatDelegate.setApplicationLocales(
-                LocaleListCompat.forLanguageTags(lang),
-            )
-        },
+        onLanguageChange = viewModel::setLanguage,
         currentTheme = themeMode,
         onThemeChange = viewModel::setThemeMode,
         transferBufferMinutes = transferBuffer,

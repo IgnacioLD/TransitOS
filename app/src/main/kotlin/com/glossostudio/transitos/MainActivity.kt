@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.glossostudio.transitos.core.data.AppLocaleLanguagePreference
 import com.glossostudio.transitos.core.design.theme.TransitOSTheme
 import com.glossostudio.transitos.core.repository.ThemeMode
 import com.glossostudio.transitos.core.repository.ThemePreference
@@ -21,6 +22,7 @@ class MainActivity : AppCompatActivity() {
 
     private val themePreference: ThemePreference by inject()
     private val activityProvider: ActivityProvider by inject()
+    private val languagePreference: AppLocaleLanguagePreference by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Apply the system bar style before the first frame so the very first
@@ -32,6 +34,7 @@ class MainActivity : AppCompatActivity() {
         applySystemBarStyle(themeMode)
         super.onCreate(savedInstanceState)
         activityProvider.set(this)
+        languagePreference.migrateLegacyChoice()
 
         setContent {
             // A single collection of the theme preference drives both the
