@@ -30,7 +30,7 @@ Strict one-way layering: presentation (`:app`, `:feature-*`, `:core-ui`, `:core-
 - **FGV quirks**: read `provider-metrovalencia/RESEARCH.md` before touching the provider. Live arrivals (`horarios-prevision-3`) need session cookies from a prior catalogue call, which is why the shared Ktor client in `:core-network` keeps a cookie jar (`HttpClientCookiesTest`, `MetrovalenciaApiSessionTest`). The journey planner endpoint is flaky.
 - **DI is Koin** (no Hilt, no KSP). Each module exposes `di/<Name>Module.kt`; every module is listed in `startKoin` in `app/.../TransitOSApplication.kt`. A new feature or provider must be added to `settings.gradle.kts`, `app/build.gradle.kts` dependencies, and that `modules(...)` list; feature routes go in `app/.../TransitOSApp.kt`.
 - **UI state**: each feature has `XUiState` (sealed/immutable), `XViewModel` exposing `StateFlow`, and `XScreen` collecting with `collectAsStateWithLifecycle`. The network map lives in `:app` (`map/`, osmdroid on OSM tiles).
-- **Persistence**: `:core-data` implements the preference/favorites contracts from `:core` with a single Preferences DataStore (`TransitosDataStore.kt`). Language is the exception: `SharedPrefsLanguagePreference` is read synchronously at app start to set the AppCompat locale.
+- **Persistence**: `:core-data` implements the preference/favorites contracts from `:core` with a single Preferences DataStore (`TransitosDataStore.kt`). Language is the exception: `AppLocaleLanguagePreference` reads and writes the system per-app locale (AppCompat), the single source of truth for the UI language.
 
 ## Conventions and gotchas
 
