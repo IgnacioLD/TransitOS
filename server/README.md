@@ -10,9 +10,24 @@ This is a **standalone Gradle build**, deliberately decoupled from the Android
 build at the repository root, so the JVM/Ktor build never drags in AGP. Run it
 from inside `server/`.
 
-## Status: Phase 0 (skeleton)
+## Status: Phase 1 (Metrovalencia)
 
-Only `/health` exists so far. Operator endpoints land in later phases.
+Metrovalencia (FGV) is served end to end. EMT and Renfe land in later phases.
+
+| Endpoint                 | Returns                                      |
+| ------------------------ | -------------------------------------------- |
+| `GET /health`            | liveness/readiness                           |
+| `GET /operators`         | operators and their backends                 |
+| `GET /stops`             | boarding points (`mv:<id>` ids)              |
+| `GET /lines`             | commercial lines                             |
+| `GET /geometries`        | line shapes for the map                      |
+| `GET /arrivals/{stopId}` | next arrivals for a stop                     |
+| `GET /alerts`            | service alerts                               |
+| `GET /plan`              | journey alternatives (`from`, `to`, `date`, optional `time`, `arriveBy`, `minTransferMinutes`) |
+
+Every response is JSON in the app's `:core` model shapes. Upstream failures are
+surfaced as HTTP status codes (`404`/`502`) with an `{"error": "..."}` body; the
+server never leaks stack traces.
 
 ## Local development
 
@@ -30,6 +45,10 @@ Configuration is environment-only (no rebuilds to change it):
 | ------------------ | --------- | ----------------------------- |
 | `TRANSITOS_HOST`   | `0.0.0.0` | Bind address                  |
 | `TRANSITOS_PORT`   | `8080`    | Listen port                   |
+
+Politeness is built in: catalogues are cached for hours, arrivals for seconds
+and alerts for minutes, so one server instance makes at most one upstream request
+per interval regardless of how many app clients connect.
 
 ## Quality
 

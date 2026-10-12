@@ -11,7 +11,7 @@ import kotlin.test.assertTrue
 class HealthRouteTest {
     @Test
     fun healthReturnsOk() = testApplication {
-        application { module() }
+        application { transitModule(testService(noUpstreamEngine())) }
 
         val response = client.get("/health")
 
