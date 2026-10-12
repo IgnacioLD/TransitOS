@@ -121,11 +121,13 @@ Data (provider-*, core-network, core-data)  -> repository impls, Ktor, DataStore
 | `:feature-planner`        | Presentation | Trip planner screen + ViewModel                             |
 | `:feature-settings`       | Presentation | Settings, theme, language, about screen                     |
 | `:feature-onboarding`     | Presentation | First-run tour                                              |
-| `:provider-metrovalencia` | Data         | `TransitRepository` implementation for Metrovalencia (FGV)  |
+| `:provider-server`        | Data         | `TransitRepository` over the TransitOS server's unified API |
 
-Adding a new operator (for example EMT) means adding one `:provider-emt` module,
-implementing `TransitRepository`, and registering its Koin module in `:app`.
-Nothing else in the app changes.
+Operators are aggregated by a separate, self-hosted server (`server/`, Kotlin +
+Ktor) that fetches from each operator, caches politely and exposes one unified
+API. The app talks to that server through the single `:provider-server` module,
+so adding an operator (for example EMT) is a server-side change only - the app
+is untouched. See [`docs/multi-operator.md`](docs/multi-operator.md).
 
 ## Tech stack
 

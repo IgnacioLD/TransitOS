@@ -117,7 +117,7 @@ class MetrovalenciaApi(
     /**
      * Plans a journey via FGV's `horarios-online2`.
      *
-     * **Quirks discovered by probing** (see `RESEARCH.md`):
+     * **Quirks discovered by probing** (see `RESEARCH-metrovalencia.md`):
      *  - Body is form-encoded, NOT JSON. Posting JSON returns 422.
      *  - [fecha] must be `dd/MM/yyyy` (Spanish format). ISO `yyyy-MM-dd` returns
      *    HTTP 400 with "Error obteniendo horarios".

@@ -23,6 +23,13 @@ android {
         versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Base URL of the TransitOS aggregation server. Override per build with
+        // -Ptransitos.serverBaseUrl=... The default targets a server on the host
+        // machine from the Android emulator (10.0.2.2 is the host loopback).
+        val serverBaseUrl = (project.findProperty("transitos.serverBaseUrl") as String?)
+            ?: "http://10.0.2.2:8080"
+        buildConfigField("String", "SERVER_BASE_URL", "\"$serverBaseUrl\"")
     }
 
     signingConfigs {
@@ -74,7 +81,7 @@ dependencies {
     implementation(project(":feature-search"))
     implementation(project(":feature-settings"))
     implementation(project(":feature-onboarding"))
-    implementation(project(":provider-metrovalencia"))
+    implementation(project(":provider-server"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)

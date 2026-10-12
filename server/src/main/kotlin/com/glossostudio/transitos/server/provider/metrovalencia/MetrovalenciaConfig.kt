@@ -6,7 +6,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
  * Static configuration for the Metrovalencia provider.
  *
  * [baseUrl] targets the production endpoint exposed by FGV for its official app.
- * See `provider-metrovalencia/RESEARCH.md` for how it was discovered and why it
+ * See `server/RESEARCH-metrovalencia.md` for how it was discovered and why it
  * differs from the 2022-era `ap18/api/public/...` URL referenced by some
  * third-party projects.
  *

@@ -1,14 +1,14 @@
 # TransitOS: Multi-operator plan
 
-TransitOS ships today with a single operator, Metrovalencia (FGV), talking to
-FGV directly from the device. This document is the source of truth for growing
-into a multi-operator platform covering the rest of Valencia: **EMT** (urban
-buses), **Renfe Cercanías** (suburban rail) and, later, **Metrobus**
-(interurban buses).
+TransitOS started as a single operator, Metrovalencia (FGV), talking to FGV
+directly from the device. This document is the source of truth for growing into a
+multi-operator platform covering the rest of Valencia: **EMT** (urban buses),
+**Renfe Cercanías** (suburban rail) and, later, **Metrobus** (interurban buses).
 
-It is a plan, not the current architecture. `architecture.md` describes what is
-built; this file describes what we intend to build and why. When a phase lands,
-move the relevant decisions back into `architecture.md`.
+`architecture.md` describes what is built; this file is the plan and tracks its
+progress. **Phases 0 and 1 have landed:** the self-hosted server exists and
+serves Metrovalencia end to end, and the app reads from it through
+`:provider-server` instead of talking to FGV directly. EMT and Renfe are next.
 
 ## Motivation
 
@@ -20,7 +20,7 @@ Three forces drive this work:
    `Line.operatorId`, `ProviderRegistry`).
 2. **Politeness.** FGV's live-arrivals endpoint is undocumented and we already
    treat it carefully (low poll rates, aggressive caching, a real `User-Agent`,
-   see `provider-metrovalencia/RESEARCH.md`). Reaching three operators from every
+   see `server/RESEARCH-metrovalencia.md`). Reaching three operators from every
    install multiplies the load we place on public infrastructure. A single
    self-hosted server makes one request per interval no matter how many users.
 3. **Secrets and reach.** The NAP (National Access Point) GTFS feed requires an
@@ -175,7 +175,7 @@ or ad layer.
 
 ## Phases
 
-### Phase 0 - Server skeleton
+### Phase 0 - Server skeleton (done)
 
 Ktor app with `/health`, configuration plumbing and the unified-schema module,
 plus the Docker build and Caddy config. Deploy a hello-world to the VPS.
@@ -183,12 +183,14 @@ plus the Docker build and Caddy config. Deploy a hello-world to the VPS.
 *Done when*: the VPS serves a healthy `/health` over TLS from a containerised
 build.
 
-### Phase 1 - Migrate Metrovalencia to the server
+### Phase 1 - Migrate Metrovalencia to the server (done)
 
 Move the FGV layer (`MetrovalenciaApi`, its session handling, `dto/`,
 `mapper/FgvMappers.kt`) into the server, expose `/stops`, `/lines`,
 `/geometries`, `/arrivals`, `/alerts`, `/plan`, and replace the app's
-`:provider-metrovalencia` with `:provider-server`.
+`:provider-metrovalencia` with `:provider-server`. Landed in two commits: the
+server side first (live-verified), then the app swap. The FGV research notes
+moved to `server/RESEARCH-metrovalencia.md`.
 
 *Done when*: the app shows Metrovalencia with parity to today (arrivals,
 catalogues, planner, alerts, map geometry) sourced entirely from the server, and
@@ -237,5 +239,5 @@ GTFS static + GTFS-RT via NAP, same machinery as Phase 3.
   graph and the stack.
 - `PRIVACY.md`, `README.md`: rewrite the "no intermediate server" claims in the
   same change that lands the server.
-- Each provider gets its own `RESEARCH.md` (data source, licence, endpoint
-  quirks), mirroring `provider-metrovalencia/RESEARCH.md`.
+- Each provider gets its own research note (data source, licence, endpoint
+  quirks), mirroring `server/RESEARCH-metrovalencia.md`.

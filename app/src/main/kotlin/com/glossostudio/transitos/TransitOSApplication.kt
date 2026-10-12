@@ -9,7 +9,7 @@ import com.glossostudio.transitos.feature.planner.di.plannerModule
 import com.glossostudio.transitos.feature.search.di.searchModule
 import com.glossostudio.transitos.feature.settings.di.settingsModule
 import com.glossostudio.transitos.map.appMapModule
-import com.glossostudio.transitos.provider.metrovalencia.di.metrovalenciaModule
+import com.glossostudio.transitos.provider.server.di.providerServerModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -24,7 +24,7 @@ class TransitOSApplication : Application() {
             modules(
                 networkModule(debug = BuildConfig.DEBUG),
                 coreDataModule,
-                metrovalenciaModule,
+                providerServerModule(BuildConfig.SERVER_BASE_URL),
                 homeModule,
                 searchModule,
                 plannerModule,

@@ -42,6 +42,7 @@ dependencies {
     testImplementation(libs.ktor.client.mock)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.truth)
+    testImplementation(libs.kotlinx.coroutines.test)
 }
 
 // Formatting and static analysis mirror the Android build's conventions so the

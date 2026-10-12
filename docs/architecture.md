@@ -40,7 +40,7 @@ back into this file.
                              v
 +-------------------------------------------------------------+
 | Data                                                        |
-|   :provider-metrovalencia  :core-network  :core-data        |
+|   :provider-server  :core-network  :core-data               |
 |   Repository impls, Ktor HttpClient, DataStore, DTOs        |
 +-------------------------------------------------------------+
 ```
@@ -69,7 +69,7 @@ Rules:
  +-- :feature-planner       -> :core, :core-data, :core-design, :core-ui
  +-- :feature-settings      -> :core, :core-data, :core-design, :core-ui
  +-- :feature-onboarding    -> :core, :core-data, :core-design, :core-ui
- +-- :provider-metrovalencia -> :core, :core-network
+ +-- :provider-server        -> :core, :core-network
 
 :core               (pure Kotlin/JVM, no Android)
 :core-data          (Android library, DataStore preferences + favorites)
@@ -82,24 +82,16 @@ server/             (separate Gradle build, planned) -> :core (models only)
 Adding a feature: create `:feature-<name>` depending on `:core`, `:core-design`,
 `:core-ui`. Wire its Koin module in `:app`.
 
-Adding an operator: create `:provider-<operator>` depending on `:core` and
-`:core-network`, implement `TransitRepository`, expose a Koin module, and
-register it in `:app`. To add an operator to the *shipping app*, see the
-multi-operator plan below instead: operators are now intended to be aggregated
-by a self-hosted server, not implemented one by one inside the APK.
-
-## Planned: multi-operator server
-
-The app is moving to a **self-hosted aggregation server** (`server/`, Kotlin/Ktor)
-that fetches from every operator (FGV/Metrovalencia, EMT, Renfe Cercanías,
-Metrobus), parses their formats, and exposes one unified REST API. The app keeps
-a single thin provider, `:provider-server`, implementing `TransitRepository`
-against that API; `:provider-metrovalencia` is replaced. This centralises
-politeness (one upstream request per interval regardless of user count), keeps
-the NAP `ApiKey` off the device, and moves heavy GTFS/GTFS-RT parsing server-side.
-
-This is a plan, not the current state. The full plan - decisions, API, phases and
-risks - lives in [`multi-operator.md`](./multi-operator.md).
+Adding an operator: operators are aggregated by the **self-hosted server**
+(`server/`, Kotlin/Ktor), not implemented one by one inside the APK. The server
+fetches from each operator (FGV/Metrovalencia today; EMT, Renfe Cercanías and
+Metrobus next), parses their formats, caches politely, and exposes one unified
+REST API. The app keeps a single thin provider, `:provider-server`, implementing
+`TransitRepository` against that API, so adding an operator is a server-side
+change only. This centralises politeness (one upstream request per interval
+regardless of user count), keeps the NAP `ApiKey` off the device, and moves heavy
+GTFS/GTFS-RT parsing server-side. See [`multi-operator.md`](./multi-operator.md)
+for the full plan.
 
 ## State management
 
