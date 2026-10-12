@@ -1,0 +1,7 @@
+# Caddy terminates TLS (automatic certificates) and proxies to the app.
+# Set TRANSITOS_DOMAIN to the public hostname in production; the container gets
+# it from the environment (see .env.example / docker-compose.yml).
+{$TRANSITOS_DOMAIN:localhost} {
+	encode zstd gzip
+	reverse_proxy server:8080
+}

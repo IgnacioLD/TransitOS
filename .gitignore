@@ -27,6 +27,9 @@ Thumbs.db
 *.keystore
 keystore.properties
 
+# Environment files (server secrets, e.g. NAP API keys)
+.env
+
 # Logs
 *.log
 

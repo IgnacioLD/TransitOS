@@ -75,6 +75,8 @@ Rules:
 :core-data          (Android library, DataStore preferences + favorites)
 :core-network       (Android library, Ktor)
 :core-design        (Android library, Compose theme)
+
+server/             (separate Gradle build, planned) -> :core (models only)
 ```
 
 Adding a feature: create `:feature-<name>` depending on `:core`, `:core-design`,
@@ -82,7 +84,22 @@ Adding a feature: create `:feature-<name>` depending on `:core`, `:core-design`,
 
 Adding an operator: create `:provider-<operator>` depending on `:core` and
 `:core-network`, implement `TransitRepository`, expose a Koin module, and
-register it in `:app`.
+register it in `:app`. To add an operator to the *shipping app*, see the
+multi-operator plan below instead: operators are now intended to be aggregated
+by a self-hosted server, not implemented one by one inside the APK.
+
+## Planned: multi-operator server
+
+The app is moving to a **self-hosted aggregation server** (`server/`, Kotlin/Ktor)
+that fetches from every operator (FGV/Metrovalencia, EMT, Renfe Cercanías,
+Metrobus), parses their formats, and exposes one unified REST API. The app keeps
+a single thin provider, `:provider-server`, implementing `TransitRepository`
+against that API; `:provider-metrovalencia` is replaced. This centralises
+politeness (one upstream request per interval regardless of user count), keeps
+the NAP `ApiKey` off the device, and moves heavy GTFS/GTFS-RT parsing server-side.
+
+This is a plan, not the current state. The full plan - decisions, API, phases and
+risks - lives in [`multi-operator.md`](./multi-operator.md).
 
 ## State management
 
@@ -127,6 +144,8 @@ Koin, chosen over Hilt deliberately:
 - **Jetpack Compose** (BOM-managed), Material 3, dynamic colour
 - **Ktor 3** for HTTP (one shared `HttpClient`; providers plug in their own
   endpoints)
+- **Ktor server** (planned) for the multi-operator aggregation server in
+  `server/`, sharing the `:core` models; see [`multi-operator.md`](./multi-operator.md)
 - **Koin 4** for dependency injection
 - **DataStore** for preferences and favorites (wired in `:core-data`)
 - **osmdroid** for the network map

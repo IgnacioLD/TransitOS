@@ -49,3 +49,29 @@ jobs:
             **/build/reports/
             **/build/test-results/
           retention-days: 7
+
+  server:
+    name: "Server: format, analysis, tests, package"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Check
+        working-directory: server
+        run: >
+          ./gradlew --continue
+          spotlessCheck
+          detekt
+          test
+          buildFatJar
